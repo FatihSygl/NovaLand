@@ -30,12 +30,12 @@
   </ControlTemplate>
   <Style x:Key="QuietInput" TargetType="TextBox">
    <Setter Property="Foreground" Value="#F0F0F3" />
-   <Setter Property="CaretBrush" Value="#FFB45B" />
+   <Setter Property="CaretBrush" Value="#F0BB82" />
    <Setter Property="BorderBrush" Value="#303034" />
    <Setter Property="Padding" Value="12,10" />
    <Setter Property="FontSize" Value="12" />
    <Setter Property="VerticalContentAlignment" Value="Center" />
-   <Setter Property="SelectionBrush" Value="#725238" />
+   <Setter Property="SelectionBrush" Value="#444453" />
    <Setter Property="IsReadOnly" Value="False" />
    <Setter Property="Focusable" Value="True" />
    <Setter Property="IsTabStop" Value="True" />
@@ -53,8 +53,8 @@
   </Style>
   <Style x:Key="WarmButton" TargetType="Button" BasedOn="{StaticResource Chip}">
    <Setter Property="Template" Value="{StaticResource SoftButtonTemplate}" />
-   <Setter Property="Background" Value="#E5B38A" />
-   <Setter Property="Foreground" Value="#201810" />
+   <Setter Property="Background" Value="#D7D7E3" />
+   <Setter Property="Foreground" Value="#18181D" />
    <Setter Property="FontWeight" Value="SemiBold" />
    <Setter Property="FontSize" Value="11" />
    <Setter Property="Padding" Value="15,9" />
@@ -65,7 +65,7 @@
    <Setter Property="HorizontalAlignment" Value="Stretch" />
   </Style>
   <DataTemplate x:Key="ClipboardTextRow">
-   <Border Background="#141416" CornerRadius="16" Padding="11" Margin="0,0,0,7" BorderBrush="#242427" BorderThickness="0.5">
+   <Border Background="#1A1A1E" CornerRadius="16" Padding="11" Margin="0,0,0,7" BorderBrush="#2A2A30" BorderThickness="0.5">
     <Grid>
      <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*" />
@@ -85,7 +85,7 @@
    </Border>
   </DataTemplate>
   <DataTemplate x:Key="ClipboardImageRow">
-   <Border Background="#141416" CornerRadius="16" Padding="10" Margin="0,0,0,7" BorderBrush="#242427" BorderThickness="0.5">
+   <Border Background="#1A1A1E" CornerRadius="16" Padding="10" Margin="0,0,0,7" BorderBrush="#2A2A30" BorderThickness="0.5">
     <Grid>
      <Grid.ColumnDefinitions>
       <ColumnDefinition Width="89" />
@@ -111,7 +111,7 @@
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
     <Border x:Name="surface" CornerRadius="12" Background="Transparent" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/></Border>
     <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="surface" Property="Background" Value="#242427"/></Trigger>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="surface" Property="Background" Value="#2A2A30"/></Trigger>
      <Trigger Property="IsPressed" Value="True"><Setter TargetName="surface" Property="Opacity" Value="0.6"/></Trigger>
      <Trigger Property="IsEnabled" Value="False"><Setter TargetName="surface" Property="Opacity" Value="0.4"/></Trigger>
      <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="surface" Property="BorderThickness" Value="1"/><Setter TargetName="surface" Property="BorderBrush" Value="#74747C"/></Trigger>
@@ -119,8 +119,8 @@
    </ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style x:Key="DockTab" TargetType="Button" BasedOn="{StaticResource Chip}">
-   <Setter Property="Width" Value="36" />
-   <Setter Property="Height" Value="32" />
+   <Setter Property="Width" Value="34" />
+   <Setter Property="Height" Value="34" />
    <Setter Property="Padding" Value="0" />
    <Setter Property="Background" Value="Transparent" />
    <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
@@ -128,14 +128,14 @@
    <Setter Property="Margin" Value="2,0" />
   </Style>
   <Style x:Key="DockActive" TargetType="Button" BasedOn="{StaticResource DockTab}">
-   <Setter Property="Background" Value="#28282B" />
+   <Setter Property="Background" Value="#39393F" />
    <Setter Property="Foreground" Value="White" />
   </Style>
  </Window.Resources>
  <Grid x:Name="IslandRoot" Margin="12,0,12,12">
-  <Border x:Name="Shell" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave" CornerRadius="0,0,22,22" Background="#030303" BorderThickness="0,0,0,0.5" BorderBrush="#363639">
+  <Border x:Name="Shell" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave" CornerRadius="0,0,22,22" Background="#101012" BorderThickness="0,0,0,0.5" BorderBrush="#303036">
    <Border.Effect>
-    <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="4" Opacity="0.4" />
+    <DropShadowEffect Color="#000000" BlurRadius="24" ShadowDepth="6" Opacity="0.32" />
    </Border.Effect>
    <Grid>
     <Grid.RowDefinitions>
@@ -166,7 +166,7 @@
       </StackPanel>
       <TextBlock x:Name="IdleClock" Grid.Column="2" Foreground="#F0ECE6" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="19" FontWeight="Light" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center" />
      </Grid>
-     <Path x:Name="NoticeIcon" Grid.Column="0" Data="M5,17 L19,17 17,14 17,9 A5,5 0 0 0 7,9 L7,14 Z M10,20 A2,2 0 0 0 14,20" Stroke="#FFB45B" StrokeThickness="1.8" Width="19" Height="21" Stretch="Uniform" Margin="0,0,11,0" Visibility="Collapsed" />
+     <Path x:Name="NoticeIcon" Grid.Column="0" Data="M5,17 L19,17 17,14 17,9 A5,5 0 0 0 7,9 L7,14 Z M10,20 A2,2 0 0 0 14,20" Stroke="#F0BB82" StrokeThickness="1.8" Width="19" Height="21" Stretch="Uniform" Margin="0,0,11,0" Visibility="Collapsed" />
      <Border x:Name="MiniArtwork" Width="25" Height="25" CornerRadius="7" Background="#202022" Margin="0,0,11,0" Visibility="Collapsed">
       <Grid>
        <TextBlock x:Name="MiniArtworkFallback" Text="" FontFamily="Segoe MDL2 Assets" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -224,8 +224,8 @@
        <Rectangle x:Name="Wave3" Width="3" Height="18" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource Accent}" Margin="0,0,3,0" VerticalAlignment="Center" />
        <Rectangle x:Name="Wave4" Width="3" Height="9" RadiusX="1.5" RadiusY="1.5" Fill="{StaticResource Accent}" VerticalAlignment="Center" />
       </StackPanel>
-      <Ellipse x:Name="IdleDot" Width="5" Height="5" Fill="#636366" Margin="13,0,0,0" />
-      <TextBlock x:Name="ExpandMark" Text="" FontFamily="Segoe MDL2 Assets" FontSize="9" Foreground="#636366" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" />
+      <Ellipse x:Name="IdleDot" Width="5" Height="5" Fill="#777782" Margin="13,0,0,0" />
+      <TextBlock x:Name="ExpandMark" Text="" FontFamily="Segoe MDL2 Assets" FontSize="9" Foreground="#777782" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" />
      </StackPanel>
     </Grid>
     <Grid x:Name="Expanded" Grid.Row="1" Visibility="Collapsed" Opacity="0" Margin="24,6,24,12" RenderTransformOrigin="0.5,0">
@@ -242,24 +242,21 @@
        <TranslateTransform x:Name="ViewTranslate" />
       </Grid.RenderTransform>
       <StackPanel x:Name="MusicView">
-       <Button Style="{StaticResource GhostButton}" HorizontalContentAlignment="Stretch" Padding="0" Margin="0,8,0,0" Click="WeatherOpen_Click" ToolTip="Animasyonlu hava durumunu aç">
-        <Border CornerRadius="13" Background="#121A23" Padding="12,10"><DockPanel><TextBlock Text="☁" Foreground="#A9D5EF" FontSize="17" Margin="0,0,10,0"/><TextBlock Text="›" DockPanel.Dock="Right" Foreground="#64798C"/><TextBlock x:Name="WeatherMini" Text="Hava durumu · Şehir seç" FontSize="10" Foreground="#B9CAD9" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/></DockPanel></Border>
-       </Button>
        <Grid x:Name="SongInfo" Margin="0,12,0,0">
         <Grid.RenderTransform>
          <TranslateTransform x:Name="SongTranslate" />
         </Grid.RenderTransform>
         <Grid.ColumnDefinitions>
-         <ColumnDefinition Width="96" />
+         <ColumnDefinition Width="124" />
          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Border x:Name="AlbumCover" Width="80" Height="80" CornerRadius="18" Background="#19191B" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
+        <Border x:Name="AlbumCover" Width="104" Height="104" CornerRadius="24" Background="#19191B" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
          <Border.RenderTransform>
           <ScaleTransform x:Name="AlbumScale" ScaleX="0.9" ScaleY="0.9" />
          </Border.RenderTransform>
          <Grid>
-          <TextBlock x:Name="ArtworkFallback" Text="" FontFamily="Segoe MDL2 Assets" FontSize="29" Foreground="#636366" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <Border CornerRadius="18">
+          <TextBlock x:Name="ArtworkFallback" Text="" FontFamily="Segoe MDL2 Assets" FontSize="29" Foreground="#777782" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <Border CornerRadius="24">
            <Border.Background>
             <ImageBrush x:Name="ArtworkBrush" Stretch="UniformToFill" />
            </Border.Background>
@@ -269,7 +266,7 @@
         <StackPanel Grid.Column="1" VerticalAlignment="Center">
          <TextBlock x:Name="TrackTitle" Text="Henüz bir şey çalmıyor" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
          <TextBlock x:Name="TrackArtist" Text="Spotify veya YouTube’da bir şey aç" FontSize="12" Foreground="#A1A1A6" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />
-         <TextBlock x:Name="PlaybackLabel" Text="MÜZİK" FontSize="8" Foreground="#636366" Margin="0,9,0,0" />
+         <TextBlock x:Name="PlaybackLabel" Text="MÜZİK" FontSize="8" Foreground="#777782" Margin="0,9,0,0" />
         </StackPanel>
        </Grid>
        <Slider x:Name="TimelineSlider" Minimum="0" Maximum="1" Value="0" Margin="0,18,0,0" ValueChanged="TimelineSlider_ValueChanged" AutomationProperties.Name="Parça konumu" />
@@ -278,8 +275,8 @@
          <ColumnDefinition Width="*" />
          <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="ElapsedLabel" Text="0:00" FontSize="10" Foreground="#636366" />
-        <TextBlock x:Name="DurationLabel" Grid.Column="1" Text="–:––" FontSize="10" Foreground="#636366" />
+        <TextBlock x:Name="ElapsedLabel" Text="0:00" FontSize="10" Foreground="#777782" />
+        <TextBlock x:Name="DurationLabel" Grid.Column="1" Text="–:––" FontSize="10" Foreground="#777782" />
        </Grid>
        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,12">
         <Button x:Name="PreviousButton" Style="{StaticResource Transport}" Click="Previous_Click" ToolTip="Önceki parça">
@@ -296,49 +293,34 @@
          <Path Fill="White" Width="23" Height="18" Stretch="Uniform" Data="F1 M1,1 L11,9 1,17 Z M11,1 L21,9 11,17 Z" />
         </Button>
        </StackPanel>
-       <Grid Margin="0,3,0,0">
-        <Grid.ColumnDefinitions>
-         <ColumnDefinition Width="24" />
-         <ColumnDefinition Width="*" />
-         <ColumnDefinition Width="32" />
-        </Grid.ColumnDefinitions>
-        <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="13" Foreground="#8E8E93" VerticalAlignment="Center" />
-        <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="50" ValueChanged="VolumeSlider_ValueChanged" AutomationProperties.Name="Ses seviyesi" />
-        <TextBlock x:Name="VolumeValue" Grid.Column="2" FontSize="10" Foreground="{StaticResource Muted}" VerticalAlignment="Center" HorizontalAlignment="Right" />
-       </Grid>
-       <Border x:Name="QuickSiteCard" Visibility="Collapsed" Background="#111113" CornerRadius="15" Padding="11,9,11,5" Margin="0,13,0,0">
+       <Border Background="#19191D" CornerRadius="18" Padding="14,9,14,10" Margin="0,12,0,0" BorderBrush="#29292F" BorderThickness="0.5">
         <StackPanel>
-         <Grid>
-          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <Button Click="BrowserMute_Click" Style="{StaticResource GhostButton}" Padding="0" Width="25" Height="25" Margin="0,0,8,0" ToolTip="Seçilen sesi kapat">
-           <Border Background="#232326" CornerRadius="8" Width="25" Height="25">
-            <Path Data="M3,7 L6,7 10,3 10,17 6,13 3,13 Z M13,6 C16,8 16,12 13,14" Stroke="#B6B6BD" StrokeThickness="1.4" Width="13" Height="14" Stretch="Uniform"/>
-           </Border>
-          </Button>
-          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" ToolTip="{Binding Detail}"><TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Medium" MaxWidth="135" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Kind}" FontSize="8" Foreground="#696972" VerticalAlignment="Center" Margin="7,1,0,0"/></StackPanel>
-          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,9,0">
-           <Button x:Name="QuickSitePrevious" Tag="-1" Click="QuickSiteCycle_Click" Style="{StaticResource GhostButton}" Width="23" Height="26" Padding="0" ToolTip="Önceki ses kaynağı"><Path Data="M7,2 L3,6 7,10" Stroke="#9999A1" StrokeThickness="1.3" Width="4" Height="8" Stretch="Fill"/></Button>
-           <TextBlock x:Name="QuickSiteCount" FontSize="8" Foreground="#686870" VerticalAlignment="Center"/>
-           <Button x:Name="QuickSiteNext" Tag="1" Click="QuickSiteCycle_Click" Style="{StaticResource GhostButton}" Width="23" Height="26" Padding="0" ToolTip="Sonraki ses kaynağı"><Path Data="M3,2 L7,6 3,10" Stroke="#9999A1" StrokeThickness="1.3" Width="4" Height="8" Stretch="Fill"/></Button>
-          </StackPanel>
-          <TextBlock Grid.Column="3" Text="{Binding Percent}" Width="33" FontSize="10" Foreground="#8E8E96" VerticalAlignment="Center" TextAlignment="Right"/>
+         <Button x:Name="AudioSourceButton" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="0,3,6,5" Click="AudioSource_Click" ToolTip="Sistem, uygulama veya site seç">
+          <StackPanel Orientation="Horizontal"><Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.4" Width="15" Height="16" Stretch="Uniform" Margin="0,0,9,0"/><TextBlock x:Name="AudioSourceTitle" Text="Sistem" FontSize="11" FontWeight="Medium" MaxWidth="230" TextTrimming="CharacterEllipsis" Foreground="#DCDCE4"/><Path Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2" Width="8" Height="4" Stretch="Fill" Margin="8,0,0,0"/></StackPanel>
+         </Button>
+         <Grid x:Name="SystemVolumeRow"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+          <Slider x:Name="VolumeSlider" Style="{StaticResource ControlSlider}" Minimum="0" Maximum="100" Value="50" ValueChanged="VolumeSlider_ValueChanged" AutomationProperties.Name="Sistem sesi"/>
+          <TextBlock x:Name="VolumeValue" Grid.Column="1" FontSize="10" Foreground="#93939E" VerticalAlignment="Center" HorizontalAlignment="Right"/>
          </Grid>
-         <Slider Margin="1,1,1,0" Style="{StaticResource ControlSlider}" Minimum="0" Maximum="100" Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Seçilen uygulama veya sitenin sesi"/>
+         <Grid x:Name="QuickSiteCard" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+          <Slider Style="{StaticResource ControlSlider}" Minimum="0" Maximum="100" Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Seçilen uygulama veya sitenin sesi"/>
+          <TextBlock Grid.Column="1" Text="{Binding Percent}" FontSize="10" Foreground="#93939E" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+         </Grid>
         </StackPanel>
        </Border>
       </StackPanel>
       <ScrollViewer x:Name="FocusView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <StackPanel Margin="0,6,0,5">
         <TextBlock x:Name="TimerLabel" Text="Biraz alan aç. Odaklan." FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,7,0,0" />
-        <TextBlock x:Name="TimerValue" Text="25:00" FontSize="64" FontWeight="Light" Foreground="#FFB45B" HorizontalAlignment="Center" Margin="0,-2,0,0" />
-        <ProgressBar x:Name="TimerProgress" Minimum="0" Maximum="100" Height="3" Margin="37,6,37,0" Foreground="#FFB45B" Background="#292320" BorderThickness="0" />
+        <TextBlock x:Name="TimerValue" Text="25:00" FontSize="64" FontWeight="Light" Foreground="#F0BB82" HorizontalAlignment="Center" Margin="0,-2,0,0" />
+        <ProgressBar x:Name="TimerProgress" Minimum="0" Maximum="100" Height="3" Margin="37,6,37,0" Foreground="#F0BB82" Background="#292320" BorderThickness="0" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,17,0,15">
          <Button x:Name="TimerStart" Content="Başlat" Width="148" Height="38" Style="{StaticResource WarmButton}" Click="TimerStart_Click" Margin="0,0,8,0" />
          <Button Width="38" Height="38" Style="{StaticResource GhostButton}" Click="TimerReset_Click" ToolTip="Sayacı sıfırla" AutomationProperties.Name="Sayacı sıfırla">
           <Path Data="M5,7 A7,7 0 1 1 4,15 M1,7 L5,7 5,3" Stroke="#9999A1" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform"/>
          </Button>
         </StackPanel>
-        <Border Background="#141416" CornerRadius="15" Padding="12,5" HorizontalAlignment="Center">
+        <Border Background="#1A1A1E" CornerRadius="15" Padding="12,5" HorizontalAlignment="Center">
          <StackPanel Orientation="Horizontal">
           <TextBlock Text="Süre" FontSize="10" Foreground="#83838C" VerticalAlignment="Center" Margin="0,0,12,0"/>
           <TextBox x:Name="FocusMinutesInput" Text="25" MaxLength="4" Width="51" Style="{StaticResource QuietInput}" Background="Transparent" BorderThickness="0" Padding="2,5" FontSize="16" TextAlignment="Center" KeyDown="FocusMinutesInput_KeyDown" AutomationProperties.Name="Odak süresi, dakika"/>
@@ -355,7 +337,7 @@
           <Button Content="50 dk" Tag="50" Style="{StaticResource Chip}" FontSize="10" Padding="12,6" Click="Preset_Click"/>
          </StackPanel>
         </Expander>
-        <Border Background="#222225" Height="1" Margin="0,24,0,17" />
+        <Border Background="#29292E" Height="1" Margin="0,24,0,17" />
         <Grid Margin="0,0,0,10">
          <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
@@ -364,9 +346,9 @@
          </Grid.ColumnDefinitions>
          <TextBlock Text="Hatırlatıcılar" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
          <Button x:Name="ReminderClearDone" Grid.Column="1" Content="Bitenleri sil" Style="{StaticResource GhostButton}" FontSize="9" Click="ReminderClearDone_Click" />
-         <Button x:Name="ReminderOpen" Grid.Column="2" Content="+ Hatırlatıcı ekle" Style="{StaticResource GhostButton}" Foreground="#E5B38A" FontSize="10" Click="ReminderOpen_Click" />
+         <Button x:Name="ReminderOpen" Grid.Column="2" Content="+ Hatırlatıcı ekle" Style="{StaticResource GhostButton}" Foreground="#D7D7E3" FontSize="10" Click="ReminderOpen_Click" />
         </Grid>
-        <Border x:Name="ReminderComposer" Visibility="Collapsed" Background="#141416" CornerRadius="18" Padding="16" Margin="0,0,0,12">
+        <Border x:Name="ReminderComposer" Visibility="Collapsed" Background="#1A1A1E" CornerRadius="18" Padding="16" Margin="0,0,0,12">
          <StackPanel>
           <Grid Margin="0,0,0,12">
            <Grid.ColumnDefinitions>
@@ -511,7 +493,7 @@
         <Button Grid.Column="1" Content="+ Ekle" Style="{StaticResource Chip}" Click="AddFiles_Click" Padding="9,4" VerticalAlignment="Center" />
        </Grid>
        <Grid Grid.Row="2">
-        <TextBlock x:Name="FileEmpty" Text="Henüz sabitlenen dosya yok." FontSize="11" Foreground="#636366" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <TextBlock x:Name="FileEmpty" Text="Henüz sabitlenen dosya yok." FontSize="11" Foreground="#777782" HorizontalAlignment="Center" VerticalAlignment="Center" />
         <ListBox x:Name="FileList" Background="Transparent" BorderThickness="0" Foreground="White" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch">
          <ListBox.Resources>
           <Style TargetType="ListBoxItem">
@@ -537,7 +519,7 @@
              </Grid.ColumnDefinitions>
              <StackPanel VerticalAlignment="Center">
               <TextBlock Text="{Binding Name}" FontSize="11" TextTrimming="CharacterEllipsis" />
-              <TextBlock Text="{Binding Directory}" FontSize="9" Foreground="#636366" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Directory}" FontSize="9" Foreground="#777782" TextTrimming="CharacterEllipsis" />
              </StackPanel>
              <Button Grid.Column="1" Content="Aç" Style="{StaticResource Chip}" Padding="9,5" Click="OpenFile_Click" Margin="6,0" />
              <Button Grid.Column="2" Content="×" Style="{StaticResource Chip}" Padding="9,5" Click="RemoveFile_Click" ToolTip="Raftan kaldır" />
@@ -575,7 +557,7 @@
          <StackPanel>
           <TextBlock Text="SABİTLENENLER" FontSize="9" Foreground="#A79B88" Margin="2,4,0,9" />
           <ItemsControl x:Name="PinnedTextList" ItemTemplate="{StaticResource ClipboardTextRow}" />
-          <TextBlock Text="SON 5" FontSize="9" Foreground="#737378" Margin="2,10,0,9" />
+          <TextBlock Text="SON METİNLER" FontSize="9" Foreground="#737378" Margin="2,10,0,9" />
           <ItemsControl x:Name="ClipboardList" ItemTemplate="{StaticResource ClipboardTextRow}" />
          </StackPanel>
         </ScrollViewer>
@@ -586,7 +568,7 @@
          <StackPanel>
           <TextBlock Text="SABİTLENENLER" FontSize="9" Foreground="#A79B88" Margin="2,4,0,9" />
           <ItemsControl x:Name="PinnedImageList" ItemTemplate="{StaticResource ClipboardImageRow}" />
-          <TextBlock Text="SON 5" FontSize="9" Foreground="#737378" Margin="2,10,0,9" />
+          <TextBlock Text="SON GÖRSELLER" FontSize="9" Foreground="#737378" Margin="2,10,0,9" />
           <ItemsControl x:Name="ImageList" ItemTemplate="{StaticResource ClipboardImageRow}" />
          </StackPanel>
         </ScrollViewer>
@@ -603,7 +585,7 @@
         <TextBlock Text="Yapılacaklar" Style="{StaticResource PageTitle}" />
         <TextBlock x:Name="TodoCount" Text="Bir sonraki adımını yaz." FontSize="10" Foreground="{StaticResource Muted}" Margin="0,4,0,0" />
        </StackPanel>
-       <Border Grid.Row="1" Background="#151517" BorderBrush="#2B2B2F" BorderThickness="1" CornerRadius="14" Margin="0,0,0,5">
+       <Border Grid.Row="1" Background="#1A1A1E" BorderBrush="#2B2B2F" BorderThickness="1" CornerRadius="14" Margin="0,0,0,5">
         <Grid>
          <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
@@ -627,7 +609,7 @@
           </Grid>
          </Border>
          <Button Grid.Column="1" Width="31" Height="31" Style="{StaticResource WarmButton}" Padding="0" Margin="0,0,6,0" Click="TodoAdd_Click" ToolTip="Görev ekle">
-          <Path Data="M3,9 L15,9 M9,3 L9,15" Stroke="#201810" StrokeThickness="1.7" Width="12" Height="12" Stretch="Uniform" />
+          <Path Data="M3,9 L15,9 M9,3 L9,15" Stroke="#18181D" StrokeThickness="1.7" Width="12" Height="12" Stretch="Uniform" />
          </Button>
         </Grid>
        </Border>
@@ -731,7 +713,7 @@
          <ItemsControl x:Name="NoticeList">
           <ItemsControl.ItemTemplate>
            <DataTemplate>
-            <Border Background="#141416" CornerRadius="16" Padding="14" Margin="0,0,0,8" BorderBrush="#242427" BorderThickness="0.5">
+            <Border Background="#1A1A1E" CornerRadius="16" Padding="14" Margin="0,0,0,8" BorderBrush="#2A2A30" BorderThickness="0.5">
              <StackPanel>
               <Grid>
                <Grid.ColumnDefinitions>
@@ -805,7 +787,7 @@
              <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="26"/><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
               <Path Data="M3,8 L7,8 12,4 12,20 7,16 3,16 Z M16,7 Q23,12 16,17" Stroke="#A6A6AF" StrokeThickness="1.4" Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
               <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="5,0,8,0"/>
-              <Path Grid.Column="2" Data="M2,7 L6,11 14,3" Stroke="#E5B38A" StrokeThickness="1.6" Width="12" Height="9" Stretch="Uniform" VerticalAlignment="Center" Visibility="{Binding SelectedVisibility}"/>
+              <Path Grid.Column="2" Data="M2,7 L6,11 14,3" Stroke="#D7D7E3" StrokeThickness="1.6" Width="12" Height="9" Stretch="Uniform" VerticalAlignment="Center" Visibility="{Binding SelectedVisibility}"/>
              </Grid>
             </Button>
            </DataTemplate></ItemsControl.ItemTemplate>
@@ -889,7 +871,7 @@
        </StackPanel>
       </ScrollViewer>
      </Grid>
-     <Grid Grid.Row="1" VerticalAlignment="Center">
+     <Border Grid.Row="1" Background="#1A1A1E" CornerRadius="20" Padding="3" VerticalAlignment="Center"><Grid>
       <Grid.ColumnDefinitions>
        <ColumnDefinition Width="*" />
        <ColumnDefinition Width="Auto" />
@@ -913,7 +895,7 @@
        <Button x:Name="NotificationsTab" Tag="Notifications" Style="{StaticResource DockTab}" Click="Tab_Click" ToolTip="Bildirimler">
         <Grid>
          <Path Data="M5,17 L19,17 17,14 17,9 A5,5 0 0 0 7,9 L7,14 Z M10,20 A2,2 0 0 0 14,20" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.7" Width="18" Height="18" Stretch="Uniform" />
-         <Ellipse x:Name="NoticeBadge" Width="5" Height="5" Fill="#FFB45B" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed" />
+         <Ellipse x:Name="NoticeBadge" Width="5" Height="5" Fill="#F0BB82" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed" />
         </Grid>
        </Button>
        <Button x:Name="ControlsTab" Tag="Controls" Style="{StaticResource DockTab}" Click="Tab_Click" ToolTip="Kontroller">
@@ -926,8 +908,8 @@
       <Button Grid.Column="1" Style="{StaticResource DockTab}" x:Name="HideButton" Click="Hide_Click" ToolTip="Kenara gizle">
        <Path x:Name="HideDirection" Data="M5,14 L12,7 19,14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="14" Height="8" Stretch="Uniform" />
       </Button>
-     </Grid>
-     <TextBlock x:Name="StatusText" Grid.Row="2" FontSize="9" Foreground="#636366" TextTrimming="CharacterEllipsis" VerticalAlignment="Bottom" />
+     </Grid></Border>
+     <TextBlock x:Name="StatusText" Grid.Row="2" FontSize="9" Foreground="#777782" TextTrimming="CharacterEllipsis" VerticalAlignment="Bottom" />
     </Grid>
    </Grid>
   </Border>

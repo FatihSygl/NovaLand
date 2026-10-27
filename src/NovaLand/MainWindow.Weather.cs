@@ -15,7 +15,6 @@ public partial class MainWindow
     {
         InitializeMotion();
         WeatherCity.Text=string.IsNullOrEmpty(_settings.WeatherCity)?"Gökyüzüne bir bakış":_settings.WeatherCity;
-        WeatherMini.Text=string.IsNullOrEmpty(_settings.WeatherCity)?"Hava durumu · Şehir seç":"Hava durumu · "+_settings.WeatherCity;
         WeatherArt.IsVisibleChanged+=async (_,_)=>{if(WeatherArt.IsVisible)await RefreshWeather();};
         _weatherRefresh.Tick+=async (_,_)=>{if(WeatherArt.IsVisible)await RefreshWeather();};
         _weatherRefresh.Start();
@@ -45,7 +44,7 @@ public partial class MainWindow
         if(_weatherBusy||_exiting||_settings.WeatherLatitude is not double lat||_settings.WeatherLongitude is not double lon)return;
         if(!force&&_weather is not null&&DateTimeOffset.Now-_weather.Fetched<TimeSpan.FromMinutes(15))return;
         _weatherBusy=true;WeatherPlaces.IsEnabled=false;
-        if(_weather is null){WeatherTemperature.Text="—°";WeatherCondition.Text="Veri bekleniyor";WeatherDetails.Text="";WeatherMini.Text="Hava durumu · "+_settings.WeatherCity.Split(',')[0];}
+        if(_weather is null){WeatherTemperature.Text="—°";WeatherCondition.Text="Veri bekleniyor";WeatherDetails.Text="";}
         WeatherStatus.Text="Gökyüzü güncelleniyor…";
         WeatherCity.Text=_settings.WeatherCity;
         try
@@ -55,7 +54,6 @@ public partial class MainWindow
             WeatherArt.Code=r.Code;WeatherArt.Day=r.Day;WeatherArt.InvalidateVisual();
             WeatherTemperature.Text=$"{r.Temperature:0}°";WeatherCondition.Text=r.Condition;
             WeatherDetails.Text=$"Hissedilen {r.Feels:0}°   ·   Rüzgâr {r.Wind:0} km/sa   ·   Nem %{r.Humidity}";
-            WeatherMini.Text=$"{r.Temperature:0}° · {r.Condition} · {_settings.WeatherCity.Split(',')[0]}";
             WeatherStatus.Text=$"Son kontrol {r.Fetched:HH:mm} · Seçili şehir için 15 dk önbellek";
             WeatherTemperature.BeginAnimation(OpacityProperty,new System.Windows.Media.Animation.DoubleAnimation(0,1,TimeSpan.FromMilliseconds(600)));
         }

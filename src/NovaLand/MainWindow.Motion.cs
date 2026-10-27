@@ -11,10 +11,10 @@ public partial class MainWindow
     private static void InitializeMotion()
     {
         if(_motionRegistered)return;_motionRegistered=true;
-        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),Mouse.MouseEnterEvent,new MouseEventHandler((s,e)=>ButtonMotion(s,1.025,220)));
+        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),Mouse.MouseEnterEvent,new MouseEventHandler((s,e)=>ButtonMotion(s,1.012,220)));
         EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),Mouse.MouseLeaveEvent,new MouseEventHandler((s,e)=>ButtonMotion(s,1,260)));
-        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),UIElement.PreviewMouseLeftButtonDownEvent,new MouseButtonEventHandler((s,e)=>ButtonMotion(s,.96,100)));
-        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),UIElement.PreviewMouseLeftButtonUpEvent,new MouseButtonEventHandler((s,e)=>ButtonMotion(s,1.025,280)));
+        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),UIElement.PreviewMouseLeftButtonDownEvent,new MouseButtonEventHandler((s,e)=>ButtonMotion(s,.975,100)));
+        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.Button),UIElement.PreviewMouseLeftButtonUpEvent,new MouseButtonEventHandler((s,e)=>ButtonMotion(s,1.012,280)));
     }
     private static void ButtonMotion(object sender,double target,int ms)
     {

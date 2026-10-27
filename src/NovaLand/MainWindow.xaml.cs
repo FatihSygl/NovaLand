@@ -351,7 +351,7 @@ public partial class MainWindow : Window
 
     private double ExpandedHeight => _tab switch
     {
-        "Music" => _audioTargets.Count > 0 ? 522 : 450,
+        "Music" => 460,
         "Focus" => _reminderComposerOpen ? 680 : 560,
         "Files" => 432,
         "Clipboard" => 530,
@@ -505,6 +505,8 @@ public partial class MainWindow : Window
     private void SetTab(string key)
     {
         bool changed = _tab != key;
+        string[] navigation = ["Music","Focus","Todo","Files","Clipboard","Notifications","Controls","Settings"];
+        int direction = Array.IndexOf(navigation,key) >= Array.IndexOf(navigation,_tab) ? 1 : -1;
         _tab = key;
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
@@ -525,8 +527,9 @@ public partial class MainWindow : Window
             RefreshCompact();
             if (changed)
             {
-                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
-                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14, 0, TimeSpan.FromMilliseconds(420))
+                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(.45, 1, TimeSpan.FromMilliseconds(240)));
+                ViewTranslate.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(direction * 12, 0, TimeSpan.FromMilliseconds(360)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(4, 0, TimeSpan.FromMilliseconds(360))
                 { EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut } });
             }
         }

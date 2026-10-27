@@ -8,6 +8,8 @@ using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using Button = System.Windows.Controls.Button;
+using ContextMenu = System.Windows.Controls.ContextMenu;
+using MenuItem = System.Windows.Controls.MenuItem;
 using Image = System.Windows.Controls.Image;
 using Orientation = System.Windows.Controls.Orientation;
 
@@ -20,23 +22,30 @@ public partial class MainWindow
         _audioTargets.Clear();
         _audioTargets.AddRange(_browserRows);
         _audioTargets.AddRange(_appRows);
-        var selected = QuickSiteCard.DataContext as IQuickAudioTarget;
-        if (selected is null || !_audioTargets.Contains(selected)) selected = _audioTargets.FirstOrDefault();
+        var selected = _audioTargets.FirstOrDefault(t => t.Key == _selectedAudioKey);
+        if (selected is null) _selectedAudioKey = "";
         QuickSiteCard.DataContext = selected;
         QuickSiteCard.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
-        QuickSiteCount.Text = selected is null ? "" : $"{_audioTargets.IndexOf(selected) + 1} / {_audioTargets.Count}";
-        bool multiple = _audioTargets.Count > 1;
-        QuickSitePrevious.Visibility = QuickSiteNext.Visibility = QuickSiteCount.Visibility = multiple ? Visibility.Visible : Visibility.Collapsed;
-        if (_expanded && _tab == "Music") AnimateWindowSize(440, ExpandedHeight);
+        SystemVolumeRow.Visibility = selected is null ? Visibility.Visible : Visibility.Collapsed;
+        AudioSourceTitle.Text = selected is null ? "Sistem" : selected.Name + " · " + selected.Kind;
     }
 
-    private void QuickSiteCycle_Click(object sender, RoutedEventArgs e)
+    private string _selectedAudioKey = "";
+    private void AudioSource_Click(object sender, RoutedEventArgs e)
     {
-        if (_audioTargets.Count == 0) return;
-        int index = QuickSiteCard.DataContext is IQuickAudioTarget row ? _audioTargets.IndexOf(row) : 0;
-        int step = (sender as FrameworkElement)?.Tag?.ToString() == "-1" ? -1 : 1;
-        QuickSiteCard.DataContext = _audioTargets[(index + step + _audioTargets.Count) % _audioTargets.Count];
-        RefreshQuickSite();
+        var menu = new ContextMenu { PlacementTarget = AudioSourceButton, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom, MinWidth = 230, MaxHeight = 320 };
+        void Add(string name, string key)
+        {
+            var item = new MenuItem { Header = name, IsCheckable = true, IsChecked = _selectedAudioKey == key };
+            item.Click += (_, _) => { _selectedAudioKey = key; RefreshQuickSite(); Activate(); };
+            menu.Items.Add(item);
+        }
+        Add("Sistem", "");
+        if (_audioTargets.Count > 0) menu.Items.Add(new Separator());
+        foreach (var target in _audioTargets) Add(target.Name + " · " + target.Kind, target.Key);
+        _dialogOpen = true; SyncActivityPause();
+        menu.Closed += (_, _) => { _dialogOpen = false; SyncActivityPause(); };
+        menu.IsOpen = true;
     }
 
     private void PreviewImage_Click(object sender, RoutedEventArgs e)

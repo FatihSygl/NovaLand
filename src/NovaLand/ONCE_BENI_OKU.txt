@@ -1,3 +1,7 @@
+NOVALAND 1.2.0
+Ses kaynağı: Müzik sayfasındaki Sistem başlığına tıklayıp uygulama/site seç.
+Hava durumu artık yalnızca Kontroller bölümündedir.
+
 NOVALAND 1.1.0
 Hava durumu: ana sayfadaki karttan aç, Şehir ara ile sonuç seç.
 Yeni hareketler: butonlarda basma tepkisi, yumuşak sekme ve ada geçişleri.

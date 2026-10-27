@@ -494,3 +494,22 @@ tiki çalışır. Windows animasyonları kapalıysa sahne sabit görünür.
 Butonlara kısa basma/hover tepkisi, daha yumuşak sekme geçişi ve daha az
 sıçrayan ada boyut geçişleri eklendi. Metin kutuları native kalır.
 Gerçek Windows görünümü ve güç tüketimi burada ölçülmemiştir.
+
+
+## 1.2.0 — Birleşik ses alanı ve arayüz düzeni
+
+Hava durumu ana sayfadan kaldırıldı; Kontroller'de kalır.
+Müzikte tek ses alanı var: başlığa tıkla, Sistem veya bir uygulama/site seç.
+Aynı anda yalnızca seçili kaynağın kaydırıcısı görünür. Sistem ilk seçenektir;
+uygulama/site seçimi ses oturumlarını değiştirmez. Seçilen kaynak kapanırsa
+Sistem'e döner. Kaynak listesi açıkken ada kapanmaz. Küçük adada fare tekerleği
+önceki gibi sistem sesini ayarlar. Spotify oturumu için önce müzik oynatılmalı;
+site bazlı kaynaklar tarayıcı eklentisini kullanmaya devam eder.
+
+Tüm sekmelerde kart/zemin renkleri, başlıklar, menüler ve butonlar ortak bir
+gri palete alındı. Alt gezinme tek yuvarlak yüzeyde birleştirildi. Müzikte
+kapak büyüdü, iki ses kartı yerine tek küçük alan bırakıldı. Sekme geçişleri
+yönlü ve kısa, hover tepkisi daha hafif, ayar anahtarları kayarak değişir.
+Native metin kutuları, tam yuvarlak görev hedefi ve veri modelleri korunur.
+Windows arayüzü burada canlı olarak görüntülenemedi; derleme ve mevcut
+31 davranış kontrolü çalıştırılır.
