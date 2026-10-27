@@ -51,6 +51,9 @@ using(var updates = new UpdateService(new HttpClient(new FakeHttp(body,bytes))))
  try {await updates.CheckAndDownloadAsync(_=>{});throw new Exception("bad HTTP package accepted");}
  catch(InvalidDataException){Assert(updates.ReadyExecutable is null,"tampered download never marked ready");}
 }
+Assert(new WeatherReading(10,8,95,false,5,70,DateTimeOffset.Now).Condition=="Gök gürültülü","thunderstorm condition mapping");
+Assert(new WeatherReading(-2,-5,85,true,5,70,DateTimeOffset.Now).Condition=="Kar yağışlı","snow shower mapping");
+Assert(new WeatherReading(10,8,0,false,5,70,DateTimeOffset.Now).Condition=="Açık gece","night condition mapping");
 Directory.Delete(root,true);Console.WriteLine($"{count} checks passed");
 sealed class FakeHttp(string metadata, byte[] package, HttpStatusCode status=HttpStatusCode.OK):HttpMessageHandler {
  protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token) {

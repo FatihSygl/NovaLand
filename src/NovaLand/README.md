@@ -475,3 +475,22 @@ nedeniyle unpacked eklenti dosyaları ayrıca güncellenir.
 Kurtarma: İlk ZIP'teki NovaLand.exe'yi --recovery parametresiyle çalıştır.
 Bu, kayıtlı güncel kopyaya yönlendirmeyi o açılış için atlar.
 Ayarlar, görevler ve sabitlenenler eski NovaIsland veri klasöründe kalır.
+
+
+## 1.1.0 — Hareket ve hava durumu (Windows)
+
+Ana sayfadaki hava kartı Kontroller’deki geniş sahneyi açar. Şehir ara ile
+sonuçlardan şehrini seç. Gece/gündüz, bulut, yağmur, kar, sis ve fırtına
+vektör animasyonları Open-Meteo koşul koduna göre değişir. Şehir seçilmeden
+canlı sıcaklık gösterilmez. Kaynak: https://open-meteo.com/ (CC BY 4.0).
+Şehir araması geocoding-api.open-meteo.com, hava verisi api.open-meteo.com
+üzerinden alınır. Konum izni/IP konum tespiti kullanılmaz; seçili şehrin
+koordinatları gönderilir. Veri 15 dakika önbellekte tutulur, yenileme yalnızca
+Kontroller görünürken yapılır; elle yenileme düğmesi de var. İnternet yoksa
+açık oturumdaki son veri korunur ve çevrimdışı olduğu yazılır.
+
+Sahne görünürken 24 FPS, gizlenince/sekmeyi değiştirince sıfır animasyon
+tiki çalışır. Windows animasyonları kapalıysa sahne sabit görünür.
+Butonlara kısa basma/hover tepkisi, daha yumuşak sekme geçişi ve daha az
+sıçrayan ada boyut geçişleri eklendi. Metin kutuları native kalır.
+Gerçek Windows görünümü ve güç tüketimi burada ölçülmemiştir.

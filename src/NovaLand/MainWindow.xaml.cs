@@ -237,6 +237,7 @@ public partial class MainWindow : Window
         _ready = true;
 
         await RefreshMediaAsync();
+        StartWeather();
         StartUpdates();
         // Startup keeps the compact island visible; the tray remains available.
     }
@@ -350,7 +351,7 @@ public partial class MainWindow : Window
 
     private double ExpandedHeight => _tab switch
     {
-        "Music" => _audioTargets.Count > 0 ? 466 : 394,
+        "Music" => _audioTargets.Count > 0 ? 522 : 450,
         "Focus" => _reminderComposerOpen ? 680 : 560,
         "Files" => 432,
         "Clipboard" => 530,
@@ -369,7 +370,7 @@ public partial class MainWindow : Window
         if (Math.Abs(_targetWidth - width) < 0.1 && Math.Abs(_targetHeight - height) < 0.1) return;
         bool growing = height > _targetHeight;
         _targetWidth = width; _targetHeight = height;
-        double extraWidth = growing ? 8 : 0, extraHeight = growing ? 5 : 0;
+        double extraWidth = growing ? 4 : -2, extraHeight = growing ? 3 : -1;
         BeginAnimation(WidthProperty, Morph(ActualWidth, width, extraWidth));
         BeginAnimation(HeightProperty, Morph(ActualHeight, height, extraHeight));
         ApplyDockPosition(true, height);
@@ -377,10 +378,10 @@ public partial class MainWindow : Window
 
     private static DoubleAnimationUsingKeyFrames Morph(double from, double to, double overshoot)
     {
-        var a = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromMilliseconds(460) };
+        var a = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromMilliseconds(520) };
         a.KeyFrames.Add(new LinearDoubleKeyFrame(from, KeyTime.FromTimeSpan(TimeSpan.Zero)));
-        a.KeyFrames.Add(new EasingDoubleKeyFrame(to + overshoot, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(320)), new QuinticEase { EasingMode = EasingMode.EaseOut }));
-        a.KeyFrames.Add(new EasingDoubleKeyFrame(to, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(460)), new CubicEase { EasingMode = EasingMode.EaseOut }));
+        a.KeyFrames.Add(new EasingDoubleKeyFrame(to + overshoot, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(360)), new QuinticEase { EasingMode = EasingMode.EaseOut }));
+        a.KeyFrames.Add(new EasingDoubleKeyFrame(to, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(520)), new CubicEase { EasingMode = EasingMode.EaseOut }));
         return a;
     }
 
@@ -524,8 +525,8 @@ public partial class MainWindow : Window
             RefreshCompact();
             if (changed)
             {
-                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(190)));
-                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(8, 0, TimeSpan.FromMilliseconds(280))
+                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
+                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(14, 0, TimeSpan.FromMilliseconds(420))
                 { EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut } });
             }
         }
@@ -1348,6 +1349,7 @@ public partial class MainWindow : Window
         if (_dragArmed) FinishPlacementDrag(true);
         SystemParameters.StaticPropertyChanged -= DisplaySettingsChanged;
         _autoHideTimer.Stop(); _hoverRevealTimer.Stop(); _seekDebounce.Stop();
+        _weatherRefresh.Stop(); _weatherService.Dispose();
         _updateTimer.Stop(); _updates.Dispose();
         _activityTick.Stop();
         _browserAudio?.Dispose();

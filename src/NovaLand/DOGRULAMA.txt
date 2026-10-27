@@ -1,7 +1,7 @@
-NovaLand 1.0.0 — doğrulama
+NovaLand 1.1.0 — doğrulama
 
 .NET 10.0.100 ile win-x64 Release publish: geçti, 0 hata.
-Güncelleyici için 28 otomatik kontrol geçti:
+Güncelleyici için 31 otomatik kontrol geçti:
 - Yeni kararlı sürüm seçimi; aynı/eski sürüm, draft ve prerelease atlama.
 - Başka kaynaktan paket, bozuk SHA-256 ve fazla boyut reddi.
 - Doğru SHA-256 kabulü; aynı boyutta değiştirilmiş paketin reddi.
@@ -19,4 +19,5 @@ kaydı oluşturur. İlk ZIP kopyası --recovery ile açılabilir.
 Canlı GitHub Release henüz yayımlanmadı. Gerçek Windows UI, işletim
 sistemindeki yeniden başlatma, Bluetooth ve ses çıkışı burada denenmedi.
 Eski sürümün kullanıcı veri klasörü, registry anahtarı ve tek örnek kilidi
-uyumluluk için korunur. Önceki özelliklere yönelik değişiklik yapılmadı.
+uyumluluk için korunur. Hava durumu ve hareket düzenlemeleri eklendi.
+Üç ek kontrol: fırtına, kar sağanağı ve açık gece kod eşlemesi.

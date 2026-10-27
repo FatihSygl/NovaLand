@@ -1,3 +1,7 @@
+NOVALAND 1.1.0
+Hava durumu: ana sayfadaki karttan aç, Şehir ara ile sonuç seç.
+Yeni hareketler: butonlarda basma tepkisi, yumuşak sekme ve ada geçişleri.
+
 NOVALAND 1.0.0
 
 Güncelleyici eklendi. İlk kullanım için eski uygulamayı tepsiden kapatın,
