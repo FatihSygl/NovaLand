@@ -69,16 +69,7 @@ public partial class MainWindow
             _ => new Thickness(12)
         };
         UpdateShellCorners((double)GetValue(ShellRadiusProperty));
-        HideDirection.Data = Geometry.Parse(_islandEdge switch
-        {
-            IslandEdge.Left => "M14,5 L7,12 14,19",
-            IslandEdge.Right => "M7,5 L14,12 7,19",
-            IslandEdge.Bottom => "M5,7 L12,14 19,7",
-            _ => "M5,14 L12,7 19,14"
-        });
-        HideButton.ToolTip = _islandEdge == IslandEdge.Floating ? "Küçük adaya dön" : "Kenara gizle";
-        HideDirection.Width = _islandEdge is IslandEdge.Left or IslandEdge.Right ? 8 : 14;
-        HideDirection.Height = _islandEdge is IslandEdge.Left or IslandEdge.Right ? 14 : 8;
+
     }
     private void UpdateShellCorners(double radius)
     {

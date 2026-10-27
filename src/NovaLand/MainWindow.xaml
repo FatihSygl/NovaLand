@@ -167,6 +167,8 @@
       <TextBlock x:Name="IdleClock" Grid.Column="2" Foreground="#F0ECE6" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="19" FontWeight="Light" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center" />
      </Grid>
      <Image x:Name="HeaderBrand" Source="Assets/Logo.png" Width="18" Height="18" Margin="0,0,9,0" Visibility="Collapsed" IsHitTestVisible="False"/>
+     <Border x:Name="FocusCompactIcon" Width="27" Height="27" Background="#292337" CornerRadius="9" Margin="0,0,10,0" Visibility="Collapsed" IsHitTestVisible="False"><Path Data="M8,2 L14,2 M11,2 L11,5 M11,9 L11,14 14,16 M11,5 A8,8 0 1 1 10.99,5" Stroke="#C9B7F1" StrokeThickness="1.5" Width="16" Height="19" Stretch="Uniform"/></Border>
+     <Border x:Name="FocusMiniTrack" Height="2" Background="#29232F" CornerRadius="1" Grid.ColumnSpan="3" VerticalAlignment="Bottom" Margin="0,0,0,2" Visibility="Collapsed" IsHitTestVisible="False"><Border x:Name="FocusMiniFill" HorizontalAlignment="Left" Width="0" Background="#C0A9E9" CornerRadius="1"/></Border>
      <Path x:Name="NoticeIcon" Grid.Column="0" Data="M5,17 L19,17 17,14 17,9 A5,5 0 0 0 7,9 L7,14 Z M10,20 A2,2 0 0 0 14,20" Stroke="#F0BB82" StrokeThickness="1.8" Width="19" Height="21" Stretch="Uniform" Margin="0,0,11,0" Visibility="Collapsed" />
      <Border x:Name="MiniArtwork" Width="25" Height="25" CornerRadius="7" Background="#202022" Margin="0,0,11,0" Visibility="Collapsed">
       <Grid>
@@ -830,11 +832,7 @@
        </StackPanel>
       </ScrollViewer>
      </Grid>
-     <Border Grid.Row="1" Background="#1A1A1E" CornerRadius="20" Padding="3" VerticalAlignment="Center"><Grid>
-      <Grid.ColumnDefinitions>
-       <ColumnDefinition Width="*" />
-       <ColumnDefinition Width="Auto" />
-      </Grid.ColumnDefinitions>
+     <Border Grid.Row="1" Background="#1A1A1E" CornerRadius="20" Padding="3" VerticalAlignment="Center" HorizontalAlignment="Center">
       <StackPanel Orientation="Horizontal">
        <Button x:Name="MusicTab" Tag="Music" Style="{StaticResource DockActive}" Click="Tab_Click" ToolTip="Ana sayfa">
         <Path Data="M9,17 V5 L20,3 V15 M9,8 L20,6 M9,17 C9,19 3,21 3,17 C3,14 9,14 9,17 M20,15 C20,17 14,19 14,15 C14,12 20,12 20,15" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.65" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" />
@@ -859,10 +857,7 @@
        </Button>
 
       </StackPanel>
-      <Button Grid.Column="1" Style="{StaticResource DockTab}" x:Name="HideButton" Click="Hide_Click" ToolTip="Kenara gizle">
-       <Path x:Name="HideDirection" Data="M5,14 L12,7 19,14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="14" Height="8" Stretch="Uniform" />
-      </Button>
-     </Grid></Border>
+     </Border>
      <TextBlock x:Name="StatusText" Grid.Row="2" FontSize="9" Foreground="#9797A2" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"><TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
     </Grid>
    </Grid>

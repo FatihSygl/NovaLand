@@ -384,6 +384,10 @@ public partial class MainWindow : Window
         bool notice = !_expanded && _showingNotice && !volume;
         bool focus = _timerRunning && _activitySong is null;
         bool media = (_mediaAvailable || _activitySong is not null) && !focus;
+        bool compactFocus = focus && !_expanded && !notice && !volume;
+        FocusCompactIcon.Visibility = compactFocus ? Visibility.Visible : Visibility.Collapsed;
+        FocusMiniTrack.Visibility = compactFocus ? Visibility.Visible : Visibility.Collapsed;
+        FocusMiniFill.Width = Math.Max(0, Pill.ActualWidth * Math.Clamp(TimerProgress.Value / 100, 0, 1));
         bool idle = !_expanded && !focus && !media && !notice && !volume;
         IdleSurface.Visibility = idle ? Visibility.Visible : Visibility.Collapsed;
         var local = DateTime.Now;

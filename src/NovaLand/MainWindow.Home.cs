@@ -12,7 +12,7 @@ public partial class MainWindow
     private Guid? _focusTaskId;
     private readonly HashSet<Button> _copyFeedbackButtons = new();
     private TodoEntry? FocusTask => _todo.Items.FirstOrDefault(x => x.Id == _focusTaskId && !x.IsCompleted);
-    private string FocusTaskTitle => FocusTask?.Text ?? "Odak";
+    private string FocusTaskTitle => FocusTask?.Text ?? "Bir adım daha.";
     private TodoEntry? HomeTask => HomeSelection.Task(_todo.Items, _focusTaskId, _timerRunning);
     private void RefreshHome()
     {
@@ -71,10 +71,23 @@ public partial class MainWindow
         var content = button.Content;
         try
         {
-            button.Content = new TextBlock { Text = "✓", FontSize = 15, Foreground = System.Windows.Media.Brushes.LightGreen };
+            var tick = new TextBlock { Text = "✓", FontSize = 16, Foreground = System.Windows.Media.Brushes.LightGreen,
+                RenderTransformOrigin = new System.Windows.Point(.5, .5), RenderTransform = new System.Windows.Media.ScaleTransform(1, 1) };
+            button.Content = tick;
             if (SystemParameters.ClientAreaAnimation)
-                button.BeginAnimation(OpacityProperty, new DoubleAnimation(.45, 1, TimeSpan.FromMilliseconds(180)));
-            await Task.Delay(850);
+            {
+                tick.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+                var scale = (System.Windows.Media.ScaleTransform)tick.RenderTransform;
+                foreach (var property in new[] { System.Windows.Media.ScaleTransform.ScaleXProperty, System.Windows.Media.ScaleTransform.ScaleYProperty })
+                    scale.BeginAnimation(property, new DoubleAnimation(.5, 1, TimeSpan.FromMilliseconds(320))
+                    { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = .3 } });
+            }
+            await Task.Delay(1700);
+            if (SystemParameters.ClientAreaAnimation)
+            {
+                tick.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(180)));
+                await Task.Delay(180);
+            }
         }
         finally { button.Content = content; _copyFeedbackButtons.Remove(button); }
     }
