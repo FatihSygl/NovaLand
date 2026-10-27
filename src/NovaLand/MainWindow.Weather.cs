@@ -19,6 +19,7 @@ public partial class MainWindow
         WeatherArt.IsVisibleChanged+=async (_,_)=>{if(WeatherArt.IsVisible)await RefreshWeather();};
         _weatherRefresh.Tick+=async (_,_)=>{if(WeatherArt.IsVisible)await RefreshWeather();};
         _weatherRefresh.Start();
+        if(WeatherArt.IsVisible)_ = RefreshWeather();
     }
     private void WeatherOpen_Click(object sender,RoutedEventArgs e){SetTab("Controls");SetExpanded(true);}
     private async void WeatherSearch_Click(object sender,RoutedEventArgs e)=>await SearchWeather();
@@ -43,7 +44,9 @@ public partial class MainWindow
     {
         if(_weatherBusy||_exiting||_settings.WeatherLatitude is not double lat||_settings.WeatherLongitude is not double lon)return;
         if(!force&&_weather is not null&&DateTimeOffset.Now-_weather.Fetched<TimeSpan.FromMinutes(15))return;
-        _weatherBusy=true;WeatherPlaces.IsEnabled=false;WeatherStatus.Text="Gökyüzü güncelleniyor…";
+        _weatherBusy=true;WeatherPlaces.IsEnabled=false;
+        if(_weather is null){WeatherTemperature.Text="—°";WeatherCondition.Text="Veri bekleniyor";WeatherDetails.Text="";WeatherMini.Text="Hava durumu · "+_settings.WeatherCity.Split(',')[0];}
+        WeatherStatus.Text="Gökyüzü güncelleniyor…";
         WeatherCity.Text=_settings.WeatherCity;
         try
         {
