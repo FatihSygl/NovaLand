@@ -523,3 +523,13 @@ başlatılabilir; aktif seans başka göreve aktarılırsa kalan süre korunur. 
 tamamlanır veya silinirse canlı bağlantı çözülür, sayaç bağımsız devam eder.
 Dosya rafı, bildirimler, kontroller ve ayarlar Diğer menüsündedir. Kopyalama
 başarısı düğmede kısa bir tikle gösterilir. Panel boyutları 1.2.2 ile aynıdır.
+
+
+## 1.3.1 — Sabit panel ve açık gezinme
+
+Tüm sekmeler 440×460 DIP paneli paylaşır; sekme geçişi pencereyi büyütmez
+veya taşımaz. Yerleşim ekran sınırı ve kenar payına göre uyarlanır. Tüm yedi
+sekme alt menüde görünür. Bildirim geçmişi sekmesi kaldırıldı; geçici
+bildirimler ve öncelik sırası 4 saniyelik gösterimle devam eder. Üst şerit
+sabit marka, saat ve konum düğmelerini gösterir. Kulaklık bildirimi altta
+kalıcı metin üretmez; işlem durumları dört saniyede temizlenir.

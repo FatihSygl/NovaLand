@@ -33,8 +33,6 @@ public partial class MainWindow
         var reminder = _reminders.Items.Where(x => !x.IsTriggered).OrderBy(x => x.Due).FirstOrDefault();
         HomeReminderLabel.Text = reminder is null ? "HATIRLATICILAR" : $"SIRADAKİ · {reminder.Due.LocalDateTime:dd MMM HH:mm}";
         HomeReminderText.Text = reminder?.Text ?? "Hatırlatıcı ekle";
-        MoreBadge.Visibility = NoticeBadge.Visibility;
-        MoreButton.Style = (Style)FindResource(_tab is "Files" or "Notifications" or "Controls" or "Settings" ? "DockActive" : "DockTab");
     }
     private void HomeFocus_Click(object sender, RoutedEventArgs e)
     {
@@ -66,19 +64,6 @@ public partial class MainWindow
         TimerStart.Content = "Duraklat";
         TimerLabel.Text = task.Text;
         SetTab("Focus"); RefreshTimerUi();
-    }
-    private void More_Click(object sender, RoutedEventArgs e)
-    {
-        var menu = new ContextMenu { PlacementTarget = MoreButton, Placement = PlacementMode.Top, MinWidth = 190 };
-        foreach (var (key, title) in new[] { ("Files", "Dosya rafı"), ("Notifications", NoticeBadge.Visibility == Visibility.Visible ? "Bildirimler · Yeni" : "Bildirimler"), ("Controls", "Kontroller"), ("Settings", "Ayarlar") })
-        {
-            var item = new MenuItem { Header = title, IsCheckable = true, IsChecked = _tab == key };
-            item.Click += (_, _) => { SetTab(key); Activate(); };
-            menu.Items.Add(item);
-        }
-        _dialogOpen = true; SyncActivityPause();
-        menu.Closed += (_, _) => { _dialogOpen = false; SyncActivityPause(); };
-        menu.IsOpen = true;
     }
     private async Task CopyFeedback(object sender)
     {

@@ -55,7 +55,6 @@ public partial class MainWindow : Window
     private LaunchGreeting? _launchGreeting;
     private readonly ReminderBoard _reminders = new();
     private readonly ReminderStore _reminderStore = new();
-    private bool _reminderComposerOpen;
     private bool _settingReminderClock;
     private bool _reminderNotice;
     private string _reminderClock = "";
@@ -64,7 +63,6 @@ public partial class MainWindow : Window
     private readonly TodoStore _todoStore = new();
     private readonly ClipboardHistory _clipboardHistory = new();
     private readonly ImageHistory _images = new();
-    private readonly ObservableCollection<NoticeEntry> _notices = new();
     private readonly BluetoothAudioService _bluetooth = new();
     private readonly ScreenshotService _screenshots = new();
     private readonly DispatcherTimer _devicePoll = new() { Interval = TimeSpan.FromSeconds(4) };
@@ -81,7 +79,7 @@ public partial class MainWindow : Window
     private const string BellGeometry = "M5,17 L19,17 17,14 17,9 A5,5 0 0 0 7,9 L7,14 Z M10,20 A2,2 0 0 0 14,20";
     private const string HeadphoneGeometry = "M4,14 V10 A8,8 0 0 1 20,10 V14 M4,12 L7,12 7,21 4,21 Q2,21 2,19 L2,15 Q2,12 4,12 M20,12 L17,12 17,21 20,21 Q22,21 22,19 L22,15 Q22,12 20,12";
     private ClipboardService? _clipboard;
-    private const int AutoHideDelayMs = 5000;
+    private const int AutoHideDelayMs = 4000;
     private readonly DispatcherTimer _autoHideTimer = new() { Interval = TimeSpan.FromMilliseconds(AutoHideDelayMs) };
     private readonly DispatcherTimer _hoverRevealTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private readonly DispatcherTimer _seekDebounce = new() { Interval = TimeSpan.FromMilliseconds(250) };
@@ -140,9 +138,7 @@ public partial class MainWindow : Window
         _todo.Items.CollectionChanged += (_, _) => RefreshTodoUi();
         RefreshTodoUi();
         ImageList.ItemsSource = _images.Items;
-        NoticeList.ItemsSource = _notices;
         _images.Items.CollectionChanged += (_, _) => ImageEmpty.Visibility = _images.Items.Count == 0 && _images.Pinned.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        _notices.CollectionChanged += (_, _) => NoticeEmpty.Visibility = _notices.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         _bluetooth.Notice += HandleAudioNotice;
         _screenshots.ImageFound += (png, name, at) => { if (_settings.CaptureClipboard) _images.Add(png, name, at); };
         _devicePoll.Tick += async (_, _) => await ScanDevicesAsync();
@@ -238,6 +234,7 @@ public partial class MainWindow : Window
 
         await RefreshMediaAsync();
         InitializeMotion();
+        InitializeStatusFeedback();
         StartUpdates();
         // Startup keeps the compact island visible; the tray remains available.
     }
@@ -349,17 +346,7 @@ public partial class MainWindow : Window
         { SetExpanded(true); e.Handled = true; }
     }
 
-    private double ExpandedHeight => _tab switch
-    {
-        "Music" => 460,
-        "Focus" => _reminderComposerOpen ? 680 : 560,
-        "Files" => 432,
-        "Clipboard" => 530,
-        "Todo" => 520,
-        "Notifications" => 480,
-        "Controls" => 600,
-        _ => 466
-    };
+    private const double ExpandedHeight = 460;
 
     private void AnimateWindowSize(double width, double height)
     {
@@ -389,6 +376,7 @@ public partial class MainWindow : Window
     {
         RefreshHome();
         PlacementTools.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
+        HeaderBrand.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         PillTitle.FontSize = 11;
         PillTitle.FontWeight = FontWeights.Medium;
         PillSubtitle.Foreground = (System.Windows.Media.Brush)FindResource("Muted");
@@ -407,13 +395,12 @@ public partial class MainWindow : Window
         MiniArtwork.Visibility = media && !_expanded ? Visibility.Visible : Visibility.Collapsed;
         PillSubtitle.Visibility = Visibility.Collapsed;
         ClockPill.Visibility = Visibility.Visible;
-        BatteryPill.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
+        BatteryPill.Visibility = Visibility.Collapsed;
         IdleDot.Visibility = Visibility.Collapsed;
-        Waveform.Visibility = focus || media ? Visibility.Visible : Visibility.Collapsed;
-        PillTitle.Text = _expanded ? _tab switch { "Music" => "Ana sayfa", "Focus" => "Odak", "Files" => "Dosya rafı", "Clipboard" => "Kopyalama panosu", "Controls" => "Kontroller", "Notifications" => "Bildirimler", "Todo" => "Yapılacaklar", _ => "Ayarlar" }
-            : focus ? FocusTaskTitle : media ? TrackTitle.Text : "";
+        Waveform.Visibility = !_expanded && (focus || media) ? Visibility.Visible : Visibility.Collapsed;
+        PillTitle.Text = _expanded ? "NovaLand" : focus ? FocusTaskTitle : media ? TrackTitle.Text : "";
         PillTitle.Foreground = _expanded || (!media && !focus) ? new SolidColorBrush(Color.FromRgb(142, 142, 147)) : System.Windows.Media.Brushes.White;
-        ClockPill.Text = focus ? TimerValue.Text : _mediaAvailable ? RemainingTrackTime() : DateTime.Now.ToString("HH:mm");
+        ClockPill.Text = _expanded ? DateTime.Now.ToString("HH:mm") : focus ? TimerValue.Text : _mediaAvailable ? RemainingTrackTime() : DateTime.Now.ToString("HH:mm");
         var brush = new SolidColorBrush(focus ? Color.FromRgb(255, 180, 91) : _mediaColor);
         foreach (var bar in new[] { Wave1, Wave2, Wave3, Wave4 }) bar.Fill = brush;
         _spectrum.Enabled = _mediaAvailable && _mediaPlaying && IsVisible && !_dockHidden && !notice && !volume;
@@ -506,32 +493,28 @@ public partial class MainWindow : Window
     private void SetTab(string key)
     {
         bool changed = _tab != key;
-        string[] navigation = ["Music","Focus","Todo","Files","Clipboard","Notifications","Controls","Settings"];
-        int direction = Array.IndexOf(navigation,key) >= Array.IndexOf(navigation,_tab) ? 1 : -1;
         _tab = key;
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
         FilesView.Visibility = key == "Files" ? Visibility.Visible : Visibility.Collapsed;
         ClipboardView.Visibility = key == "Clipboard" ? Visibility.Visible : Visibility.Collapsed;
         TodoView.Visibility = key == "Todo" ? Visibility.Visible : Visibility.Collapsed;
-        NotificationsView.Visibility = key == "Notifications" ? Visibility.Visible : Visibility.Collapsed;
-        if (key == "Notifications") NoticeBadge.Visibility = Visibility.Collapsed;
         ControlsView.Visibility = key == "Controls" ? Visibility.Visible : Visibility.Collapsed;
         if (key is "Settings" or "Music") RefreshBrowserAudio();
         if (key == "Music") _ = RefreshApplicationAudioAsync();
         if (key == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); }
         SettingsView.Visibility = key == "Settings" ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, NotificationsTab, ControlsTab, SettingsTab })
+        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, ControlsTab, SettingsTab })
             tab.Style = (Style)FindResource((string?)tab.Tag == key ? "DockActive" : "DockTab");
         if (_expanded)
         {
             RefreshCompact();
             if (changed)
             {
-                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(.45, 1, TimeSpan.FromMilliseconds(240)));
-                ViewTranslate.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(direction * 12, 0, TimeSpan.FromMilliseconds(360)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(4, 0, TimeSpan.FromMilliseconds(360))
-                { EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut } });
+                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(.7, 1, TimeSpan.FromMilliseconds(160)));
+                ViewTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, null);
+                ViewTranslate.X = ViewTranslate.Y = 0;
             }
         }
     }
@@ -698,10 +681,6 @@ public partial class MainWindow : Window
         bool copied = await ClipboardService.CopyImageAsync(entry.Png);
         if (copied) await CopyFeedback(sender);
         StatusText.Text = copied ? "Görsel kopyalandı. Ctrl+V ile yapıştır." : "Görsel kopyalanamadı. Tekrar dene.";
-    }
-    private void ClearNotices_Click(object sender, RoutedEventArgs e)
-    {
-        _notices.Clear(); NoticeBadge.Visibility = Visibility.Collapsed;
     }
     private async Task ScanDevicesAsync()
     {
@@ -879,7 +858,8 @@ public partial class MainWindow : Window
     }
     private void ReminderOpen_Click(object sender, RoutedEventArgs e)
     {
-        _reminderComposerOpen = true; SetReminderClock(DateTime.Now.AddMinutes(1));
+        SetReminderClock(DateTime.Now.AddMinutes(1));
+        FocusSummary.Visibility = Visibility.Collapsed;
         ReminderComposer.Visibility = Visibility.Visible; ReminderOpen.Visibility = Visibility.Collapsed;
         ReminderComposer.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
         RefreshCompact();
@@ -888,7 +868,8 @@ public partial class MainWindow : Window
     private void ReminderClose_Click(object sender, RoutedEventArgs e) => CloseReminderComposer();
     private void CloseReminderComposer()
     {
-        _reminderComposerOpen = false; ReminderComposer.Visibility = Visibility.Collapsed;
+        FocusSummary.Visibility = Visibility.Visible;
+        ReminderComposer.Visibility = Visibility.Collapsed;
         ReminderOpen.Visibility = Visibility.Visible; RefreshCompact();
     }
     private void SetReminderClock(DateTime time)
@@ -986,7 +967,6 @@ public partial class MainWindow : Window
         if (_expanded) SetExpanded(false);
         foreach (var item in due)
         {
-            LogNotice(item.Text, $"Hatırlatıcı · {item.Due.LocalDateTime:HH:mm}");
             EnqueueActivity("reminder:" + item.Id, 80, () =>
             {
                 ShowNoticeVisual(item.Text, "Hatırlatıcı");
@@ -1153,7 +1133,6 @@ public partial class MainWindow : Window
     private void HandleAudioNotice(AudioDeviceNotice audio)
     {
         string title = audio.LowThreshold > 0 ? "Kulaklık pili düşük" : audio.Connected ? "Kulaklık bağlandı" : "Kulaklık bağlantısı kesildi";
-        LogNotice(title, audio.Name + (audio.Battery.HasValue ? $" · %{audio.Battery}" : ""));
         // Surface the compact notification even when a panel was left open,
         // but never interrupt text entry or a native file dialog.
         if (_expanded && !_dialogOpen && Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
@@ -1195,16 +1174,8 @@ public partial class MainWindow : Window
         RefreshCompact();
     }
 
-    private void LogNotice(string title, string body)
-    {
-        StatusText.Text = $"{title}: {body}";
-        _notices.Insert(0, new NoticeEntry(title, body, DateTime.Now));
-        while (_notices.Count > 20) _notices.RemoveAt(_notices.Count - 1);
-        if (_tab != "Notifications" || !_expanded) NoticeBadge.Visibility = Visibility.Visible;
-    }
     private void ShowNotification(string title, string body)
     {
-        LogNotice(title, body);
         EnqueueActivity("notice:" + title, title == "Mola zamanı" ? 60 : 40, () => ShowNoticeVisual(title, body));
     }
     private void RenderLaunchGreeting(LaunchGreeting greeting)
@@ -1223,7 +1194,7 @@ public partial class MainWindow : Window
             scale.BeginAnimation(property, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(650))
                 { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.25 } });
         GreetingOrbit.BeginAnimation(RotateTransform.AngleProperty,
-            new DoubleAnimation(0, 180, TimeSpan.FromSeconds(5)));
+            new DoubleAnimation(0, 180, TimeSpan.FromSeconds(4)));
         GreetingSpark.BeginAnimation(OpacityProperty,
             new DoubleAnimation(0.45, 1, TimeSpan.FromMilliseconds(1000)) { AutoReverse = true, RepeatBehavior = new RepeatBehavior(4) });
         GreetingHalo.BeginAnimation(OpacityProperty,
@@ -1368,7 +1339,6 @@ public partial class MainWindow : Window
         _devicePoll.Stop();
         _clipboard?.Dispose();
         _images.Clear();
-        _notices.Clear();
         _clipboardHistory.Clear();
         _clock.Stop();
         _mediaPoll.Stop();
