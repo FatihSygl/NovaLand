@@ -864,6 +864,7 @@ public partial class MainWindow : Window
     {
         SetReminderClock(DateTime.Now.AddMinutes(1));
         FocusSummary.Visibility = Visibility.Collapsed;
+        RemindersHeader.Visibility = ReminderListViewport.Visibility = ReminderEmpty.Visibility = Visibility.Collapsed;
         ReminderComposer.Visibility = Visibility.Visible; ReminderOpen.Visibility = Visibility.Collapsed;
         ReminderComposer.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
         RefreshCompact();
@@ -872,9 +873,9 @@ public partial class MainWindow : Window
     private void ReminderClose_Click(object sender, RoutedEventArgs e) => CloseReminderComposer();
     private void CloseReminderComposer()
     {
-        FocusSummary.Visibility = Visibility.Visible;
+        FocusSummary.Visibility = RemindersHeader.Visibility = ReminderListViewport.Visibility = Visibility.Visible;
         ReminderComposer.Visibility = Visibility.Collapsed;
-        ReminderOpen.Visibility = Visibility.Visible; RefreshCompact();
+        ReminderOpen.Visibility = Visibility.Visible; RefreshReminderUi(); RefreshCompact();
     }
     private void SetReminderClock(DateTime time)
     {
@@ -933,7 +934,7 @@ public partial class MainWindow : Window
     }
     private void RefreshReminderUi()
     {
-        ReminderEmpty.Visibility = _reminders.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ReminderEmpty.Visibility = _reminders.Items.Count == 0 && ReminderComposer.Visibility != Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
         ReminderClearDone.IsEnabled = _reminders.Items.Any(x => x.IsTriggered);
     }
     private void SaveReminders()

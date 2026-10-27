@@ -533,3 +533,13 @@ sekme alt menüde görünür. Bildirim geçmişi sekmesi kaldırıldı; geçici
 bildirimler ve öncelik sırası 4 saniyelik gösterimle devam eder. Üst şerit
 sabit marka, saat ve konum düğmelerini gösterir. Kulaklık bildirimi altta
 kalıcı metin üretmez; işlem durumları dört saniyede temizlenir.
+
+
+## 1.3.3 — Kompakt odak ve kalıcı kopyalama onayı
+
+Odak sayfasında 42 punto sayaç ve sabit başlık altında bağımsız hatırlatıcı
+listesi bulunur. Hatırlatıcı formu açılırken sayaç ve liste gizlenir; pencere
+büyümez. Kopyalama onayı çizilen tik ve halka animasyonuyla yaklaşık iki
+saniye gösterilir; görsel önizlemesi de aynı onayı kullanır. Uygulamanın kendi
+pano yazımları Windows pano sıra numarasıyla ayırt edilir; kendi kopyasını
+yeniden geçmişe ekleyip onay düğmesini kaldırması önlenir.

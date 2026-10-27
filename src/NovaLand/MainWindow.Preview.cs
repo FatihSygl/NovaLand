@@ -74,7 +74,7 @@ public partial class MainWindow
             Button Action(string title) { var b = new Button { Content = title, Style = (Style)FindResource("GhostButton"), Margin = new Thickness(3,0,0,0), Padding = new Thickness(10,7,10,7) }; actions.Children.Add(b); return b; }
             var fit = Action("Sığdır"); var actual = Action("%100"); var copy = Action("Kopyala"); var close = Action("✕");
             close.ToolTip = "Kapat (Esc)"; close.Click += (_,_) => preview.Close();
-            copy.Click += async (_,_) => { copy.Content = await ClipboardService.CopyImageAsync(entry.Png) ? "Kopyalandı" : "Tekrar dene"; };
+            copy.Click += async (_,_) => { if (await ClipboardService.CopyImageAsync(entry.Png)) await CopyFeedback(copy); else copy.Content = "Tekrar dene"; };
             var title = new TextBlock { Text = entry.Name, FontSize = 13, FontWeight = FontWeights.SemiBold, Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
             toolbar.Children.Add(title);
             var picture = new Image { Source = bitmap, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };

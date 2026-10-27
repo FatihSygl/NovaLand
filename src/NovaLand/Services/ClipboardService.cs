@@ -8,6 +8,8 @@ public sealed class ClipboardService : IDisposable
     private readonly HwndSource _source;
     private readonly DispatcherTimer _retry = new() { Interval = TimeSpan.FromMilliseconds(100) };
     private int _attempts;
+    private static uint _ownSequence;
+    private static bool _writing;
     private bool _disposed;
     public bool Enabled { get; set; } = true;
     public event Action<string>? TextReceived;
@@ -28,7 +30,7 @@ public sealed class ClipboardService : IDisposable
     private void ReadCurrent()
     {
         _retry.Stop();
-        if (!Enabled || _disposed) return;
+        if (!Enabled || _disposed || _writing || (_ownSequence != 0 && GetClipboardSequenceNumber() == _ownSequence)) return;
         try
         {
             if (System.Windows.Clipboard.ContainsData("ExcludeClipboardContentFromMonitorProcessing")) return;
@@ -53,8 +55,10 @@ public sealed class ClipboardService : IDisposable
     {
         for (int attempt = 0; attempt < 4; attempt++)
         {
-            try { System.Windows.Clipboard.SetText(text); return true; }
-            catch (COMException) { await Task.Delay(75); }
+            try { _writing = true; System.Windows.Clipboard.SetText(text); _ownSequence = GetClipboardSequenceNumber(); return true; }
+            catch (COMException) { }
+            finally { _writing = false; }
+            await Task.Delay(75);
         }
         return false;
     }
@@ -70,10 +74,14 @@ public sealed class ClipboardService : IDisposable
                     var data = new System.Windows.DataObject();
                     data.SetImage(image);
                     data.SetData("PNG", new System.IO.MemoryStream(png));
+                    _writing = true;
                     System.Windows.Clipboard.SetDataObject(data, true);
+                    _ownSequence = GetClipboardSequenceNumber();
                     return true;
                 }
-                catch (COMException) { await Task.Delay(75); }
+                catch (COMException) { }
+                finally { _writing = false; }
+                await Task.Delay(75);
             }
         }
         catch { }
@@ -86,6 +94,8 @@ public sealed class ClipboardService : IDisposable
         if (Listening) RemoveClipboardFormatListener(_source.Handle);
         _source.RemoveHook(Hook);
     }
+    [DllImport("user32.dll")]
+    private static extern uint GetClipboardSequenceNumber();
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool AddClipboardFormatListener(IntPtr hwnd);
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]

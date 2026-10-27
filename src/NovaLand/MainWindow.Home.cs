@@ -69,14 +69,30 @@ public partial class MainWindow
     {
         if (sender is not Button button || !_copyFeedbackButtons.Add(button)) return;
         var content = button.Content;
+        double minWidth = button.MinWidth;
+        button.MinWidth = Math.Max(minWidth, button.ActualWidth);
         try
         {
-            var tick = new TextBlock { Text = "✓", FontSize = 16, Foreground = System.Windows.Media.Brushes.LightGreen,
+            var tick = new System.Windows.Controls.Grid { Width = 25, Height = 21,
                 RenderTransformOrigin = new System.Windows.Point(.5, .5), RenderTransform = new System.Windows.Media.ScaleTransform(1, 1) };
+            var ring = new System.Windows.Shapes.Ellipse { Width = 19, Height = 19, StrokeThickness = 1,
+                Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(170, 239, 190)), Opacity = .35,
+                RenderTransformOrigin = new System.Windows.Point(.5, .5), RenderTransform = new System.Windows.Media.ScaleTransform(1, 1) };
+            var check = new System.Windows.Shapes.Path { Data = System.Windows.Media.Geometry.Parse("M4,10 L9,15 L20,4"),
+                Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(176, 244, 195)),
+                StrokeThickness = 2, StrokeStartLineCap = System.Windows.Media.PenLineCap.Round,
+                StrokeEndLineCap = System.Windows.Media.PenLineCap.Round, StrokeLineJoin = System.Windows.Media.PenLineJoin.Round };
+            tick.Children.Add(ring); tick.Children.Add(check);
             button.Content = tick;
             if (SystemParameters.ClientAreaAnimation)
             {
                 tick.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+                check.StrokeDashArray = new System.Windows.Media.DoubleCollection { 25, 25 };
+                check.BeginAnimation(System.Windows.Shapes.Shape.StrokeDashOffsetProperty, new DoubleAnimation(25, 0, TimeSpan.FromMilliseconds(320)));
+                ring.BeginAnimation(OpacityProperty, new DoubleAnimation(.5, 0, TimeSpan.FromMilliseconds(650)));
+                var ringScale = (System.Windows.Media.ScaleTransform)ring.RenderTransform;
+                ringScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty, new DoubleAnimation(.6, 1.7, TimeSpan.FromMilliseconds(650)));
+                ringScale.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty, new DoubleAnimation(.6, 1.7, TimeSpan.FromMilliseconds(650)));
                 var scale = (System.Windows.Media.ScaleTransform)tick.RenderTransform;
                 foreach (var property in new[] { System.Windows.Media.ScaleTransform.ScaleXProperty, System.Windows.Media.ScaleTransform.ScaleYProperty })
                     scale.BeginAnimation(property, new DoubleAnimation(.5, 1, TimeSpan.FromMilliseconds(320))
@@ -89,6 +105,6 @@ public partial class MainWindow
                 await Task.Delay(180);
             }
         }
-        finally { button.Content = content; _copyFeedbackButtons.Remove(button); }
+        finally { button.Content = content; button.MinWidth = minWidth; _copyFeedbackButtons.Remove(button); }
     }
 }
