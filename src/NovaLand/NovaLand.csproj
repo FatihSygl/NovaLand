@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.0</Version>
+    <AssemblyName>NovaLand</AssemblyName>
+    <Product>NovaLand</Product>
+    <Title>NovaLand</Title>
+    <Description>NovaLand — masaüstünde küçük bir alan.</Description>
+    <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
+    <RootNamespace>NovaIsland</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets/AppIcon.ico" />
+    <Resource Include="Assets/Logo.png" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+</Project>

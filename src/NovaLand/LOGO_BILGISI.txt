@@ -1,0 +1,14 @@
+NovaLand logosu
+Kullanıcının gönderdiği kırmızı kıvrımlı çizim temel alınmıştır.
+Görsel düzenleme ile fotoğraf arka planı çıkarıldı, çizgi temizlendi.
+Logo.png transparan kaynak görseldir. AppIcon.ico Windows simgesidir.
+ICO ve eklenti simgeleri aynı PNG'nin yalnızca boyut/format dönüşümleridir.
+
+Görsel düzenleme talimatı:
+Extract ONLY the large red handwritten curve and turn that exact curve
+into a crisp flat logo. Preserve the left open rounded arch, descending
+central stem into a deep rounded U valley, and much taller curved right
+stroke. Preserve asymmetry and open ends. Smooth wobble and photographic
+perspective modestly. Solid vivid warm red, rounded terminals, natural
+width variation. No added text, border, tile, shadows, glow, gradients,
+bevels, toolbar, paper, screen or photographic texture. Transparent background.

@@ -1,0 +1,45 @@
+NOVALAND — İLK YAYIN
+
+1. NovaLand_v1.0.0_win-x64.zip dosyasını indirin. Adını değiştirmeyin.
+2. https://github.com/FatihSygl/NovaLand/releases/new adresini açın.
+3. Choose a tag / Select tag alanında v1.0.0 yazın ve yeni etiketi oluşturun.
+4. Release title: NovaLand 1.0.0
+5. ZIP'i Attach binaries alanına sürükleyin. ZIP'i açıp içini yüklemeyin.
+6. Set as a pre-release işaretli olmasın. Publish release seçin.
+
+Arkadaşlara verilecek bağlantı:
+https://github.com/FatihSygl/NovaLand/releases/latest
+
+İlk kurulum bir kez manuel: Eski uygulamayı tepsiden kapatın, ZIP'in
+TAMAMINI çıkarın, NovaLand.exe'yi açın. .NET 10 Desktop Runtime x64 gerekir.
+Önceden Nivru/Nova Island çalışıyorsa aynı runtime zaten kurulu olabilir.
+
+SONRAKİ YAYINLAR
+
+Yeni sürümü beraber hazırladığımızda örneğin v1.0.1 etiketiyle yeni release
+oluşturup NovaLand_v1.0.1_win-x64.zip dosyasını eklemeniz yeterli.
+Her sürümün etiket ve dosya sürümü birebir aynı olmalı.
+Eski release dosyasını değiştirerek güncellemeyin; sürümü mutlaka artırın.
+GitHub'ın kendiliğinden oluşturduğu Source code ZIP'i uygulama paketi değildir.
+
+1.0.0 ve üstü uygulamalar açılıştan 20 saniye sonra, sonra her 6 saatte bir
+son kararlı sürümü kontrol eder; internet yoksa uygulama normal çalışır.
+Ayarlar'daki Güncellemeleri denetle ile beklemeden kontrol edilebilir.
+Yeni sürüm arka planda indirilir ve doğrulanır. Sonra küçük adada bildirilir.
+Güncelle ve yeniden başlat seçilene kadar çalışan sürüm değişmez.
+
+Kullanıcı ayarları, görevler, hatırlatıcılar ve sabitlenenler korunur.
+Oturumluk pano geçmişi ve çalışmakta olan odak sayacı yeniden başlatmada
+uygulamanın normal kapanış davranışına tabidir.
+Tarayıcı ses eklentisi bu mekanizmayla otomatik güncellenmez; mevcut
+sürümü ve eşleştirmesi çalışmaya devam eder.
+
+KURTARMA
+
+İlk ZIP klasöründeki KURTAR.cmd, o klasörün sürümünü --recovery ile açar.
+Böylece kayıtlı daha yeni sürüme yönlendirme atlanır. Mevcut uygulamayı
+önce sistem tepsisinden kapatın. Kullanıcı verilerini silmeyin.
+
+Bu paket burada derlenip otomatik kontrollerden geçirilmiştir. Gerçek
+Windows'ta güncelleme sonrası yeniden başlatma akışı henüz denenmemiştir.
+Önce kendi bilgisayarınızda deneyin, ardından arkadaşlarınızla paylaşın.

@@ -1,0 +1,17 @@
+NovaLand 1.0.0
+
+TASIMA
+Adanin ust satirindaki yazi veya bos alandan basili tutup surukle.
+Yalnizca tiklarsan onceki gibi buyur/kuculur.
+Ortada birakirsan yuzen kapsul, kenara yaklastirirsan kenara yasli olur.
+Sagda panel sola, altta yukari acilir. Ortadayken tamamen gizlenmez.
+
+KILIT / SIFIRLAMA
+Adayi buyut. Ust satirdaki kucuk kilit, tasimayi kilitler/acabilir.
+Yanindaki dairesel ok, konumu birincil ekranin ust ortasina sifirlar.
+Kilit tercihi sifirlamada korunur. Konum ve kilit yeniden acilista kalir.
+Bir sorun olursa tepsi simgesine sag tik → Konumu sifirla.
+Suruklerken Escape onceki konuma doner.
+
+Once eski surumu tepsiden kapatip yeni ZIP'i tamamen cikar.
+Tarayici ses eklentisini yeniden kurmana gerek yok.

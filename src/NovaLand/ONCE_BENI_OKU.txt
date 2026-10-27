@@ -1,0 +1,14 @@
+NOVALAND 1.0.0
+
+Güncelleyici eklendi. İlk kullanım için eski uygulamayı tepsiden kapatın,
+ZIP’in tamamını çıkarın ve NovaLand.exe’yi açın.
+Ayarlar > Güncellemeler bölümünden denetlenebilir.
+İlk GitHub yayını için GUNCELLEME_YAYINLAMA.txt dosyasına bakın.
+
+NovaLand 1.0.0
+Nova Island'in yeni adi NovaLand. Eski uygulamayi tepsiden tamamen kapat.
+ZIP'in tamamini kalici bir klasore cikar ve NovaLand.exe'yi ac.
+DLL ve JSON dosyalari yaninda kalsin. .NET Desktop Runtime 10 x64 gerekir.
+Mevcut gorevler, ayarlar, sabitler ve eslestirme bilgisi korunur.
+Ses eklentisini yeniden kurman gerekmez.
+Otomatik guncelleme henuz aktif degildir; GitHub adresi baglanacak.

@@ -1,0 +1,43 @@
+NovaLand 1.0.0 — Site sesleri
+
+1. Eski NovaLand'i tepsiden kapat. ZIP'i tamamen kalici bir klasore cikar.
+2. NovaLand.exe'yi ac. Adayi buyut, Ayarlar sekmesine gir.
+3. Tarayicida eklentiler sayfasini ac:
+   Chrome: chrome://extensions
+   Edge: edge://extensions
+   Opera: opera://extensions
+4. Gelistirici modunu ac. Paketlenmemis oge/eklenti yukle secenegiyle
+   ZIP'teki Tarayici_Ses_Eklentisi klasorunu sec.
+5. NovaLand → Ayarlar → Tarayici baglantisi bolumunu ac.
+   Kodu kopyala dugmesine bas.
+6. Tarayicinin eklentiler menusunden NovaLand • Site Sesleri'ni ac.
+   Kodu yapistir, Baglan'a bas. Bu kod o bilgisayara ozeldir.
+7. Onceden acik YouTube, Kick vb. video sekmelerini bir kez yenile.
+8. NovaLand → Muzik → Site sesi bolumunde oklarla sekmeyi secip sesini ayarla. 0 sessize alir. Ayarlar genellikle 1–2 saniyede
+   uygulanir; bilgisayarin genel sesi ve diger uygulamalar degismez.
+
+Sekmeler birbirinden bagimsizdir; ayni siteden iki sekme aciksa oklarla
+aralarinda gecilir. Secilen seviye site adi temelinde hatirlanir ve yeni oynaticilara
+uygulanir. Oynaticinin kendi ses dugmesi de kullanilabilir. Sonraki yeni
+sayfa/video icin NovaLand'da son sectigin seviye geri gelir.
+
+Eklenti acik video/ses oynaticilarini bulabilmek icin HTTP/HTTPS sitelerinde
+calisma izni ister. Masaustu uygulamasina yalnizca site adi, rastgele sekme
+kimligi ve ses/oynatma durumu gonderilir. Tam adres, sayfa basligi, metin,
+sifre veya video icerigi gonderilmez. Baglanti yalnizca bilgisayarin icinde,
+eslestirme koduyla dogrulanarak kurulur. Sosyal medya uyarisi yoktur.
+
+Sinirlar: HTML video/audio oynaticilari desteklenir. Web Audio ile ses
+ureten oyunlar, kapali shadow DOM/erisilemeyen oynaticilar, tarayicinin
+kendi ozel sayfalari ve gizli sekmeler desteklenmez. Uyuyan/discard edilmis
+bir sekmeyi yeniden acman gerekebilir. Bazı sitelerin kendi oynatici
+mantigi ses degerini tekrar degistirebilir. Web sitesinin ses degeri ile
+Windows'un tarayici/sistem ses degeri birlikte sonucu belirler.
+
+Baglanti yoksa: NovaLand acik mi, eslestirme kodu dogru mu kontrol et;
+eklentiyi tekrar yuklediysen video sayfasini yenile. Diger uygulama
+surumleri tepsiden kapali olmali. Yerel ses portu 127.0.0.1:47864'tur;
+bu ozellik icin internete acik bir sunucu veya hesap gerekmez.
+
+Eklentiyi istemiyorsan tarayicinin eklentiler sayfasindan kaldirabilirsin.
+NovaLand'in diger ozellikleri eklenti olmadan calisir.
