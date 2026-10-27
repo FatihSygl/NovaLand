@@ -773,6 +773,20 @@
           <TextBlock Text="Dahili ekran desteği donanıma bağlıdır." FontSize="9" Foreground="#666670" Margin="0,6,0,0" />
          </StackPanel>
         </Border>
+        <Border Style="{StaticResource InsetCard}" Margin="0,8,0,0">
+         <StackPanel>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="29"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <Path Data="M17,3 A9,9 0 1 0 21,17 A10,10 0 0 1 17,3 Z" Stroke="#C4B2E3" StrokeThickness="1.4" Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center"/>
+           <TextBlock Grid.Column="1" Text="Ek karartma" FontSize="12" VerticalAlignment="Center"/>
+           <TextBlock x:Name="ExtraDimValue" Grid.Column="2" Text="Kapalı" FontSize="10" Foreground="#BEACDA" VerticalAlignment="Center"/>
+          </Grid>
+          <Slider x:Name="ExtraDimSlider" Style="{StaticResource ControlSlider}" Minimum="0" Maximum="70" Value="0" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,7,0,0" ValueChanged="ExtraDim_ValueChanged" AutomationProperties.Name="Ek ekran karartması"/>
+          <Grid Margin="0,3,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <TextBlock Text="Gece için · tüm ekranlarda" FontSize="9" Foreground="#85808E" VerticalAlignment="Center"/>
+           <Button Grid.Column="1" Content="Kapat" Style="{StaticResource GhostButton}" FontSize="10" Padding="6,3" Click="ExtraDimOff_Click"/>
+          </Grid>
+         </StackPanel>
+        </Border>
         <Button Content="Windows ses ayarları ↗" Style="{StaticResource GhostButton}" FontSize="10" HorizontalAlignment="Left" Margin="0,8,0,0" Click="SoundSettings_Click" />
        </StackPanel>
       </ScrollViewer>

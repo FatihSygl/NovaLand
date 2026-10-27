@@ -543,3 +543,15 @@ büyümez. Kopyalama onayı çizilen tik ve halka animasyonuyla yaklaşık iki
 saniye gösterilir; görsel önizlemesi de aynı onayı kullanır. Uygulamanın kendi
 pano yazımları Windows pano sıra numarasıyla ayırt edilir; kendi kopyasını
 yeniden geçmişe ekleyip onay düğmesini kaldırması önlenir.
+
+
+## 1.3.4 — Ek ekran karartması
+
+Kontroller > Ek karartma, monitör parlaklığı sıfırken de yazılımsal olarak
+ekranı karartır. Yüzde 0–70 aralığında, tüm monitörleri kapsayan siyah
+yarı saydam pencereler kullanır; fareyi veya klavyeyi yakalamaz, odağı
+değiştirmez. Ekran bağlantısı değişirse yüzeyler yeniden oluşturulur.
+Kontrollerden veya tepsi menüsünden kapatılır. Sürekli render döngüsü yoktur.
+Seviye diske kaydedilmez; her açılışta kapalıdır ve uygulama çıktığında
+yüzeyler kapanır. Donanımsal arka ışığı veya güç tüketimini azaltmaz.
+Güvenli Windows masaüstünü ve özel tam ekran render yollarını karartmayabilir.

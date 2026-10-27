@@ -1121,6 +1121,7 @@ public partial class MainWindow : Window
         {
             PlacementReset_Click(this, new RoutedEventArgs()); ShowFromTray();
         }));
+        _tray.ContextMenuStrip.Items.Add("Ek karartmayı kapat", null, (_, _) => Dispatcher.Invoke(() => ExtraDimSlider.Value = 0));
         _tray.ContextMenuStrip.Items.Add("Kapat", null, (_, _) => Dispatcher.Invoke(Quit));
         _tray.DoubleClick += (_, _) => Dispatcher.Invoke(ShowFromTray);
     }
@@ -1348,6 +1349,7 @@ public partial class MainWindow : Window
         _clock.Stop();
         _mediaPoll.Stop();
         _brightnessDebounce.Stop();
+        _screenDimmer?.Dispose();
         if (_tray is not null)
         {
             _tray.Visible = false;
