@@ -8,6 +8,24 @@ var root = Path.Combine(Path.GetTempPath(), "novaland-check-" + Guid.NewGuid().T
 Directory.CreateDirectory(root); Environment.SetEnvironmentVariable("XDG_DATA_HOME",root); int count = 0;
 void Assert(bool ok, string title) { if (!ok) throw new Exception(title); Console.WriteLine("PASS " + title); count++; }
 void Reject(Action action, string title) { try { action(); } catch (InvalidDataException) { Assert(true,title); return; } throw new Exception(title); }
+var moment = DateTimeOffset.UtcNow;
+var queue = new NovaIsland.Models.ActivityQueue<string>();
+queue.Enqueue("song", 20, "song", moment);
+queue.Tick(moment.AddMilliseconds(4999));
+Assert(queue.Active?.Value == "song", "notice remains until five seconds");
+queue.Tick(moment.AddSeconds(5));
+Assert(queue.Active is null, "notice expires at five seconds");
+queue.Enqueue("song", 20, "song", moment);
+queue.Enqueue("headset", 70, "headset", moment.AddSeconds(1));
+Assert(queue.Active?.Value == "headset", "headset preempts song");
+queue.Tick(moment.AddSeconds(6));
+Assert(queue.Active?.Value == "song", "song resumes after five-second headset notice");
+queue.Pause(true, moment.AddSeconds(7));
+queue.Tick(moment.AddSeconds(20));
+Assert(queue.Active?.Value == "song", "expanded panel pauses notice countdown");
+queue.Pause(false, moment.AddSeconds(20));
+queue.Tick(moment.AddSeconds(24));
+Assert(queue.Active is null, "remaining notice time expires after resume");
 var version = new Version(1,0,0);
 string Json(string tag="v1.0.1", bool draft=false, bool prerelease=false, string? url=null, string? digest=null, long size=5) => JsonSerializer.Serialize(new { tag_name=tag, draft, prerelease, assets=new[]{new { name=$"NovaLand_{tag}_win-x64.zip", browser_download_url=url??$"https://github.com/FatihSygl/NovaLand/releases/download/{tag}/NovaLand_{tag}_win-x64.zip",size,digest=digest??"sha256:"+new string('a',64)}} });
 Assert(UpdatePackage.ParseRelease(Json(),version)?.Version==new Version(1,0,1),"new stable release selected");

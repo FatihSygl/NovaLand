@@ -20,7 +20,7 @@ public partial class MainWindow
         _weatherRefresh.Start();
         if(WeatherArt.IsVisible)_ = RefreshWeather();
     }
-    private void WeatherOpen_Click(object sender,RoutedEventArgs e){SetTab("Controls");SetExpanded(true);}
+    private void WeatherOpen_Click(object sender,RoutedEventArgs e){SetTab("Weather");SetExpanded(true);}
     private async void WeatherSearch_Click(object sender,RoutedEventArgs e)=>await SearchWeather();
     private async void WeatherQuery_KeyDown(object sender,System.Windows.Input.KeyEventArgs e){if(e.Key==Key.Enter){e.Handled=true;await SearchWeather();}}
     private async Task SearchWeather()
@@ -54,7 +54,7 @@ public partial class MainWindow
             WeatherArt.Code=r.Code;WeatherArt.Day=r.Day;WeatherArt.InvalidateVisual();
             WeatherTemperature.Text=$"{r.Temperature:0}°";WeatherCondition.Text=r.Condition;
             WeatherDetails.Text=$"Hissedilen {r.Feels:0}°   ·   Rüzgâr {r.Wind:0} km/sa   ·   Nem %{r.Humidity}";
-            WeatherStatus.Text=$"Son kontrol {r.Fetched:HH:mm} · Seçili şehir için 15 dk önbellek";
+            WeatherStatus.Text=$"Son kontrol {r.Fetched:HH:mm}";
             WeatherTemperature.BeginAnimation(OpacityProperty,new System.Windows.Media.Animation.DoubleAnimation(0,1,TimeSpan.FromMilliseconds(600)));
         }
         catch(Exception ex){DiagnosticLog.Write("Weather",ex);WeatherStatus.Text=_weather is null?"Hava durumu alınamadı. Bağlantını kontrol et.":$"Çevrimdışı · Son veri {_weather.Fetched:HH:mm}";}

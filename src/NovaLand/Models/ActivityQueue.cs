@@ -13,7 +13,7 @@ public sealed class ActivityQueue<T> where T : class
         _pending.RemoveAll(x => x.Key == key);
         var item = new Item(key, priority, value);
         if (!_paused && replaceActive && Active?.Key == key && priority >= Active.Priority)
-        { Active = item; _ends = now.AddSeconds(8); Changed?.Invoke(value); return; }
+        { Active = item; _ends = now.AddSeconds(5); Changed?.Invoke(value); return; }
         if (!_paused && Active is not null && priority > Active.Priority)
         {
             // Resume the interrupted event after the urgent event, with a full viewing period.
@@ -52,7 +52,7 @@ public sealed class ActivityQueue<T> where T : class
         if (_pending.Count == 0) { Changed?.Invoke(null); return; }
         int index = _pending.FindIndex(x => x.Priority == _pending.Max(y => y.Priority));
         Active = _pending[index]; _pending.RemoveAt(index);
-        _ends = now.AddSeconds(8); Changed?.Invoke(Active.Value);
+        _ends = now.AddSeconds(5); Changed?.Invoke(Active.Value);
     }
     public void RemovePending(string key) => _pending.RemoveAll(x => x.Key == key);
     public void Clear() { _pending.Clear(); Active = null; Changed?.Invoke(null); }

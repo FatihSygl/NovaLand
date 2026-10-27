@@ -81,7 +81,7 @@ public partial class MainWindow : Window
     private const string BellGeometry = "M5,17 L19,17 17,14 17,9 A5,5 0 0 0 7,9 L7,14 Z M10,20 A2,2 0 0 0 14,20";
     private const string HeadphoneGeometry = "M4,14 V10 A8,8 0 0 1 20,10 V14 M4,12 L7,12 7,21 4,21 Q2,21 2,19 L2,15 Q2,12 4,12 M20,12 L17,12 17,21 20,21 Q22,21 22,19 L22,15 Q22,12 20,12";
     private ClipboardService? _clipboard;
-    private const int AutoHideDelayMs = 8000;
+    private const int AutoHideDelayMs = 5000;
     private readonly DispatcherTimer _autoHideTimer = new() { Interval = TimeSpan.FromMilliseconds(AutoHideDelayMs) };
     private readonly DispatcherTimer _hoverRevealTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private readonly DispatcherTimer _seekDebounce = new() { Interval = TimeSpan.FromMilliseconds(250) };
@@ -351,14 +351,15 @@ public partial class MainWindow : Window
 
     private double ExpandedHeight => _tab switch
     {
-        "Music" => 460,
-        "Focus" => _reminderComposerOpen ? 680 : 560,
-        "Files" => 432,
-        "Clipboard" => 530,
-        "Todo" => 520,
-        "Notifications" => 480,
-        "Controls" => 600,
-        _ => 466
+        "Music" => 408,
+        "Focus" => _reminderComposerOpen ? 520 : 460,
+        "Files" => 410,
+        "Clipboard" => 460,
+        "Todo" => 440,
+        "Notifications" => 420,
+        "Weather" => 450,
+        "Controls" => 460,
+        _ => 450
     };
 
     private void AnimateWindowSize(double width, double height)
@@ -409,7 +410,7 @@ public partial class MainWindow : Window
         BatteryPill.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         IdleDot.Visibility = Visibility.Collapsed;
         Waveform.Visibility = focus || media ? Visibility.Visible : Visibility.Collapsed;
-        PillTitle.Text = _expanded ? _tab switch { "Music" => "Şimdi çalıyor", "Focus" => "Odak", "Files" => "Dosya rafı", "Clipboard" => "Kopyalama panosu", "Controls" => "Kontroller", "Notifications" => "Bildirimler", "Todo" => "Yapılacaklar", _ => "Ayarlar" }
+        PillTitle.Text = _expanded ? _tab switch { "Music" => "Şimdi çalıyor", "Focus" => "Odak", "Files" => "Dosya rafı", "Clipboard" => "Kopyalama panosu", "Weather" => "Hava durumu", "Controls" => "Kontroller", "Notifications" => "Bildirimler", "Todo" => "Yapılacaklar", _ => "Ayarlar" }
             : focus ? "Odak" : media ? TrackTitle.Text : "";
         PillTitle.Foreground = _expanded || (!media && !focus) ? new SolidColorBrush(Color.FromRgb(142, 142, 147)) : System.Windows.Media.Brushes.White;
         ClockPill.Text = focus ? TimerValue.Text : _mediaAvailable ? RemainingTrackTime() : DateTime.Now.ToString("HH:mm");
@@ -505,7 +506,7 @@ public partial class MainWindow : Window
     private void SetTab(string key)
     {
         bool changed = _tab != key;
-        string[] navigation = ["Music","Focus","Todo","Files","Clipboard","Notifications","Controls","Settings"];
+        string[] navigation = ["Music","Focus","Todo","Files","Clipboard","Notifications","Weather","Controls","Settings"];
         int direction = Array.IndexOf(navigation,key) >= Array.IndexOf(navigation,_tab) ? 1 : -1;
         _tab = key;
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
@@ -515,12 +516,13 @@ public partial class MainWindow : Window
         TodoView.Visibility = key == "Todo" ? Visibility.Visible : Visibility.Collapsed;
         NotificationsView.Visibility = key == "Notifications" ? Visibility.Visible : Visibility.Collapsed;
         if (key == "Notifications") NoticeBadge.Visibility = Visibility.Collapsed;
+        WeatherView.Visibility = key == "Weather" ? Visibility.Visible : Visibility.Collapsed;
         ControlsView.Visibility = key == "Controls" ? Visibility.Visible : Visibility.Collapsed;
         if (key is "Settings" or "Music") RefreshBrowserAudio();
         if (key == "Music") _ = RefreshApplicationAudioAsync();
         if (key == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); }
         SettingsView.Visibility = key == "Settings" ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, NotificationsTab, ControlsTab, SettingsTab })
+        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, NotificationsTab, WeatherTab, ControlsTab, SettingsTab })
             tab.Style = (Style)FindResource((string?)tab.Tag == key ? "DockActive" : "DockTab");
         if (_expanded)
         {
@@ -1216,7 +1218,7 @@ public partial class MainWindow : Window
             scale.BeginAnimation(property, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(650))
                 { EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.25 } });
         GreetingOrbit.BeginAnimation(RotateTransform.AngleProperty,
-            new DoubleAnimation(0, 180, TimeSpan.FromSeconds(8)));
+            new DoubleAnimation(0, 180, TimeSpan.FromSeconds(5)));
         GreetingSpark.BeginAnimation(OpacityProperty,
             new DoubleAnimation(0.45, 1, TimeSpan.FromMilliseconds(1000)) { AutoReverse = true, RepeatBehavior = new RepeatBehavior(4) });
         GreetingHalo.BeginAnimation(OpacityProperty,
