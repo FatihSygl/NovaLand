@@ -12,6 +12,8 @@ dotnet publish src/NovaLand/NovaLand.csproj -c Release -r win-x64 -p:SelfContain
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed.' }
 dotnet run --project tests/UpdateChecks.csproj -- $publish
 if ($LASTEXITCODE -ne 0) { throw 'Update checks failed.' }
+dotnet run --project tests/DimmerChecks/DimmerChecks.csproj -c Release
+if ($LASTEXITCODE -ne 0) { throw 'Native dimmer checks failed.' }
 New-Item $stage -ItemType Directory -Force | Out-Null
 Copy-Item "$publish/*" $stage -Recurse
 Get-ChildItem src/NovaLand -File | Where-Object { $_.Extension -in '.txt','.md','.cmd' } | Copy-Item -Destination $stage

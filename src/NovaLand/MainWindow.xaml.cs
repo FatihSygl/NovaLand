@@ -335,7 +335,12 @@ public partial class MainWindow : Window
 
     private void Window_Deactivated(object? sender, EventArgs e)
     {
-        if (_expanded && !_dialogOpen && !_dragArmed) SetExpanded(false);
+        if (_changingDim || IsMouseCaptureWithin || (DateTime.UtcNow < _dimInteractionUntil && Shell.IsMouseOver)) return;
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (_expanded && !IsActive && !_dialogOpen && !_dragArmed && !IsMouseCaptureWithin &&
+                !_changingDim && !(DateTime.UtcNow < _dimInteractionUntil && Shell.IsMouseOver)) SetExpanded(false);
+        }), System.Windows.Threading.DispatcherPriority.ContextIdle);
     }
 
     private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -829,7 +834,7 @@ public partial class MainWindow : Window
         _focusTaskId = null;
         _remaining = _duration;
         TimerStart.Content = "Başlat";
-        TimerLabel.Text = "Biraz alan aç. Odaklan.";
+        TimerLabel.Text = "Odak seansı";
         RefreshTimerUi();
     }
 

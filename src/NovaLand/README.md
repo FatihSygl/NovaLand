@@ -555,3 +555,14 @@ Kontrollerden veya tepsi menüsünden kapatılır. Sürekli render döngüsü yo
 Seviye diske kaydedilmez; her açılışta kapalıdır ve uygulama çıktığında
 yüzeyler kapanır. Donanımsal arka ışığı veya güç tüketimini azaltmaz.
 Güvenli Windows masaüstünü ve özel tam ekran render yollarını karartmayabilir.
+
+
+## 1.3.5 — Sade yüzeyler ve karartma odağı düzeltmesi
+
+Odak sayfasındaki renkli kartlar kaldırıldı. Sayaç beyaz, hatırlatıcılar
+ince ayraçlı satırlardır. Diğer sayfalarda nötr yüzeyler ve tutarlı kart
+yarıçapları kullanılır. Karartma artık WinForms Form yerine devre dışı,
+tıklama geçiren ve NOACTIVATE özellikli yerel pencereler kullanır.
+Karartma değişirken ve fare yakalanmışken geçici deaktivasyon paneli
+kapatmaz. Windows CI yerel aç/kapat döngülerinde ön plan, aktif pencere,
+fare yakalama, alfa seviyesi ve pencere temizliğini kontrol eder.

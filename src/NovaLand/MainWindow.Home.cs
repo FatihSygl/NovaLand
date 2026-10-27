@@ -20,7 +20,7 @@ public partial class MainWindow
         if (_focusTaskId is not null && FocusTask is null)
         {
             _focusTaskId = null;
-            TimerLabel.Text = _timerRunning ? "Odaklanma zamanı" : "Biraz alan aç. Odaklan.";
+            TimerLabel.Text = _timerRunning ? "Odaklanma zamanı" : "Odak seansı";
         }
         bool music = _mediaAvailable;
         HomeOverview.Visibility = music ? Visibility.Collapsed : Visibility.Visible;
@@ -28,7 +28,7 @@ public partial class MainWindow
             element.Visibility = music ? Visibility.Visible : Visibility.Collapsed;
         var task = HomeTask;
         HomeTaskLabel.Text = _timerRunning ? "ŞİMDİ ODAKTASIN" : "SIRADAKİ ADIM";
-        HomeTaskText.Text = task?.Text ?? (_timerRunning ? "Kendine ayırdığın zaman." : "Aklındaki ilk adımı yaz.");
+        HomeTaskText.Text = task?.Text ?? (_timerRunning ? "Kendine ayırdığın zaman." : "Henüz görev yok.");
         HomeFocusButton.Content = _timerRunning ? $"Odağa dön · {TimerValue.Text}" : task is null ? "Görev ekle →" : "Odaklan →";
         var reminder = _reminders.Items.Where(x => !x.IsTriggered).OrderBy(x => x.Due).FirstOrDefault();
         HomeReminderLabel.Text = reminder is null ? "HATIRLATICILAR" : $"SIRADAKİ · {reminder.Due.LocalDateTime:dd MMM HH:mm}";
