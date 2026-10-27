@@ -351,15 +351,15 @@ public partial class MainWindow : Window
 
     private double ExpandedHeight => _tab switch
     {
-        "Music" => 408,
-        "Focus" => _reminderComposerOpen ? 520 : 460,
-        "Files" => 410,
-        "Clipboard" => 460,
-        "Todo" => 440,
-        "Notifications" => 420,
+        "Music" => 460,
+        "Focus" => _reminderComposerOpen ? 680 : 560,
+        "Files" => 432,
+        "Clipboard" => 530,
+        "Todo" => 520,
+        "Notifications" => 480,
         "Weather" => 450,
-        "Controls" => 460,
-        _ => 450
+        "Controls" => 600,
+        _ => 466
     };
 
     private void AnimateWindowSize(double width, double height)

@@ -241,16 +241,16 @@
       <Grid.RenderTransform>
        <TranslateTransform x:Name="ViewTranslate" />
       </Grid.RenderTransform>
-      <ScrollViewer x:Name="MusicView" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
-       <Grid x:Name="SongInfo" Margin="0,8,0,0">
+      <StackPanel x:Name="MusicView">
+       <Grid x:Name="SongInfo" Margin="0,12,0,0">
         <Grid.RenderTransform>
          <TranslateTransform x:Name="SongTranslate" />
         </Grid.RenderTransform>
         <Grid.ColumnDefinitions>
-         <ColumnDefinition Width="104" />
+         <ColumnDefinition Width="124" />
          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Border x:Name="AlbumCover" Width="84" Height="84" CornerRadius="24" Background="#19191B" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
+        <Border x:Name="AlbumCover" Width="104" Height="104" CornerRadius="24" Background="#19191B" HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
          <Border.RenderTransform>
           <ScaleTransform x:Name="AlbumScale" ScaleX="0.9" ScaleY="0.9" />
          </Border.RenderTransform>
@@ -269,7 +269,7 @@
          <TextBlock x:Name="PlaybackLabel" Text="MÜZİK" FontSize="8" Foreground="#777782" Margin="0,9,0,0" />
         </StackPanel>
        </Grid>
-       <Slider x:Name="TimelineSlider" Minimum="0" Maximum="1" Value="0" Margin="0,12,0,0" ValueChanged="TimelineSlider_ValueChanged" AutomationProperties.Name="Parça konumu" />
+       <Slider x:Name="TimelineSlider" Minimum="0" Maximum="1" Value="0" Margin="0,18,0,0" ValueChanged="TimelineSlider_ValueChanged" AutomationProperties.Name="Parça konumu" />
        <Grid>
         <Grid.ColumnDefinitions>
          <ColumnDefinition Width="*" />
@@ -278,7 +278,7 @@
         <TextBlock x:Name="ElapsedLabel" Text="0:00" FontSize="10" Foreground="#777782" />
         <TextBlock x:Name="DurationLabel" Grid.Column="1" Text="–:––" FontSize="10" Foreground="#777782" />
        </Grid>
-       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,4">
+       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,12">
         <Button x:Name="PreviousButton" Style="{StaticResource Transport}" Click="Previous_Click" ToolTip="Önceki parça">
          <Path Fill="White" Width="23" Height="18" Stretch="Uniform" Data="F1 M1,9 L11,1 11,17 Z M11,9 L21,1 21,17 Z" />
         </Button>
@@ -293,7 +293,7 @@
          <Path Fill="White" Width="23" Height="18" Stretch="Uniform" Data="F1 M1,1 L11,9 1,17 Z M11,1 L21,9 11,17 Z" />
         </Button>
        </StackPanel>
-       <Border Background="#19191D" CornerRadius="18" Padding="12,6,12,7" Margin="0,8,0,0" BorderBrush="#29292F" BorderThickness="0.5">
+       <Border Background="#19191D" CornerRadius="18" Padding="14,9,14,10" Margin="0,12,0,0" BorderBrush="#29292F" BorderThickness="0.5">
         <StackPanel>
          <Button x:Name="AudioSourceButton" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="0,3,6,5" Click="AudioSource_Click" ToolTip="Sistem, uygulama veya site seç">
           <StackPanel Orientation="Horizontal"><Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.4" Width="15" Height="16" Stretch="Uniform" Margin="0,0,9,0"/><TextBlock x:Name="AudioSourceTitle" Text="Sistem" FontSize="11" FontWeight="Medium" MaxWidth="230" TextTrimming="CharacterEllipsis" Foreground="#DCDCE4"/><Path Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2" Width="8" Height="4" Stretch="Fill" Margin="8,0,0,0"/></StackPanel>
@@ -308,13 +308,13 @@
          </Grid>
         </StackPanel>
        </Border>
-      </StackPanel></ScrollViewer>
+      </StackPanel>
       <ScrollViewer x:Name="FocusView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <StackPanel Margin="0,6,0,5">
         <TextBlock x:Name="TimerLabel" Text="Biraz alan aç. Odaklan." FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,7,0,0" />
         <TextBlock x:Name="TimerValue" Text="25:00" FontSize="64" FontWeight="Light" Foreground="#F0BB82" HorizontalAlignment="Center" Margin="0,-2,0,0" />
         <ProgressBar x:Name="TimerProgress" Minimum="0" Maximum="100" Height="3" Margin="37,6,37,0" Foreground="#F0BB82" Background="#292320" BorderThickness="0" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,10">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,17,0,15">
          <Button x:Name="TimerStart" Content="Başlat" Width="148" Height="38" Style="{StaticResource WarmButton}" Click="TimerStart_Click" Margin="0,0,8,0" />
          <Button Width="38" Height="38" Style="{StaticResource GhostButton}" Click="TimerReset_Click" ToolTip="Sayacı sıfırla" AutomationProperties.Name="Sayacı sıfırla">
           <Path Data="M5,7 A7,7 0 1 1 4,15 M1,7 L5,7 5,3" Stroke="#9999A1" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform"/>
@@ -337,7 +337,7 @@
           <Button Content="50 dk" Tag="50" Style="{StaticResource Chip}" FontSize="10" Padding="12,6" Click="Preset_Click"/>
          </StackPanel>
         </Expander>
-        <Border Background="#29292E" Height="1" Margin="0,16,0,12" />
+        <Border Background="#29292E" Height="1" Margin="0,24,0,17" />
         <Grid Margin="0,0,0,10">
          <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
