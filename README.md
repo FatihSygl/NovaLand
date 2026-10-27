@@ -45,3 +45,14 @@ Bu kontroller Windows arayüzünü, gerçek Bluetooth cihazlarını ve gerçek
 yeniden başlatma geçişini otomatik olarak doğrulamaz.
 
 Ayrıntılı kullanım: [uygulama kılavuzu](src/NovaLand/README.md).
+
+## MacBook / macOS önizlemesi
+
+[Mac sürümü 0.1.0](https://github.com/FatihSygl/NovaLand/releases/tag/mac-v0.1.0)
+Intel ve Apple Silicon için tek Universal `.app` paketi sağlar. macOS 13+
+gerekir; .NET gerekmez. Yerel SwiftUI/AppKit kaynakları `macOS/` altındadır.
+
+Bu ilk Mac sürümü Windows ile tam özellik eşitliğinde değildir. Desteklenen
+özellikler, izinler ve kurulum: [Mac kılavuzu](macOS/README.md).
+Mac yayınları ayrı `mac-vX.Y.Z` önizleme etiketini kullanır; Windows'un
+Latest sürümü korunur. macOS/VERSION değişince Mac akışı yeni paketi yayımlar.

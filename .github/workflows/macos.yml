@@ -1,0 +1,66 @@
+name: Build and release NovaLand for macOS
+on:
+  push:
+    branches: [main]
+    paths: ['macOS/**', '.github/workflows/macos.yml', 'src/NovaLand/Assets/Logo.png']
+  pull_request:
+    branches: [main]
+    paths: ['macOS/**', '.github/workflows/macos.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: novaland-macos-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 25
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Build universal app and run core checks
+        run: bash macOS/build.sh
+      - name: Version
+        id: version
+        run: echo "version=$(cat macOS/VERSION)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: |
+            artifacts/macOS/NovaLand_v*_macOS_universal.zip
+            artifacts/macOS/ONCE_BENI_OKU.txt
+            artifacts/macOS/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-package
+          path: package
+      - name: Publish separate Mac preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.build.outputs.version }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          tag="mac-v${VERSION}"
+          if gh release view "$tag" --json tagName > /dev/null 2>&1; then
+            echo "Release $tag already exists; leaving it unchanged."
+            exit 0
+          fi
+          gh release create "$tag" package/* --target "$COMMIT" \
+            --title "NovaLand for macOS ${VERSION} — Önizleme" --prerelease \
+            --notes "macOS 13+ için Intel ve Apple Silicon uygulaması. .NET gerekmez. Pano (10 metin/7 görsel), sabitleme, görsel önizleme, görevler, odak, hatırlatıcılar ve isteğe bağlı Spotify/Music ile Bluetooth bağlantı bildirimleri içerir. İlk Mac önizlemesi; Windows sürümünün tüm özelliklerini içermez. Uygulama ad-hoc imzalıdır, Apple Developer ID/noter onayı yoktur. Kurulum ve sınırlar için ONCE_BENI_OKU.txt dosyasını okuyun. Derleme ve otomatik kontroller geçmiştir; gerçek MacBook kullanım testi yapılmamıştır."
