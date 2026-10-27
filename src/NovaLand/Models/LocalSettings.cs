@@ -5,9 +5,6 @@ namespace NovaIsland.Models;
 
 public sealed class LocalSettings
 {
-    public string WeatherCity { get; set; } = "";
-    public double? WeatherLatitude { get; set; }
-    public double? WeatherLongitude { get; set; }
     public bool WelcomeShown { get; set; } = false;
     public string IslandEdge { get; set; } = "Top";
     public string IslandMonitor { get; set; } = "";

@@ -513,3 +513,13 @@ yönlü ve kısa, hover tepkisi daha hafif, ayar anahtarları kayarak değişir.
 Native metin kutuları, tam yuvarlak görev hedefi ve veri modelleri korunur.
 Windows arayüzü burada canlı olarak görüntülenemedi; derleme ve mevcut
 31 davranış kontrolü çalıştırılır.
+
+
+## 1.3.0 — Birbirine bağlı çalışma alanı (Windows)
+
+Hava durumu sayfası ve ağ sorguları kaldırıldı. Ana sayfa medya oturumu yokken
+sıradaki açık görevi ve en yakın bekleyen hatırlatıcıyı gösterir. Görevden odak
+başlatılabilir; aktif seans başka göreve aktarılırsa kalan süre korunur. Görev
+tamamlanır veya silinirse canlı bağlantı çözülür, sayaç bağımsız devam eder.
+Dosya rafı, bildirimler, kontroller ve ayarlar Diğer menüsündedir. Kopyalama
+başarısı düğmede kısa bir tikle gösterilir. Panel boyutları 1.2.2 ile aynıdır.

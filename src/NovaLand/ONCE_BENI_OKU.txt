@@ -1,22 +1,13 @@
-NOVALAND 1.2.0
-Ses kaynağı: Müzik sayfasındaki Sistem başlığına tıklayıp uygulama/site seç.
-Hava durumu artık yalnızca Kontroller bölümündedir.
+NovaLand 1.3.0 — Windows
 
-NOVALAND 1.1.0
-Hava durumu: ana sayfadaki karttan aç, Şehir ara ile sonuç seç.
-Yeni hareketler: butonlarda basma tepkisi, yumuşak sekme ve ada geçişleri.
+ZIP'i bir klasöre çıkar. Çalışan NovaLand'i tepsiden tamamen kapatıp NovaLand.exe'yi aç.
+.NET 10 Desktop Runtime x64 gerekir; zaten kuruluysa tekrar kurman gerekmez.
 
-NOVALAND 1.0.0
+Ana sayfa müzik varken oynatıcıyı, yokken sıradaki görev ve hatırlatıcıyı gösterir.
+Görevin yanındaki sayaç simgesi o görev için odak seansını başlatır.
+Aktif seans sırasında farklı görev seçmek süreyi sıfırlamaz.
+Dosya rafı, bildirimler, kontroller ve ayarlar alt menüdeki ··· düğmesinde.
+Hava durumu kaldırıldı. Bildirimler 5 saniye gösterilir.
+Eski panel boyutları korunur.
 
-Güncelleyici eklendi. İlk kullanım için eski uygulamayı tepsiden kapatın,
-ZIP’in tamamını çıkarın ve NovaLand.exe’yi açın.
-Ayarlar > Güncellemeler bölümünden denetlenebilir.
-İlk GitHub yayını için GUNCELLEME_YAYINLAMA.txt dosyasına bakın.
-
-NovaLand 1.0.0
-Nova Island'in yeni adi NovaLand. Eski uygulamayi tepsiden tamamen kapat.
-ZIP'in tamamini kalici bir klasore cikar ve NovaLand.exe'yi ac.
-DLL ve JSON dosyalari yaninda kalsin. .NET Desktop Runtime 10 x64 gerekir.
-Mevcut gorevler, ayarlar, sabitler ve eslestirme bilgisi korunur.
-Ses eklentisini yeniden kurman gerekmez.
-Otomatik guncelleme henuz aktif degildir; GitHub adresi baglanacak.
+Eski sürüme yönlenirse KURTAR.cmd ile bu kopyayı açabilirsin.

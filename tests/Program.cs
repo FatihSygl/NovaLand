@@ -26,6 +26,15 @@ Assert(queue.Active?.Value == "song", "expanded panel pauses notice countdown");
 queue.Pause(false, moment.AddSeconds(20));
 queue.Tick(moment.AddSeconds(24));
 Assert(queue.Active is null, "remaining notice time expires after resume");
+var firstTask = new NovaIsland.Models.TodoEntry(Guid.NewGuid(), "First", false);
+var chosenTask = new NovaIsland.Models.TodoEntry(Guid.NewGuid(), "Chosen", false);
+var homeTasks = new[] { firstTask, chosenTask };
+Assert(NovaIsland.Models.HomeSelection.Task(homeTasks, null, false) == firstTask, "idle home selects first open task");
+Assert(NovaIsland.Models.HomeSelection.Task(homeTasks, chosenTask.Id, true) == chosenTask, "running focus keeps selected task regardless of list order");
+chosenTask.IsCompleted = true;
+Assert(NovaIsland.Models.HomeSelection.Task(homeTasks, chosenTask.Id, true) is null, "completed task does not silently transfer running focus to another task");
+Assert(NovaIsland.Models.HomeSelection.Task(homeTasks, chosenTask.Id, false) == firstTask, "idle home skips completed selected task");
+Assert(NovaIsland.Models.HomeSelection.Task(new[] { firstTask }, chosenTask.Id, true) is null, "deleted focus task releases association");
 var version = new Version(1,0,0);
 string Json(string tag="v1.0.1", bool draft=false, bool prerelease=false, string? url=null, string? digest=null, long size=5) => JsonSerializer.Serialize(new { tag_name=tag, draft, prerelease, assets=new[]{new { name=$"NovaLand_{tag}_win-x64.zip", browser_download_url=url??$"https://github.com/FatihSygl/NovaLand/releases/download/{tag}/NovaLand_{tag}_win-x64.zip",size,digest=digest??"sha256:"+new string('a',64)}} });
 Assert(UpdatePackage.ParseRelease(Json(),version)?.Version==new Version(1,0,1),"new stable release selected");
@@ -69,9 +78,6 @@ using(var updates = new UpdateService(new HttpClient(new FakeHttp(body,bytes))))
  try {await updates.CheckAndDownloadAsync(_=>{});throw new Exception("bad HTTP package accepted");}
  catch(InvalidDataException){Assert(updates.ReadyExecutable is null,"tampered download never marked ready");}
 }
-Assert(new WeatherReading(10,8,95,false,5,70,DateTimeOffset.Now).Condition=="Gök gürültülü","thunderstorm condition mapping");
-Assert(new WeatherReading(-2,-5,85,true,5,70,DateTimeOffset.Now).Condition=="Kar yağışlı","snow shower mapping");
-Assert(new WeatherReading(10,8,0,false,5,70,DateTimeOffset.Now).Condition=="Açık gece","night condition mapping");
 Directory.Delete(root,true);Console.WriteLine($"{count} checks passed");
 sealed class FakeHttp(string metadata, byte[] package, HttpStatusCode status=HttpStatusCode.OK):HttpMessageHandler {
  protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token) {

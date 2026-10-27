@@ -19,5 +19,5 @@ kaydı oluşturur. İlk ZIP kopyası --recovery ile açılabilir.
 Canlı GitHub Release henüz yayımlanmadı. Gerçek Windows UI, işletim
 sistemindeki yeniden başlatma, Bluetooth ve ses çıkışı burada denenmedi.
 Eski sürümün kullanıcı veri klasörü, registry anahtarı ve tek örnek kilidi
-uyumluluk için korunur. Hava durumu ve hareket düzenlemeleri eklendi.
+uyumluluk için korunur. Hava durumu kaldırıldı; görev-odak bağlantısı ve ana sayfa düzenlemeleri eklendi.
 Üç ek kontrol: fırtına, kar sağanağı ve açık gece kod eşlemesi.

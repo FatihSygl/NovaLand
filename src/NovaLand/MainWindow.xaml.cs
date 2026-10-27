@@ -237,7 +237,7 @@ public partial class MainWindow : Window
         _ready = true;
 
         await RefreshMediaAsync();
-        StartWeather();
+        InitializeMotion();
         StartUpdates();
         // Startup keeps the compact island visible; the tray remains available.
     }
@@ -357,7 +357,6 @@ public partial class MainWindow : Window
         "Clipboard" => 530,
         "Todo" => 520,
         "Notifications" => 480,
-        "Weather" => 450,
         "Controls" => 600,
         _ => 466
     };
@@ -388,6 +387,7 @@ public partial class MainWindow : Window
 
     private void RefreshCompact()
     {
+        RefreshHome();
         PlacementTools.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         PillTitle.FontSize = 11;
         PillTitle.FontWeight = FontWeights.Medium;
@@ -410,8 +410,8 @@ public partial class MainWindow : Window
         BatteryPill.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         IdleDot.Visibility = Visibility.Collapsed;
         Waveform.Visibility = focus || media ? Visibility.Visible : Visibility.Collapsed;
-        PillTitle.Text = _expanded ? _tab switch { "Music" => "Şimdi çalıyor", "Focus" => "Odak", "Files" => "Dosya rafı", "Clipboard" => "Kopyalama panosu", "Weather" => "Hava durumu", "Controls" => "Kontroller", "Notifications" => "Bildirimler", "Todo" => "Yapılacaklar", _ => "Ayarlar" }
-            : focus ? "Odak" : media ? TrackTitle.Text : "";
+        PillTitle.Text = _expanded ? _tab switch { "Music" => "Ana sayfa", "Focus" => "Odak", "Files" => "Dosya rafı", "Clipboard" => "Kopyalama panosu", "Controls" => "Kontroller", "Notifications" => "Bildirimler", "Todo" => "Yapılacaklar", _ => "Ayarlar" }
+            : focus ? FocusTaskTitle : media ? TrackTitle.Text : "";
         PillTitle.Foreground = _expanded || (!media && !focus) ? new SolidColorBrush(Color.FromRgb(142, 142, 147)) : System.Windows.Media.Brushes.White;
         ClockPill.Text = focus ? TimerValue.Text : _mediaAvailable ? RemainingTrackTime() : DateTime.Now.ToString("HH:mm");
         var brush = new SolidColorBrush(focus ? Color.FromRgb(255, 180, 91) : _mediaColor);
@@ -506,7 +506,7 @@ public partial class MainWindow : Window
     private void SetTab(string key)
     {
         bool changed = _tab != key;
-        string[] navigation = ["Music","Focus","Todo","Files","Clipboard","Notifications","Weather","Controls","Settings"];
+        string[] navigation = ["Music","Focus","Todo","Files","Clipboard","Notifications","Controls","Settings"];
         int direction = Array.IndexOf(navigation,key) >= Array.IndexOf(navigation,_tab) ? 1 : -1;
         _tab = key;
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
@@ -516,13 +516,12 @@ public partial class MainWindow : Window
         TodoView.Visibility = key == "Todo" ? Visibility.Visible : Visibility.Collapsed;
         NotificationsView.Visibility = key == "Notifications" ? Visibility.Visible : Visibility.Collapsed;
         if (key == "Notifications") NoticeBadge.Visibility = Visibility.Collapsed;
-        WeatherView.Visibility = key == "Weather" ? Visibility.Visible : Visibility.Collapsed;
         ControlsView.Visibility = key == "Controls" ? Visibility.Visible : Visibility.Collapsed;
         if (key is "Settings" or "Music") RefreshBrowserAudio();
         if (key == "Music") _ = RefreshApplicationAudioAsync();
         if (key == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); }
         SettingsView.Visibility = key == "Settings" ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, NotificationsTab, WeatherTab, ControlsTab, SettingsTab })
+        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, NotificationsTab, ControlsTab, SettingsTab })
             tab.Style = (Style)FindResource((string?)tab.Tag == key ? "DockActive" : "DockTab");
         if (_expanded)
         {
@@ -636,7 +635,9 @@ public partial class MainWindow : Window
     private async void CopyClipboard_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not ClipboardEntry entry) return;
-        StatusText.Text = await ClipboardService.CopyAsync(entry.Text) ? "Kopyalandı. İstediğin yerde Ctrl+V ile yapıştır." : "Pano meşgul. Tekrar dene.";
+        bool copied = await ClipboardService.CopyAsync(entry.Text);
+        if (copied) await CopyFeedback(sender);
+        StatusText.Text = copied ? "Kopyalandı. İstediğin yerde Ctrl+V ile yapıştır." : "Pano meşgul. Tekrar dene.";
     }
     private void ClearClipboard_Click(object sender, RoutedEventArgs e)
     {
@@ -671,7 +672,7 @@ public partial class MainWindow : Window
     private void TodoToggle_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not TodoEntry item) return;
-        item.IsCompleted = !item.IsCompleted; SaveTodo();
+        item.IsCompleted = !item.IsCompleted; SaveTodo(); RefreshCompact();
     }
     private void TodoDelete_Click(object sender, RoutedEventArgs e)
     {
@@ -694,7 +695,9 @@ public partial class MainWindow : Window
     private async void CopyImage_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not ImageEntry entry) return;
-        StatusText.Text = await ClipboardService.CopyImageAsync(entry.Png) ? "Görsel kopyalandı. Ctrl+V ile yapıştır." : "Görsel kopyalanamadı. Tekrar dene.";
+        bool copied = await ClipboardService.CopyImageAsync(entry.Png);
+        if (copied) await CopyFeedback(sender);
+        StatusText.Text = copied ? "Görsel kopyalandı. Ctrl+V ile yapıştır." : "Görsel kopyalanamadı. Tekrar dene.";
     }
     private void ClearNotices_Click(object sender, RoutedEventArgs e)
     {
@@ -738,6 +741,7 @@ public partial class MainWindow : Window
         if (!_ready) return;
         var volume = (int)Math.Round(VolumeSlider.Value);
         VolumeValue.Text = $"{volume}%";
+        if (_ready && SystemParameters.ClientAreaAnimation) VolumeValue.BeginAnimation(OpacityProperty, new DoubleAnimation(.4, 1, TimeSpan.FromMilliseconds(220)));
         _volumeChangedUntil = DateTime.UtcNow.AddSeconds(2);
         if (!AudioService.SetVolume(volume)) StatusText.Text = "Ses seviyesi değiştirilemedi.";
     }
@@ -831,7 +835,7 @@ public partial class MainWindow : Window
             _endAt = DateTimeOffset.UtcNow + _remaining;
             _timerRunning = true;
             TimerStart.Content = "Duraklat";
-            TimerLabel.Text = "Odaklanma zamanı";
+            TimerLabel.Text = _focusTaskId is null ? "Odaklanma zamanı" : FocusTaskTitle;
         }
         RefreshTimerUi();
     }
@@ -839,6 +843,7 @@ public partial class MainWindow : Window
     private void TimerReset_Click(object sender, RoutedEventArgs e)
     {
         _timerRunning = false;
+        _focusTaskId = null;
         _remaining = _duration;
         TimerStart.Content = "Başlat";
         TimerLabel.Text = "Biraz alan aç. Odaklan.";
@@ -1262,6 +1267,7 @@ public partial class MainWindow : Window
         _wasVolume = true; RevealFromEdge(); RefreshCompact();
         VolumeMiniFill.BeginAnimation(FrameworkElement.WidthProperty, new DoubleAnimation(128 * volume / 100.0, TimeSpan.FromMilliseconds(100)));
         VolumeValue.Text = $"{volume}%";
+        if (_ready && SystemParameters.ClientAreaAnimation) VolumeValue.BeginAnimation(OpacityProperty, new DoubleAnimation(.4, 1, TimeSpan.FromMilliseconds(220)));
         _ready = false; VolumeSlider.Value = volume; _ready = true;
     }
     private void UpdateClipboardEmpty()
@@ -1354,7 +1360,6 @@ public partial class MainWindow : Window
         if (_dragArmed) FinishPlacementDrag(true);
         SystemParameters.StaticPropertyChanged -= DisplaySettingsChanged;
         _autoHideTimer.Stop(); _hoverRevealTimer.Stop(); _seekDebounce.Stop();
-        _weatherRefresh.Stop(); _weatherService.Dispose();
         _updateTimer.Stop(); _updates.Dispose();
         _activityTick.Stop();
         _browserAudio?.Dispose();
