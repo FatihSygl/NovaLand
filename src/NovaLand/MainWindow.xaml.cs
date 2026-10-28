@@ -137,6 +137,7 @@ public partial class MainWindow : Window
         foreach (var item in _todoStore.Load()) _todo.Items.Add(item);
         _todo.Items.CollectionChanged += (_, _) => RefreshTodoUi();
         RefreshTodoUi();
+        InitializeDocuments();
         ImageList.ItemsSource = _images.Items;
         _images.Items.CollectionChanged += (_, _) => ImageEmpty.Visibility = _images.Items.Count == 0 && _images.Pinned.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         _bluetooth.Notice += HandleAudioNotice;
@@ -204,6 +205,7 @@ public partial class MainWindow : Window
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {
             _clipboard = new ClipboardService(source) { Enabled = _settings.CaptureClipboard };
+            _clipboard.FilesReceived += paths => _documents.Add(paths);
             _clipboard.TextReceived += text => _clipboardHistory.Add(text);
             _clipboard.ImageReceived += png => _images.Add(png, "Kopyalanan görsel", DateTime.Now);
             if (!_clipboard.Listening) StatusText.Text = "Pano dinleyicisi başlatılamadı.";
@@ -633,7 +635,8 @@ public partial class MainWindow : Window
     }
     private void ClearClipboard_Click(object sender, RoutedEventArgs e)
     {
-        if (ImageHistoryPanel.Visibility == Visibility.Visible) _images.Clear(); else _clipboardHistory.Clear();
+        if (DocumentHistoryPanel.Visibility == Visibility.Visible) _documents.Clear();
+        else if (ImageHistoryPanel.Visibility == Visibility.Visible) _images.Clear(); else _clipboardHistory.Clear();
         StatusText.Text = "Geçmiş temizlendi. Sistem panosu değişmedi.";
     }
     private void RefreshTodoUi()
@@ -675,14 +678,16 @@ public partial class MainWindow : Window
     private void TodoClearAll_Click(object sender, RoutedEventArgs e) { _todo.Clear(false); SaveTodo(); }
     private void TodoUndo_Click(object sender, RoutedEventArgs e) { _todo.Undo(); SaveTodo(); }
 
-    private void TextHistory_Click(object sender, RoutedEventArgs e) => SetClipboardMode(false);
-    private void ImageHistory_Click(object sender, RoutedEventArgs e) => SetClipboardMode(true);
-    private void SetClipboardMode(bool images)
+    private void TextHistory_Click(object sender, RoutedEventArgs e) => SetClipboardMode(0);
+    private void ImageHistory_Click(object sender, RoutedEventArgs e) => SetClipboardMode(1);
+    private void SetClipboardMode(int mode)
     {
-        TextHistoryPanel.Visibility = images ? Visibility.Collapsed : Visibility.Visible;
-        ImageHistoryPanel.Visibility = images ? Visibility.Visible : Visibility.Collapsed;
-        TextHistoryTab.Style = (Style)FindResource(images ? "Chip" : "AccentButton");
-        ImageHistoryTab.Style = (Style)FindResource(images ? "AccentButton" : "Chip");
+        TextHistoryPanel.Visibility = mode == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ImageHistoryPanel.Visibility = mode == 1 ? Visibility.Visible : Visibility.Collapsed;
+        DocumentHistoryPanel.Visibility = mode == 2 ? Visibility.Visible : Visibility.Collapsed;
+        TextHistoryTab.Style = (Style)FindResource(mode == 0 ? "AccentButton" : "Chip");
+        ImageHistoryTab.Style = (Style)FindResource(mode == 1 ? "AccentButton" : "Chip");
+        DocumentHistoryTab.Style = (Style)FindResource(mode == 2 ? "AccentButton" : "Chip");
     }
     private async void CopyImage_Click(object sender, RoutedEventArgs e)
     {
@@ -708,7 +713,7 @@ public partial class MainWindow : Window
         if (!_ready) return;
         _settings.CaptureClipboard = CaptureClipboardCheck.IsChecked == true;
         if (_clipboard is not null) _clipboard.Enabled = _settings.CaptureClipboard;
-        if (!_settings.CaptureClipboard) { _clipboardHistory.Clear(); _images.Clear(); }
+        if (!_settings.CaptureClipboard) { _clipboardHistory.Clear(); _images.Clear(); _documents.Clear(); }
         SaveSettings();
     }
     private void AutoHideCheck_Changed(object sender, RoutedEventArgs e)
@@ -1351,6 +1356,7 @@ public partial class MainWindow : Window
         _clipboard?.Dispose();
         _images.Clear();
         _clipboardHistory.Clear();
+        _documents.Clear();
         _clock.Stop();
         _mediaPoll.Stop();
         _brightnessDebounce.Stop();

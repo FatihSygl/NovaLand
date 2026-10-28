@@ -566,3 +566,13 @@ tıklama geçiren ve NOACTIVATE özellikli yerel pencereler kullanır.
 Karartma değişirken ve fare yakalanmışken geçici deaktivasyon paneli
 kapatmaz. Windows CI yerel aç/kapat döngülerinde ön plan, aktif pencere,
 fare yakalama, alfa seviyesi ve pencere temizliğini kontrol eder.
+
+
+## 1.3.6 — Son kopyalanan dosyalar
+
+Pano > Dosyalar, Windows dosya kopyalama olaylarından son 10 yolu oturum
+boyunca tutar. İçerik veya dosya kopyası saklanmaz. Çoklu kopyalamalar
+seçim sırasıyla eklenir; aynı yol tekrar gelirse başa alınır. Dosyanın
+yanındaki Kopyala, gerçek CF_HDROP dosya listesi ve COPY drop effect yazar;
+kesme/taşıma yapmaz. Eksik dosyalar için açıklama gösterilir. Pano dinleme
+kapatılınca ve uygulamadan çıkınca dosya geçmişi temizlenir.

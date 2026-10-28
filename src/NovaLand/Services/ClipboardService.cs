@@ -14,6 +14,7 @@ public sealed class ClipboardService : IDisposable
     public bool Enabled { get; set; } = true;
     public event Action<string>? TextReceived;
     public event Action<byte[]>? ImageReceived;
+    public event Action<string[]>? FilesReceived;
     public bool Listening { get; }
     public ClipboardService(HwndSource source)
     {
@@ -34,6 +35,11 @@ public sealed class ClipboardService : IDisposable
         try
         {
             if (System.Windows.Clipboard.ContainsData("ExcludeClipboardContentFromMonitorProcessing")) return;
+            if (System.Windows.Clipboard.ContainsFileDropList())
+            {
+                FilesReceived?.Invoke(System.Windows.Clipboard.GetFileDropList().Cast<string>().Take(100).ToArray());
+                return;
+            }
             if (System.Windows.Clipboard.ContainsImage())
             {
                 var image = System.Windows.Clipboard.GetImage();
@@ -85,6 +91,30 @@ public sealed class ClipboardService : IDisposable
             }
         }
         catch { }
+        return false;
+    }
+    public static async Task<bool> CopyFilesAsync(IEnumerable<string> paths)
+    {
+        var files = new System.Collections.Specialized.StringCollection();
+        files.AddRange(paths.Take(100).ToArray());
+        if (files.Count == 0) return false;
+        for (int attempt = 0; attempt < 4; attempt++)
+        {
+            try
+            {
+                var data = new System.Windows.DataObject();
+                data.SetFileDropList(files);
+                // Copy, never a cut/move operation.
+                data.SetData("Preferred DropEffect", new System.IO.MemoryStream(BitConverter.GetBytes(1)));
+                _writing = true;
+                System.Windows.Clipboard.SetDataObject(data, true);
+                _ownSequence = GetClipboardSequenceNumber();
+                return true;
+            }
+            catch (COMException) { }
+            finally { _writing = false; }
+            await Task.Delay(75);
+        }
         return false;
     }
     public void Dispose()

@@ -560,13 +560,14 @@
         </Grid.ColumnDefinitions>
         <StackPanel>
          <TextBlock Text="Kopyaladıkların" Style="{StaticResource PageTitle}" />
-         <TextBlock Text="Sabitlenenler + son 10 metin · 7 görsel" FontSize="10" Foreground="{StaticResource Muted}" Margin="0,3,0,0" />
+         <TextBlock Text="Son 10 metin · 7 görsel · 10 dosya + sabitlenenler" FontSize="10" Foreground="{StaticResource Muted}" Margin="0,3,0,0" />
         </StackPanel>
         <Button Grid.Column="1" Content="Temizle" Style="{StaticResource Chip}" Padding="10,6" VerticalAlignment="Top" Click="ClearClipboard_Click" />
        </Grid>
        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
         <Button x:Name="TextHistoryTab" Content="Metinler" Style="{StaticResource AccentButton}" Click="TextHistory_Click" Margin="0,0,6,0" />
-        <Button x:Name="ImageHistoryTab" Content="Görseller" Style="{StaticResource Chip}" Click="ImageHistory_Click" />
+        <Button x:Name="ImageHistoryTab" Content="Görseller" Style="{StaticResource Chip}" Click="ImageHistory_Click" Margin="0,0,6,0" />
+        <Button x:Name="DocumentHistoryTab" Content="Dosyalar" Style="{StaticResource Chip}" Click="DocumentHistory_Click" />
        </StackPanel>
        <Grid Grid.Row="2" x:Name="TextHistoryPanel">
         <TextBlock x:Name="ClipboardEmpty" Text="Bir metin kopyaladığında burada görünür." FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -588,6 +589,20 @@
           <TextBlock Text="SON GÖRSELLER" FontSize="9" Foreground="#737378" Margin="2,10,0,9" />
           <ItemsControl x:Name="ImageList" ItemTemplate="{StaticResource ClipboardImageRow}" />
          </StackPanel>
+        </ScrollViewer>
+       </Grid>
+       <Grid Grid.Row="2" x:Name="DocumentHistoryPanel" Visibility="Collapsed">
+        <TextBlock x:Name="DocumentEmpty" Text="Dosya Gezgini’nde bir belgeyi kopyala.&#10;Son kopyaladığın dosyalar burada görünür." TextAlignment="Center" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+         <ItemsControl x:Name="DocumentList"><ItemsControl.ItemTemplate><DataTemplate>
+          <Border Background="#1C1C1E" CornerRadius="14" Padding="12" Margin="0,0,0,7">
+           <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <Path Data="M5,2 L15,2 21,8 21,24 5,24 Z M15,2 L15,8 21,8 M9,13 L17,13 M9,17 L15,17" Stroke="#B6B6C0" StrokeThickness="1.4" Width="17" Height="22" Stretch="Uniform" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Margin="0,0,9,0" VerticalAlignment="Center"><TextBlock Text="{Binding Name}" ToolTip="{Binding FullPath}" FontSize="12" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Detail}" FontSize="9" Foreground="{StaticResource Muted}" Margin="0,4,0,0"/></StackPanel>
+            <Button Grid.Column="2" Content="Kopyala" Style="{StaticResource AccentButton}" Padding="9,6" VerticalAlignment="Center" Click="CopyDocument_Click" ToolTip="Dosyanın kendisini kopyala"/>
+           </Grid>
+          </Border>
+         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
         </ScrollViewer>
        </Grid>
       </Grid>
@@ -810,7 +825,7 @@
         <TextBlock Text="GÜNLÜK KULLANIM" Style="{StaticResource SectionLabel}" Margin="2,12,0,8" />
         <Border Style="{StaticResource InsetCard}" Padding="14,3">
          <StackPanel>
-          <CheckBox x:Name="CaptureClipboardCheck" Content="Metin, görsel ve SS geçmişini tut" Checked="CaptureClipboardCheck_Changed" Unchecked="CaptureClipboardCheck_Changed" Margin="0" />
+          <CheckBox x:Name="CaptureClipboardCheck" Content="Metin, görsel ve dosya geçmişini tut" Checked="CaptureClipboardCheck_Changed" Unchecked="CaptureClipboardCheck_Changed" Margin="0" />
           <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="WaterCheck" Content="45 dakikada bir su molası" Checked="WaterCheck_Changed" Unchecked="WaterCheck_Changed" Margin="0" />
          </StackPanel>
