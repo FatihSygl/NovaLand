@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Windows.Media;
+using Color = System.Windows.Media.Color;
 namespace NovaIsland.Services;
 // All cached objects are frozen, so they can be shared safely across refreshes.
 public static class FrozenVisualCache

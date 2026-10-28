@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Windows.Media;
+using Color = System.Windows.Media.Color;
 using NovaIsland.Services;
 internal static class PerformanceChecks
 {
