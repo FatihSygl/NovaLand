@@ -398,10 +398,11 @@ public partial class MainWindow : Window
         FocusMiniFill.Width = Math.Max(0, Pill.ActualWidth * Math.Clamp(TimerProgress.Value / 100, 0, 1));
         bool idle = !_expanded && !focus && !media && !notice && !volume;
         IdleSurface.Visibility = idle ? Visibility.Visible : Visibility.Collapsed;
+        PillRow.Height = new GridLength(idle ? 54 : 42);
         var local = DateTime.Now;
         var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
-        IdleDay.Text = local.ToString("dd");
-        IdleDate.Text = local.ToString("d MMMM", tr);
+        IdleDay.Text = local.Day.ToString(tr);
+        IdleDate.Text = tr.TextInfo.ToTitleCase(local.ToString("MMMM", tr));
         IdleWeekday.Text = tr.TextInfo.ToTitleCase(local.ToString("dddd", tr));
         IdleClock.Text = local.ToString("HH:mm");
         MiniArtwork.Visibility = media && !_expanded ? Visibility.Visible : Visibility.Collapsed;
@@ -480,7 +481,7 @@ public partial class MainWindow : Window
             PillTitle.FontWeight = FontWeights.SemiBold;
             PillSubtitle.Foreground = new SolidColorBrush(Color.FromRgb(158,148,136));
         }
-        AnimateWindowSize(_expanded ? 440 : volume ? 300 : media || notice ? 350 : 244, _expanded ? ExpandedHeight : 56);
+        AnimateWindowSize(_expanded ? 440 : volume ? 300 : media || notice ? 350 : idle ? 296 : 244, _expanded ? ExpandedHeight : idle ? 68 : 56);
     }
 
     private void UpdateAudioBars()

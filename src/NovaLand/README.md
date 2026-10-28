@@ -585,3 +585,12 @@ uygulanır, WS_EX_APPWINDOW temizlenir. Alt+Tab ve görev çubuğunda ayrı bir
 uygulama penceresi olarak görünmez. Tepsi simgesi ve metin girişleri korunur;
 NOACTIVATE eklenmez. Windows kontrolleri göster/gizle, üstte tutma ve önizleme
 sonrasında pencere stillerini ve etkin metin girişini doğrular.
+
+
+## 1.3.8 — Sade tarih ve saat
+
+Boş ada, nötr tarih ve saat tipografisiyle 296×68 DIP boyutunda gösterilir.
+Kahverengi takvim rozeti kaldırılmıştır. Gün, ay ve hafta günü solda;
+saat ince ayraçla sağdadır. Sadece boş durumun başlık satırı genişler;
+müzik, bildirim, ses ve açık panel ölçüleri korunur. Tarih ve saat mevcut
+saniyelik güncellemeden gelir; ek animasyon veya zamanlayıcı eklenmez.

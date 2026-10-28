@@ -139,7 +139,7 @@
    </Border.Effect>
    <Grid>
     <Grid.RowDefinitions>
-     <RowDefinition Height="42" />
+     <RowDefinition x:Name="PillRow" Height="42" />
      <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <Grid x:Name="Pill" Margin="17,0" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="Pill_MouseLeftButtonUp" PreviewMouseLeftButtonDown="Pill_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="Pill_PreviewMouseLeftButtonUp" LostMouseCapture="Pill_LostMouseCapture" MouseWheel="Pill_MouseWheel">
@@ -148,23 +148,20 @@
       <ColumnDefinition Width="*" />
       <ColumnDefinition Width="Auto" />
      </Grid.ColumnDefinitions>
-     <Grid x:Name="IdleSurface" Grid.ColumnSpan="3" IsHitTestVisible="False" Visibility="Collapsed" VerticalAlignment="Center">
+     <Grid x:Name="IdleSurface" Grid.ColumnSpan="3" IsHitTestVisible="False" Visibility="Collapsed" VerticalAlignment="Center" AutomationProperties.Name="Tarih ve saat">
       <Grid.ColumnDefinitions>
-       <ColumnDefinition Width="29" />
-       <ColumnDefinition Width="*" />
-       <ColumnDefinition Width="Auto" />
+       <ColumnDefinition Width="34"/>
+       <ColumnDefinition Width="*"/>
+       <ColumnDefinition Width="Auto"/>
+       <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
-      <Border Width="27" Height="28" CornerRadius="8" Background="#231C17" BorderBrush="#483426" BorderThickness="0.5">
-       <Grid>
-        <Border Height="5" Background="#9C7050" CornerRadius="7,7,0,0" VerticalAlignment="Top" />
-        <TextBlock x:Name="IdleDay" Foreground="#E8C5A8" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,4,0,0" />
-       </Grid>
-      </Border>
-      <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,8,0">
-       <TextBlock x:Name="IdleDate" Foreground="#E0D5CA" FontSize="11" FontWeight="SemiBold" />
-       <TextBlock x:Name="IdleWeekday" Foreground="#81776F" FontSize="9" Margin="0,2,0,0" />
+      <TextBlock x:Name="IdleDay" Foreground="#F2F2F7" FontSize="26" FontWeight="Light" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+      <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+       <TextBlock x:Name="IdleDate" Foreground="#D1D1D6" FontSize="12" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+       <TextBlock x:Name="IdleWeekday" Foreground="#8E8E93" FontSize="10" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
       </StackPanel>
-      <TextBlock x:Name="IdleClock" Grid.Column="2" Foreground="#F0ECE6" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="19" FontWeight="Light" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center" />
+      <Border Grid.Column="2" Width="1" Height="24" Background="#303033" Margin="12,0" VerticalAlignment="Center"/>
+      <TextBlock x:Name="IdleClock" Grid.Column="3" Foreground="#F5F5F7" FontFamily="Segoe UI Variable Display, Segoe UI" FontSize="26" FontWeight="Light" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center"/>
      </Grid>
      <Image x:Name="HeaderBrand" Source="Assets/Logo.png" Width="18" Height="18" Margin="0,0,9,0" Visibility="Collapsed" IsHitTestVisible="False"/>
      <Border x:Name="FocusCompactIcon" Width="27" Height="27" Background="#262628" CornerRadius="9" Margin="0,0,10,0" Visibility="Collapsed" IsHitTestVisible="False"><Path Data="M8,2 L14,2 M11,2 L11,5 M11,9 L11,14 14,16 M11,5 A8,8 0 1 1 10.99,5" Stroke="#D1D1D6" StrokeThickness="1.5" Width="16" Height="19" Stretch="Uniform"/></Border>
