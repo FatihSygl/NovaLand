@@ -19,6 +19,7 @@ public partial class MainWindow
     private static void ButtonMotion(object sender,double target,int ms)
     {
         if(!SystemParameters.ClientAreaAnimation||sender is not System.Windows.Controls.Button button||!button.IsEnabled)return;
+        if (button.Tag is string tab && DockOrder.Contains(tab)) return;
         if(button.RenderTransform is not ScaleTransform)
         {
             if(!button.RenderTransform.Value.IsIdentity)return;

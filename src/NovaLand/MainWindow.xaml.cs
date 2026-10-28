@@ -308,6 +308,7 @@ public partial class MainWindow : Window
 
     private void SetExpanded(bool expanded)
     {
+        if (!expanded) EndDockScrub();
         if (_expanded == expanded) return;
         _expanded = expanded;
         SyncActivityPause();
@@ -506,6 +507,8 @@ public partial class MainWindow : Window
     private void SetTab(string key)
     {
         bool changed = _tab != key;
+        string previousTab = _tab;
+        var previousPage = changed && _expanded ? CapturePageSurface() : null;
         _tab = key;
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
@@ -519,16 +522,11 @@ public partial class MainWindow : Window
         SettingsView.Visibility = key == "Settings" ? Visibility.Visible : Visibility.Collapsed;
         foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, ControlsTab, SettingsTab })
             tab.Style = (Style)FindResource((string?)tab.Tag == key ? "DockActive" : "DockTab");
+        UpdateDockSelection(changed && _expanded);
         if (_expanded)
         {
             RefreshCompact();
-            if (changed)
-            {
-                ViewHost.BeginAnimation(OpacityProperty, new DoubleAnimation(.7, 1, TimeSpan.FromMilliseconds(160)));
-                ViewTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-                ViewTranslate.BeginAnimation(TranslateTransform.YProperty, null);
-                ViewTranslate.X = ViewTranslate.Y = 0;
-            }
+            if (changed) TransitionPage(previousPage, previousTab, key);
         }
     }
 

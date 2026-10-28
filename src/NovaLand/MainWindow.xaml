@@ -126,9 +126,10 @@
    <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
    <Setter Property="FontSize" Value="15" />
    <Setter Property="Margin" Value="2,0" />
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="dockTouch" CornerRadius="15" Background="Transparent"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="dockTouch" Property="Background" Value="#0CFFFFFF"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="dockTouch" Property="BorderBrush" Value="#777780"/><Setter TargetName="dockTouch" Property="BorderThickness" Value="1"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style x:Key="DockActive" TargetType="Button" BasedOn="{StaticResource DockTab}">
-   <Setter Property="Background" Value="#39393F" />
+   <Setter Property="Background" Value="Transparent" />
    <Setter Property="Foreground" Value="White" />
   </Style>
  </Window.Resources>
@@ -237,6 +238,7 @@
       <RowDefinition Height="46" />
       <RowDefinition Height="Auto" />
      </Grid.RowDefinitions>
+     <Grid x:Name="PageSurface" ClipToBounds="True">
      <Grid x:Name="ViewHost" RenderTransformOrigin="0.5,0.5">
       <Grid.RenderTransform>
        <TranslateTransform x:Name="ViewTranslate" />
@@ -858,8 +860,12 @@
        </StackPanel>
       </ScrollViewer>
      </Grid>
+     <Image x:Name="PreviousPage" Stretch="Fill" IsHitTestVisible="False" Visibility="Collapsed"><Image.RenderTransform><TranslateTransform x:Name="PreviousPageTranslate"/></Image.RenderTransform></Image>
+     </Grid>
      <Border Grid.Row="1" Background="#1C1C1E" CornerRadius="20" Padding="3" VerticalAlignment="Center" HorizontalAlignment="Center">
-      <StackPanel Orientation="Horizontal">
+      <Grid x:Name="NavigationDock" Background="Transparent" Loaded="NavigationDock_Loaded" SizeChanged="NavigationDock_SizeChanged" PreviewMouseLeftButtonDown="NavigationDock_Down" PreviewMouseMove="NavigationDock_Move" PreviewMouseLeftButtonUp="NavigationDock_Up" LostMouseCapture="NavigationDock_LostCapture">
+       <Canvas IsHitTestVisible="False"><Border x:Name="DockSelection" Width="36" Height="34" CornerRadius="16" Background="#39393F" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><TransformGroup><ScaleTransform x:Name="DockSelectionScale"/><TranslateTransform x:Name="DockSelectionTranslate" X="2"/></TransformGroup></Border.RenderTransform></Border></Canvas>
+      <StackPanel x:Name="DockButtons" Orientation="Horizontal">
        <Button x:Name="MusicTab" Tag="Music" Style="{StaticResource DockActive}" Click="Tab_Click" ToolTip="Ana sayfa">
         <Path Data="M9,17 V5 L20,3 V15 M9,8 L20,6 M9,17 C9,19 3,21 3,17 C3,14 9,14 9,17 M20,15 C20,17 14,19 14,15 C14,12 20,12 20,15" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.65" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" />
        </Button>
@@ -883,6 +889,7 @@
        </Button>
 
       </StackPanel>
+      </Grid>
      </Border>
      <TextBlock x:Name="StatusText" Grid.Row="2" FontSize="9" Foreground="#9797A2" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"><TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
     </Grid>

@@ -594,3 +594,13 @@ Kahverengi takvim rozeti kaldırılmıştır. Gün, ay ve hafta günü solda;
 saat ince ayraçla sağdadır. Sadece boş durumun başlık satırı genişler;
 müzik, bildirim, ses ve açık panel ölçüleri korunur. Tarih ve saat mevcut
 saniyelik güncellemeden gelir; ek animasyon veya zamanlayıcı eklenmez.
+
+
+## 1.3.9 — Kesintisiz sekme hareketi
+
+Alt menüde tek seçim yüzeyi sekmeler arasında kayar. Fare basılıyken yatay
+sürükleme anlık sekme seçimi ve işaretçi takibi sağlar; bırakınca gösterge
+seçili simgenin altına yerleşir. Klavye ve normal tıklama desteklenir.
+Sayfa geçişleri yalnızca geçiş süresince bellekte tutulan önceki kareyle
+örtüşür; eski kare 220 ms sonra bırakılır. Panel ölçüsü sabittir. Azaltılmış
+hareket ayarı etkinse geçişler doğrudandır; boşta ek zamanlayıcı çalışmaz.
