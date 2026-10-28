@@ -63,6 +63,7 @@ public partial class MainWindow
                 AllowsTransparency = true, Background = Brushes.Transparent, ShowInTaskbar = false,
                 Topmost = Topmost
             };
+            UtilityWindowStyle.Attach(preview);
             preview.Left = work.Left + (work.Width - preview.Width) / 2;
             preview.Top = work.Top + (work.Height - preview.Height) / 2;
             var frame = new Border { Background = new SolidColorBrush(Color.FromRgb(20,20,22)), CornerRadius = new CornerRadius(20), Padding = new Thickness(18), BorderThickness = new Thickness(1), BorderBrush = new SolidColorBrush(Color.FromRgb(50,50,54)) };

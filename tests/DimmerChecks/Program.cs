@@ -31,6 +31,7 @@ internal static class Program
         Check(Surfaces().Count == 0, "dispose restores desktop");
         Console.WriteLine($"{count} native dimmer checks passed");
         ClipboardChecks.Run();
+        TaskSwitcherChecks.Run();
     }
     private static List<IntPtr> Surfaces()
     {

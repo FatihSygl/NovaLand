@@ -576,3 +576,12 @@ seçim sırasıyla eklenir; aynı yol tekrar gelirse başa alınır. Dosyanın
 yanındaki Kopyala, gerçek CF_HDROP dosya listesi ve COPY drop effect yazar;
 kesme/taşıma yapmaz. Eksik dosyalar için açıklama gösterilir. Pano dinleme
 kapatılınca ve uygulamadan çıkınca dosya geçmişi temizlenir.
+
+
+## 1.3.7 — Alt+Tab listesinden kaldırma
+
+Ana ada ve görsel önizleme pencereleri oluşturulurken WS_EX_TOOLWINDOW
+uygulanır, WS_EX_APPWINDOW temizlenir. Alt+Tab ve görev çubuğunda ayrı bir
+uygulama penceresi olarak görünmez. Tepsi simgesi ve metin girişleri korunur;
+NOACTIVATE eklenmez. Windows kontrolleri göster/gizle, üstte tutma ve önizleme
+sonrasında pencere stillerini ve etkin metin girişini doğrular.

@@ -99,6 +99,7 @@ public partial class MainWindow : Window
     {
         _settings = SettingsStore.Load();
         InitializeComponent();
+        UtilityWindowStyle.Attach(this);
         InitializePlacement();
 
         PinnedTextList.ItemsSource = _clipboardHistory.Pinned;
