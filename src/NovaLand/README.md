@@ -604,3 +604,18 @@ seçili simgenin altına yerleşir. Klavye ve normal tıklama desteklenir.
 Sayfa geçişleri yalnızca geçiş süresince bellekte tutulan önceki kareyle
 örtüşür; eski kare 220 ms sonra bırakılır. Panel ölçüsü sabittir. Azaltılmış
 hareket ayarı etkinse geçişler doğrudandır; boşta ek zamanlayıcı çalışmaz.
+
+
+## 1.3.10 — Aynı tepki süreleriyle daha az tekrar
+
+Medya sorgulama aralığı (1 sn), ses/parlaklık komut yolları, cihaz kontrol
+aralıkları, animasyon süreleri ve 2048 örneklik FFT penceresi korunur.
+Simge geometrileri ve renk fırçaları dondurulup sınırlı önbellekte yeniden
+kullanılır. Çubuk okumaları her karede yeni dizi oluşturmaz. Hann katsayıları
+bir kez hazırlanır; tepe gücü bulunduktan sonra logaritma dört bant için
+hesaplanır. Önceki sürümün analizcisiyle çoklu sinyal karşılaştırması yapılır.
+Boş bildirim kuyruğu ve ses göstergesi yokken 100 ms etkinlik sayacı durur;
+yeni etkinlik doğrudan gösterilip sayaç uyandırılır. Gizli ana sayfa ve
+görünmeyen PC pil metni güncellenmez; tarih günde, saat dakika değişince
+biçimlendirilir. Windows kontrolünde kaynak/bellek mikro ölçümleri yazılır;
+bunlar uygulamanın toplam CPU, GPU veya RAM tüketimi ölçümü değildir.

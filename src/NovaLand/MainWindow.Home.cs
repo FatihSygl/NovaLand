@@ -22,6 +22,7 @@ public partial class MainWindow
             _focusTaskId = null;
             TimerLabel.Text = _timerRunning ? "Odaklanma zamanı" : "Odak seansı";
         }
+        if (!_expanded || _tab != "Music") return;
         bool music = _mediaAvailable;
         HomeOverview.Visibility = music ? Visibility.Collapsed : Visibility.Visible;
         foreach (var element in new FrameworkElement[] { SongInfo, TimelineSlider, TrackTimeRow, TransportRow })
@@ -30,7 +31,9 @@ public partial class MainWindow
         HomeTaskLabel.Text = _timerRunning ? "ŞİMDİ ODAKTASIN" : "SIRADAKİ ADIM";
         HomeTaskText.Text = task?.Text ?? (_timerRunning ? "Kendine ayırdığın zaman." : "Henüz görev yok.");
         HomeFocusButton.Content = _timerRunning ? $"Odağa dön · {TimerValue.Text}" : task is null ? "Görev ekle →" : "Odaklan →";
-        var reminder = _reminders.Items.Where(x => !x.IsTriggered).OrderBy(x => x.Due).FirstOrDefault();
+        ReminderEntry? reminder = null;
+        foreach (var candidate in _reminders.Items)
+            if (!candidate.IsTriggered && (reminder is null || candidate.Due < reminder.Due)) reminder = candidate;
         HomeReminderLabel.Text = reminder is null ? "HATIRLATICILAR" : $"SIRADAKİ · {reminder.Due.LocalDateTime:dd MMM HH:mm}";
         HomeReminderText.Text = reminder?.Text ?? "Hatırlatıcı ekle";
     }

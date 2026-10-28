@@ -7,7 +7,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.3.9</Version>
+    <Version>1.3.10</Version>
     <AssemblyName>NovaLand</AssemblyName>
     <Product>NovaLand</Product>
     <Title>NovaLand</Title>

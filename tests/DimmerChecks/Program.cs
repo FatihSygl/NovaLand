@@ -32,6 +32,7 @@ internal static class Program
         Console.WriteLine($"{count} native dimmer checks passed");
         ClipboardChecks.Run();
         TaskSwitcherChecks.Run();
+        PerformanceChecks.Run();
     }
     private static List<IntPtr> Surfaces()
     {

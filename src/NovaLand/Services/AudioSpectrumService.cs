@@ -17,7 +17,16 @@ public sealed class AudioSpectrumService : IDisposable
     public bool Enabled { get => _enabled; set => _enabled = value; }
     public double[] Read()
     {
-        lock (_sync) return !_enabled || _muted || DateTime.UtcNow - _lastData > TimeSpan.FromMilliseconds(220) ? new double[4] : _analyzer.Read();
+        var result = new double[4]; ReadInto(result); return result;
+    }
+    public void ReadInto(Span<double> destination)
+    {
+        if (destination.Length < 4) throw new ArgumentException("Four bands required.", nameof(destination));
+        lock (_sync)
+        {
+            if (!_enabled || _muted || DateTime.UtcNow - _lastData > TimeSpan.FromMilliseconds(220)) destination[..4].Clear();
+            else _analyzer.ReadInto(destination);
+        }
     }
     private async Task RunAsync()
     {

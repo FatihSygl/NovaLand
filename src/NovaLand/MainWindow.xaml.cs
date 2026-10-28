@@ -49,6 +49,8 @@ public partial class MainWindow : Window
     private readonly AudioSpectrumService _spectrum = new();
     private readonly DispatcherTimer _waveTick = new() { Interval = TimeSpan.FromMilliseconds(33) };
     private readonly double[] _waveLevels = new double[4];
+    private readonly double[] _spectrumValues = new double[4];
+    private Rectangle[] _waveBars = [];
     private string _tab = "Music";
     private double _targetWidth = 244;
     private double _targetHeight = 56;
@@ -99,6 +101,7 @@ public partial class MainWindow : Window
     {
         _settings = SettingsStore.Load();
         InitializeComponent();
+        _waveBars = [Wave1, Wave2, Wave3, Wave4];
         UtilityWindowStyle.Attach(this);
         InitializePlacement();
 
@@ -123,8 +126,8 @@ public partial class MainWindow : Window
             bool volume = VolumeOverlay;
             if (_wasVolume && !volume) { RefreshCompact(); if (!_activities.HasWork) QueueAutoHide(1); }
             _wasVolume = volume;
+            if (!_activities.HasWork && DateTimeOffset.UtcNow >= _volumeUntil) _activityTick.Stop();
         };
-        _activityTick.Start();
         _clipboardHistory.Pinned.CollectionChanged += (_, _) => UpdateClipboardEmpty();
         _images.Pinned.CollectionChanged += (_, _) => UpdateClipboardEmpty();
         _duration = _remaining = TimeSpan.FromMinutes(Math.Clamp(_settings.FocusMinutes, 1, 1440));
@@ -401,11 +404,17 @@ public partial class MainWindow : Window
         IdleSurface.Visibility = idle ? Visibility.Visible : Visibility.Collapsed;
         PillRow.Height = new GridLength(idle ? 54 : 42);
         var local = DateTime.Now;
-        var tr = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
-        IdleDay.Text = local.Day.ToString(tr);
-        IdleDate.Text = tr.TextInfo.ToTitleCase(local.ToString("MMMM", tr));
-        IdleWeekday.Text = tr.TextInfo.ToTitleCase(local.ToString("dddd", tr));
-        IdleClock.Text = local.ToString("HH:mm");
+        if (idle)
+        {
+            if (_idleCalendarDate != local.Date)
+            {
+                _idleCalendarDate = local.Date;
+                IdleDay.Text = local.Day.ToString(UiCulture);
+                IdleDate.Text = UiCulture.TextInfo.ToTitleCase(local.ToString("MMMM", UiCulture));
+                IdleWeekday.Text = UiCulture.TextInfo.ToTitleCase(local.ToString("dddd", UiCulture));
+            }
+            IdleClock.Text = ClockText(local);
+        }
         MiniArtwork.Visibility = media && !_expanded ? Visibility.Visible : Visibility.Collapsed;
         PillSubtitle.Visibility = Visibility.Collapsed;
         ClockPill.Visibility = Visibility.Visible;
@@ -413,10 +422,10 @@ public partial class MainWindow : Window
         IdleDot.Visibility = Visibility.Collapsed;
         Waveform.Visibility = !_expanded && (focus || media) ? Visibility.Visible : Visibility.Collapsed;
         PillTitle.Text = _expanded ? "NovaLand" : focus ? FocusTaskTitle : media ? TrackTitle.Text : "";
-        PillTitle.Foreground = _expanded || (!media && !focus) ? new SolidColorBrush(Color.FromRgb(142, 142, 147)) : System.Windows.Media.Brushes.White;
-        ClockPill.Text = _expanded ? DateTime.Now.ToString("HH:mm") : focus ? TimerValue.Text : _mediaAvailable ? RemainingTrackTime() : DateTime.Now.ToString("HH:mm");
+        PillTitle.Foreground = _expanded || (!media && !focus) ? FrozenVisualCache.Brush(Color.FromRgb(142, 142, 147)) : System.Windows.Media.Brushes.White;
+        ClockPill.Text = _expanded ? ClockText(local) : focus ? TimerValue.Text : _mediaAvailable ? RemainingTrackTime() : ClockText(local);
         var brush = new SolidColorBrush(focus ? Color.FromRgb(255, 180, 91) : _mediaColor);
-        foreach (var bar in new[] { Wave1, Wave2, Wave3, Wave4 }) bar.Fill = brush;
+        foreach (var bar in _waveBars) bar.Fill = brush;
         _spectrum.Enabled = _mediaAvailable && _mediaPlaying && IsVisible && !_dockHidden && !notice && !volume;
         if (_spectrum.Enabled) _waveTick.Start();
         if (focus && !_spectrum.Enabled)
@@ -450,7 +459,7 @@ public partial class MainWindow : Window
         if (volume)
         {
             NoticeIcon.Visibility = Visibility.Visible;
-            NoticeIcon.Data = Geometry.Parse("M3,9 L7,9 12,5 12,19 7,15 3,15 Z M16,8 Q21,12 16,16 M18,5 Q26,12 18,19");
+            NoticeIcon.Data = FrozenVisualCache.Shape("M3,9 L7,9 12,5 12,19 7,15 3,15 Z M16,8 Q21,12 16,16 M18,5 Q26,12 18,19");
             NoticeIcon.Stroke = System.Windows.Media.Brushes.White;
             MiniArtwork.Visibility = Waveform.Visibility = IdleDot.Visibility = AudioBatteryPanel.Visibility = Visibility.Collapsed;
             ClockPill.Visibility = Visibility.Visible; ClockPill.Text = $"%{_compactVolume}";
@@ -488,8 +497,9 @@ public partial class MainWindow : Window
     private void UpdateAudioBars()
     {
         if (_timerRunning && !_spectrum.Enabled) return;
-        var values = _spectrum.Read();
-        var bars = new[] { Wave1, Wave2, Wave3, Wave4 };
+        _spectrum.ReadInto(_spectrumValues);
+        var values = _spectrumValues;
+        var bars = _waveBars;
         for (int i = 0; i < 4; i++)
         {
             double target = _spectrum.Enabled ? values[i] : 0;
@@ -760,16 +770,6 @@ public partial class MainWindow : Window
         if (_expanded && (_tab is "Settings" or "Music")) RefreshBrowserAudio();
         if (_expanded && _tab == "Music") _ = RefreshApplicationAudioAsync();
         CheckReminders();
-        ClockPill.Text = _timerRunning ? TimerValue.Text : DateTime.Now.ToString("HH:mm");
-        try
-        {
-            var state = Forms.SystemInformation.PowerStatus;
-            bool battery = (state.BatteryChargeStatus & Forms.BatteryChargeStatus.NoSystemBattery) == 0;
-            BatteryPill.Text = battery && state.BatteryLifePercent >= 0
-                ? $"{(state.PowerLineStatus == Forms.PowerLineStatus.Online ? "↯ " : "")}{state.BatteryLifePercent:P0}" : "";
-        }
-        catch { BatteryPill.Text = ""; }
-
         if (DateTime.UtcNow > _volumeChangedUntil && _expanded && MusicView.Visibility == Visibility.Visible)
         {
             var vol = AudioService.ReadVolume();
@@ -793,7 +793,7 @@ public partial class MainWindow : Window
                 SystemSounds.Asterisk.Play();
                 ShowNotification("Mola zamanı", $"{_duration.TotalMinutes:0} dakikalık seans tamamlandı. Biraz dinlen.");
             }
-            RefreshTimerUi();
+            RefreshTimerUi(false);
         }
         UpdateTimeline();
         RefreshCompact();
@@ -805,12 +805,12 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RefreshTimerUi()
+    private void RefreshTimerUi(bool refreshCompact = true)
     {
         var remaining = _remaining < TimeSpan.Zero ? TimeSpan.Zero : _remaining;
         TimerValue.Text = $"{(int)remaining.TotalMinutes:00}:{remaining.Seconds:00}";
         TimerProgress.Value = _duration.TotalSeconds <= 0 ? 0 : Math.Clamp(100 * (1 - remaining.TotalSeconds / _duration.TotalSeconds), 0, 100);
-        RefreshCompact();
+        if (refreshCompact) RefreshCompact();
     }
 
     private void TimerStart_Click(object sender, RoutedEventArgs e)
@@ -1235,6 +1235,7 @@ public partial class MainWindow : Window
     private void EnqueueActivity(string key, int priority, Action show, bool replaceActive = false)
     {
         SyncActivityPause(); _activities.Enqueue(key, priority, show, DateTimeOffset.UtcNow, replaceActive);
+        _activityTick.Start();
     }
     private void Pill_MouseWheel(object sender, MouseWheelEventArgs e)
     {
@@ -1251,6 +1252,7 @@ public partial class MainWindow : Window
         _volumeChangedUntil = DateTime.UtcNow.AddSeconds(2);
         _volumeUntil = DateTimeOffset.UtcNow.AddSeconds(2);
         SyncActivityPause();
+        _activityTick.Start();
         _wasVolume = true; RevealFromEdge(); RefreshCompact();
         VolumeMiniFill.BeginAnimation(FrameworkElement.WidthProperty, new DoubleAnimation(128 * volume / 100.0, TimeSpan.FromMilliseconds(100)));
         VolumeValue.Text = $"{volume}%";
