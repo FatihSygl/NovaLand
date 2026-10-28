@@ -44,7 +44,6 @@ public partial class MainWindow
         var button = DockButtonAt(point);
         if (button is null || !NavigationDock.CaptureMouse()) return;
         _dockScrubbing = true;
-        button.Focus();
         ScaleDockSelection(1.07, .95);
         TrackDock(point);
         e.Handled = true;
@@ -60,7 +59,12 @@ public partial class MainWindow
     {
         if (point.Y < -8 || point.Y > NavigationDock.ActualHeight + 8) return;
         var button = DockButtonAt(point);
-        if (button?.Tag is string key && key != _tab) SetTab(key);
+        if (button?.Tag is string key)
+        {
+            // Mouse capture belongs to the dock; keep keyboard focus on the tab under it.
+            if (!button.IsKeyboardFocused) button.Focus();
+            if (key != _tab) SetTab(key);
+        }
         double left = NavigationButtons.First().TranslatePoint(new Point(), NavigationDock).X;
         double right = NavigationButtons.Last().TranslatePoint(new Point(), NavigationDock).X;
         MoveDockSelection(Math.Clamp(point.X - DockSelection.Width / 2, left, right), 65);
