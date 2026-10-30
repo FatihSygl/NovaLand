@@ -180,6 +180,7 @@ public partial class MainWindow : Window
         StayTopCheck.IsChecked = _settings.AlwaysOnTop;
         StartupCheck.IsChecked = StartupService.IsEnabled();
         WaterCheck.IsChecked = _settings.WaterReminder;
+        SocialBlockCheck.IsChecked = _settings.BlockSocialSites;
         Topmost = _settings.AlwaysOnTop;
         _clock.Tick += Clock_Tick;
         _mediaPoll.Tick += async (_, _) => await RefreshMediaAsync();
@@ -195,7 +196,7 @@ public partial class MainWindow : Window
         RefreshCompact();
         ReflowPlacement();
         CreateTray();
-        try { _browserAudio = new BrowserAudioBridge(); _browserAudio.Start(); }
+        try { _browserAudio = new BrowserAudioBridge { BlockSocialSites = _settings.BlockSocialSites }; _browserAudio.Start(); }
         catch (Exception ex) { DiagnosticLog.Write("Browser audio initialization", ex); }
         RefreshBrowserAudio();
         // Refresh the registered executable after moving/updating the app, but never
@@ -1100,6 +1101,29 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
+    private void SocialBlockCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        _settings.BlockSocialSites = SocialBlockCheck.IsChecked == true;
+        if (_browserAudio is not null) _browserAudio.BlockSocialSites = _settings.BlockSocialSites;
+        SaveSettings();
+        RefreshSocialBlockingStatus();
+    }
+
+    private void RefreshSocialBlockingStatus()
+    {
+        var status = _browserAudio?.SocialBlockingStatus ?? (Supported: false, Applied: false);
+        SocialBlockHelp.Text = _browserAudio?.Connected != true
+            ? "Güncel tarayıcı eklentisini eşleştir. Değişiklik en geç 30 saniyede uygulanır."
+            : !status.Supported
+                ? "Eklentiyi bu sürümün klasöründen güncelle ve yeniden yükle."
+                : !status.Applied
+                    ? "Tarayıcıya aktarılıyor… En geç 30 saniye."
+                    : _settings.BlockSocialSites
+                        ? "Instagram ve X engelleniyor. Kapatana kadar tarayıcıda etkin kalır."
+                        : "Kapalı · Instagram ve X erişimi serbest.";
+    }
+
     private void SaveSettings()
     {
         try { SettingsStore.Save(_settings); }
@@ -1305,6 +1329,7 @@ public partial class MainWindow : Window
             else row.Update(snapshot.Tab);
         }
         RefreshQuickSite();
+        RefreshSocialBlockingStatus();
         BrowserAudioStatus.Text = _browserAudio?.Listening != true ? "Bağlantı açılamadı" : _browserAudio.Connected ? "Bağlı" : "Eklenti bekleniyor";
         BrowserAudioHelp.Text = _browserAudio?.Connected == true
             ? "Site sesleri müzik sayfasında. Açık medya sekmeni bir kez yenilemeyi dene."

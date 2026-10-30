@@ -5,7 +5,7 @@ namespace NovaIsland.Models;
 public sealed record BrowserTabAudio(string Id, string Host, int Volume, bool Muted, bool Playing, bool Active, int Count);
 public sealed record BrowserAudioSnapshot(string Client, BrowserTabAudio Tab);
 public sealed record BrowserVolumeCommand(string Id, string Tab, int Volume);
-public sealed record BrowserAudioSync(string Client, BrowserTabAudio[] Tabs, string[] Acks);
+public sealed record BrowserAudioSync(string Client, BrowserTabAudio[] Tabs, string[] Acks, bool? SocialSitesBlocked = null);
 
 public sealed class BrowserAudioRow : INotifyPropertyChanged, IQuickAudioTarget
 {

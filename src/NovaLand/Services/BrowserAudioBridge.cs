@@ -12,7 +12,7 @@ namespace NovaIsland.Services;
 // No visited paths, titles, page contents or media URLs enter the native app.
 public sealed class BrowserAudioBridge : IDisposable
 {
-    private sealed record ClientState(BrowserTabAudio[] Tabs, DateTimeOffset At);
+    private sealed record ClientState(BrowserTabAudio[] Tabs, DateTimeOffset At, bool? SocialSitesBlocked);
     private sealed record Pending(string Client, BrowserVolumeCommand Command, DateTimeOffset At);
     private readonly object _gate = new();
     private readonly Dictionary<string, ClientState> _clients = new();
@@ -22,6 +22,24 @@ public sealed class BrowserAudioBridge : IDisposable
     private readonly int _port;
     private TcpListener? _listener;
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
+    private bool _blockSocialSites;
+    public bool BlockSocialSites
+    {
+        get { lock (_gate) return _blockSocialSites; }
+        set { lock (_gate) _blockSocialSites = value; }
+    }
+    public (bool Supported, bool Applied) SocialBlockingStatus
+    {
+        get
+        {
+            lock (_gate)
+            {
+                var clients = _clients.Values.Where(c => Fresh(c.At)).ToArray();
+                return (clients.Any(c => c.SocialSitesBlocked.HasValue),
+                    clients.Length > 0 && clients.All(c => c.SocialSitesBlocked == _blockSocialSites));
+            }
+        }
+    }
     public string Key { get; }
     public bool Listening { get; private set; }
     public bool Connected { get { lock (_gate) return _clients.Values.Any(c => Fresh(c.At)); } }
@@ -101,12 +119,12 @@ public sealed class BrowserAudioBridge : IDisposable
                 lock (_gate)
                 {
                     foreach (var id in _clients.Where(x => !Fresh(x.Value.At)).Select(x => x.Key).ToArray()) _clients.Remove(id);
-                    _clients[sync!.Client] = new(sync.Tabs, DateTimeOffset.UtcNow);
+                    _clients[sync!.Client] = new(sync.Tabs, DateTimeOffset.UtcNow, sync.SocialSitesBlocked);
                     foreach (var entry in _commands.ToArray())
                         if (!Fresh(entry.Value.At) || entry.Value.Client == sync.Client && (sync.Acks.Contains(entry.Key) || !sync.Tabs.Any(t => t.Id == entry.Value.Command.Tab))) _commands.Remove(entry.Key);
                     commands = _commands.Values.Where(p => p.Client == sync.Client && DateTimeOffset.UtcNow - p.At < TimeSpan.FromSeconds(4)).Select(p => p.Command).ToArray();
                 }
-                await Reply(stream, 200, JsonSerializer.Serialize(new { commands }, Json), origin, ct);
+                await Reply(stream, 200, JsonSerializer.Serialize(new { commands, blockSocialSites = BlockSocialSites }, Json), origin, ct);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) when (ex is IOException or SocketException or JsonException or ArgumentException) { }

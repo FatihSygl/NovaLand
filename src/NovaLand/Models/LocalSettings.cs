@@ -16,6 +16,7 @@ public sealed class LocalSettings
     public bool AlwaysOnTop { get; set; } = true;
     public bool AutoHide { get; set; } = true;
     public bool CaptureClipboard { get; set; } = true;
+    public bool BlockSocialSites { get; set; } = false;
     public bool WaterReminder { get; set; } = false;
     public List<string> FilePaths { get; set; } = new();
 }

@@ -836,6 +836,13 @@
          </StackPanel>
         </Border>
         <TextBlock Text="Son kopyalananlar bu oturumda kalır.&#10;Sabitlediklerin saklanır." Foreground="#686872" FontSize="9" TextWrapping="Wrap" Margin="3,12,0,16" />
+        <TextBlock Text="SİTE ENGELİ" Style="{StaticResource SectionLabel}" Margin="2,0,0,8" />
+        <Border Style="{StaticResource InsetCard}" Padding="14,3">
+         <StackPanel>
+          <CheckBox x:Name="SocialBlockCheck" Content="Instagram ve X’i engelle" Checked="SocialBlockCheck_Changed" Unchecked="SocialBlockCheck_Changed" Margin="0" />
+          <TextBlock x:Name="SocialBlockHelp" Text="Güncel tarayıcı eklentisiyle çalışır." FontSize="9" Foreground="#83838C" TextWrapping="Wrap" Margin="0,0,0,11"/>
+         </StackPanel>
+        </Border>
         <Expander Style="{StaticResource QuietDisclosure}" Margin="0,8,0,0">
          <Expander.Header>
           <TextBlock Text="Tarayıcı bağlantısı" Foreground="#8C8C95" FontSize="10" />

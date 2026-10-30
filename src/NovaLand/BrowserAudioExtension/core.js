@@ -4,6 +4,10 @@ globalThis.NovaAudio = {
     try { const u = new URL(url); return /^https?:$/.test(u.protocol) ? u.hostname.toLowerCase() : null; }
     catch { return null; }
   },
+  socialHost(url) {
+    const host = this.host(url)?.replace(/\.$/, "");
+    return !!host && ["instagram.com", "x.com", "twitter.com"].some(domain => host === domain || host.endsWith("." + domain));
+  },
   volume(value) { return Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : null; },
   summarize(frames) {
     const live = frames.filter(f => f.count > 0);

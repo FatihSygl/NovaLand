@@ -619,3 +619,27 @@ yeni etkinlik doğrudan gösterilip sayaç uyandırılır. Gizli ana sayfa ve
 görünmeyen PC pil metni güncellenmez; tarih günde, saat dakika değişince
 biçimlendirilir. Windows kontrolünde kaynak/bellek mikro ölçümleri yazılır;
 bunlar uygulamanın toplam CPU, GPU veya RAM tüketimi ölçümü değildir.
+
+## 1.3.12 — İsteğe bağlı Instagram ve X engeli
+
+Ayarlar > Site engeli varsayılan olarak kapalıdır; tercih yerelde saklanır.
+Güncel, eşleştirilmiş tarayıcı eklentisi 0.8.0 gerekir. Instagram, x.com ve
+twitter.com (alt alan adları dahil) ana sayfa gezintileri sade bir engel
+ekranına yönlenir; zaten açık sekmeler de yönlendirilir. Diğer siteler ve
+gömülü içerikler engellenmez. Chrome/Edge/Opera'da eklentinin yüklü olduğu
+profilde çalışır; sistem genelinde veya telefon uygulamalarında engel koymaz.
+
+Eklenti güncellemesi: ZIP'teki Tarayici_Ses_Eklentisi klasörünü kalıcı bir
+yere çıkar. Tarayıcının uzantılar sayfasında eski eklentiyi kaldırıp bu
+klasörü Paketlenmemiş yükle ile ekle; NovaLand'dan kodu kopyalayıp eşleştir.
+Klasörü tarayıcının zaten kullandığı aynı yola güncelliyorsan uzantının
+Yenile düğmesini kullan ve yeni izni onayla. Eklenti 0.8.0 olmalı.
+Ses seviyeleriyle ilgili tercihlerin mevcut eklenti yerinde güncellenirse korunur.
+
+Mevcut yerel bağlantı kullanılır; ek periyodik sorgu yoktur. Boşta değişiklik
+en geç 30 saniyede, medya açıkken genellikle daha kısa sürede aktarılır.
+Etkin engel tarayıcı yeniden başlatılsa veya NovaLand kapansa da kalır;
+kaldırmak için uygulamadan kapat ve eşleşmiş eklentinin bağlantı kurmasını
+bekle. NovaLand açılamıyorsa uzantıyı devre dışı bırakmak engeli kaldırır.
+Gizli mod varsayılan olarak kapsam dışıdır. Gezilen adresler veya sayfa
+içerikleri uygulamaya gönderilmez; yalnızca engelin uygulanma durumu iletilir.
