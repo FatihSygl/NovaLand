@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "NovaLand • Tarayıcı bağlantısı",
-  "version": "0.8.1",
-  "description": "Site seslerini ayarla; istersen Instagram ve X erişimini NovaLand ayarlarından engelle.",
+  "name": "NovaLand • Site Sesleri",
+  "version": "0.8.2",
+  "description": "Video ve ses oynatıcılarının sesini NovaLand üzerinden sekme sekme ayarla.",
   "permissions": [
     "storage",
     "alarms",
@@ -41,17 +41,5 @@
     "32": "icon32.png",
     "48": "icon48.png",
     "128": "icon128.png"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "blocked.html"
-      ],
-      "matches": [
-        "*://*.instagram.com/*",
-        "*://*.x.com/*",
-        "*://*.twitter.com/*"
-      ]
-    }
-  ]
+  }
 }

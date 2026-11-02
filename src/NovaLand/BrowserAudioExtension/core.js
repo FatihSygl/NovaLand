@@ -8,10 +8,6 @@ globalThis.NovaAudio = {
     const host = this.host(url);
     return !!host && /(^|[.])whatsapp[.](com|net)[.]?$/i.test(host);
   },
-  socialHost(url) {
-    const host = this.host(url)?.replace(/\.$/, "");
-    return !!host && ["instagram.com", "x.com", "twitter.com"].some(domain => host === domain || host.endsWith("." + domain));
-  },
   volume(value) { return Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : null; },
   summarize(frames) {
     const live = frames.filter(f => f.count > 0);

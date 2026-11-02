@@ -9,8 +9,8 @@ const root = path.join(__dirname, "../src/NovaLand/BrowserAudioExtension");
 let checks = 0;
 function check(value, label) { assert.ok(value, label); checks++; }
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.json")));
-check(manifest.permissions.includes("declarativeNetRequestWithHostAccess"), "redirect permission declared");
-check(manifest.web_accessible_resources.some(r => r.resources.includes("blocked.html")), "redirect page accessible");
+check(manifest.version === "0.8.2", "audio-only extension version");
+check(!manifest.web_accessible_resources, "blocking page is no longer exposed");
 function event() { return {listeners: [], addListener(fn) { this.listeners.push(fn); }}; }
 async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}) {
   const state = {rules, writes: 0, open: [], updates: [], body: null, policy: false, commands: [], offline: false, unauthorized: false, failRules, mediaWrites: []};
@@ -56,82 +56,48 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}
 }
 (async () => {
   const w = await worker();
-  check(manifest.content_scripts[0].exclude_matches.includes("*://*.whatsapp.com/*"), "WhatsApp excluded from content injection");
-  for (const hostname of ["web.whatsapp.com", "whatsapp.com", "mmg.whatsapp.net"]) {
-    const isolated = vm.createContext({location: {hostname}});
-    vm.runInContext(fs.readFileSync(path.join(root, "media.js"), "utf8"), isolated);
-    check(true, "WhatsApp exits before accessing DOM, observer, timers or extension messages: " + hostname);
-    check(vm.runInContext("NovaAudio.ignoredHost(" + JSON.stringify("https://" + hostname) + ")", w.context), "WhatsApp excluded from background media reports");
-  }
-  for (const url of ["https://instagram.com", "https://www.instagram.com/reels/", "http://m.x.com", "https://twitter.com/home", "https://X.COM.", "https://a.b.twitter.com"]) {
-    check(vm.runInContext("NovaAudio.socialHost(" + JSON.stringify(url) + ")", w.context), "target " + url);
-  }
-  for (const url of ["https://notinstagram.com", "https://x.com.evil.test", "https://example.org/?url=https://instagram.com", "https://instagram.com@safe.test", "file:///instagram.com", "not a URL", "https://youtube.com"]) {
-    check(!vm.runInContext("NovaAudio.socialHost(" + JSON.stringify(url) + ")", w.context), "allow " + url);
-  }
-  w.state.open = [{id:1,url:"https://instagram.com/reels"}, {id:2,url:"https://x.com/home"}, {id:3,url:"https://youtube.com/watch?v=1"}, {id:4,url:"https://twitter.com",incognito:true}];
+  check(!fs.existsSync(path.join(root, "social-block.js")), "blocking implementation removed");
+  check(!fs.existsSync(path.join(root, "blocked.html")), "blocking page removed");
+  check(manifest.content_scripts[0].exclude_matches.includes("*://*.whatsapp.com/*"), "WhatsApp remains outside media integration");
+  w.state.open = [{id:1,url:"https://instagram.com/"}, {id:2,url:"https://x.com/home"}, {id:3,url:"https://youtube.com/"}];
+  w.state.policy = true; // Even an older app cannot restore blocking in the new worker.
   await w.sync();
-  check(w.state.writes === 0 && w.state.updates.length === 0, "default off leaves browser untouched");
-  w.state.policy = true;
-  await w.sync();
-  check(w.state.rules.length === 1, "enabling installs exactly one rule");
-  const rule = w.state.rules[0];
-  check(rule.action.redirect.extensionPath === "/blocked.html" && rule.condition.resourceTypes.join() === "main_frame", "only page navigation redirected");
-  check(rule.condition.requestDomains.join() === "instagram.com,x.com,twitter.com", "precise domain scope");
-  check(w.state.updates.map(t => t.id).join() === "1,2", "existing target tabs redirected; other and incognito tabs untouched");
-  await w.sync();
-  check(w.state.body.socialSitesBlocked === true, "applied state acknowledged");
-  check(w.state.writes === 1, "unchanged sync avoids rule rewrites");
-  check(!JSON.stringify(w.state.body).includes("/reels"), "visited paths never sent to native app");
-  w.state.offline = true;
-  await w.sync();
-  check(w.state.rules.length === 1, "last enabled choice survives app disconnect");
-  w.state.open.push({id:5,url:"https://www.instagram.com/"});
-  await vm.runInContext("NovaSocialBlock.enforce(5)", w.context);
-  check(w.state.open.find(t=>t.id===5).url.endsWith("/blocked.html"), "cached/SPA navigation fallback works while offline");
-  const restarted = await worker({rules: w.state.rules});
-  check(vm.runInContext("NovaSocialBlock.enabled", restarted.context), "enabled rule restored on worker restart");
-  restarted.state.policy = false;
-  await restarted.sync();
-  check(restarted.state.rules.length === 0, "turning off removes rule");
-  check(!vm.runInContext("NovaSocialBlock.enabled", restarted.context), "disabled state confirmed");
-  const unpaired = await worker({rules: w.state.rules, key: ""});
-  check(unpaired.state.rules.length === 0, "removing pairing clears owned rule");
-  const rejected = await worker();
-  rejected.state.policy = true; rejected.state.unauthorized = true;
-  await rejected.sync();
-  check(rejected.state.rules.length === 0, "unauthenticated response cannot activate blocking");
-  const denied = await worker({failRules:true});
-  denied.state.policy = true;
-  await denied.sync();
-  check(!vm.runInContext("NovaSocialBlock.enabled", denied.context) && !denied.state.connection.ok, "failed rule installation never claims success");
-  denied.state.failRules = false;
-  await denied.sync();
-  check(denied.state.rules.length === 1, "rule failure retried on next sync");
+  check(w.state.rules.length === 0 && w.state.updates.length === 0, "no rule added or page redirected");
+  check(!("socialSitesBlocked" in w.state.body), "no blocking state reported");
+  const old = {id:7001, action:{type:"redirect"}}, other = {id:9000,action:{type:"allow"}};
+  const migrated = await worker({rules:[old,other],key:""});
+  check(migrated.state.rules.length === 1 && migrated.state.rules[0].id === 9000, "unpaired startup removes only the legacy rule");
+  check(migrated.state.writes === 1, "legacy rule removed once");
+  await migrated.sync();
+  check(migrated.state.writes === 1, "sync never reinstalls removed rule");
+  const failedCleanup = await worker({rules:[old],failRules:true});
+  await failedCleanup.sync();
+  check(failedCleanup.state.connection.ok, "cleanup failure does not disable site audio connection");
 
-  // Use the real worker's media message and command paths alongside blocking.
-  const audio = await worker();
-  const tab = {id:11, url:"https://youtube.com/watch?v=private", active:true};
-  audio.state.open = [tab];
-  await new Promise(resolve => audio.chrome.runtime.onMessage.listeners[0](
+  for (const hostname of ["web.whatsapp.com", "whatsapp.com", "mmg.whatsapp.net"]) {
+    const isolated = vm.createContext({location:{hostname}});
+    vm.runInContext(fs.readFileSync(path.join(root,"media.js"),"utf8"),isolated);
+    check(true, "WhatsApp runs no media code: "+hostname);
+  }
+  const tab = {id:11,url:"https://youtube.com/watch?v=private",active:true};
+  w.state.open = [tab];
+  await new Promise(resolve => w.chrome.runtime.onMessage.listeners[0](
     {type:"media-report",state:{count:1,volume:80,playing:true}},
-    {tab,frameId:0,documentId:"doc"}, resolve));
-  await audio.sync();
-  const id = audio.state.body.tabs[0].id;
-  audio.state.commands = [{id:randomUUID(), tab:id, volume:23}];
-  audio.state.policy = true;
-  await audio.sync();
-  check(audio.state.mediaWrites.some(w=>w.message.type==="media-volume" && w.message.volume===23), "site volume command remains functional with blocking enabled");
-  check(!JSON.stringify(audio.state.body).includes("private"), "media reporting still excludes URLs");
-  audio.state.commands = [];
-  const beforeWhatsApp = audio.state.mediaWrites.filter(w => w.id === 12).length;
-  const whatsApp = {id:12, url:"https://web.whatsapp.com/"};
-  audio.state.open.push(whatsApp);
-  await new Promise(resolve => audio.chrome.runtime.onMessage.listeners[0](
+    {tab,frameId:0,documentId:"doc"},resolve));
+  await w.sync();
+  const id = w.state.body.tabs[0].id;
+  w.state.commands = [{id:randomUUID(),tab:id,volume:23}];
+  await w.sync();
+  check(w.state.mediaWrites.some(write=>write.message.type==="media-volume" && write.message.volume===23), "site volume still works");
+  check(!JSON.stringify(w.state.body).includes("private"), "visited paths remain private");
+  w.state.commands = [];
+  const wa = {id:12,url:"https://web.whatsapp.com/"};
+  w.state.open.push(wa);
+  await new Promise(resolve=>w.chrome.runtime.onMessage.listeners[0](
     {type:"media-report",state:{count:1,volume:80,playing:true}},
-    {tab:whatsApp,frameId:0,documentId:"wa"}, resolve));
-  await audio.sync();
-  check(audio.state.mediaWrites.filter(w => w.id === 12).length === beforeWhatsApp, "WhatsApp receives no media commands");
-  check(!audio.state.body.tabs.some(t => t.host === "web.whatsapp.com"), "WhatsApp is not reported to native app");
+    {tab:wa,frameId:0,documentId:"wa"},resolve));
+  await w.sync();
+  check(!w.state.body.tabs.some(t=>t.host==="web.whatsapp.com"), "no WhatsApp media reporting");
+  check(!w.state.mediaWrites.some(t=>t.id===12), "no WhatsApp media commands");
   console.log(checks + " browser extension checks passed");
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().catch(error=>{console.error(error);process.exitCode=1;});

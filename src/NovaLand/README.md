@@ -669,3 +669,15 @@ eski eklenti dosyalarını güncelleyip uzantıyı yenilemek, ardından açık
 WhatsApp sekmesini yenilemek gerekir; uygulama güncellemesi tek başına
 tarayıcının yüklü klasörünü değiştirmez. Bu sürüm WhatsApp sayfasını okumaz
 ve onun için ses kontrolü sunmaz.
+
+## 1.3.14 — Site engeli kaldırıldı
+
+Instagram/X engeli, ayarı, tercih alanı ve engel sayfası kaldırılmıştır.
+Eklenti yalnızca site sesleri içindir; WhatsApp entegrasyonu bulunmaz ve
+WhatsApp sayfaları medya takibinin dışında kalır. Güncellenen uygulama eski
+0.8.x eklentilere engeli kapatmalarını bildirir. Yeni eklenti 0.8.2 açılışta
+eski 7001 numaralı engel kuralını yerel olarak temizler; yeni engel eklemez.
+DNR izni yalnızca bu geçiş temizliğini yapabilmek için tutulur.
+Temizlik başarısızsa eski uzantıyı kaldırıp yeni eklentiyi yüklemek eski
+kuralları da kaldırır. Pano düzeltmeleri, ses ayarları ve diğer uygulama
+özellikleri korunur.
