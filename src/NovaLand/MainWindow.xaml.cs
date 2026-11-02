@@ -1303,7 +1303,6 @@ public partial class MainWindow : Window
             else row.Update(snapshot.Tab);
         }
         RefreshQuickSite();
-        RefreshSocialBlockingStatus();
         BrowserAudioStatus.Text = _browserAudio?.Listening != true ? "Bağlantı açılamadı" : _browserAudio.Connected ? "Bağlı" : "Eklenti bekleniyor";
         BrowserAudioHelp.Text = _browserAudio?.Connected == true
             ? "Site sesleri müzik sayfasında. Açık medya sekmeni bir kez yenilemeyi dene."
