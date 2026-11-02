@@ -26,3 +26,9 @@ $zip = Join-Path $PWD "artifacts/NovaLand_v${version}_win-x64.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path $stage -DestinationPath $zip -CompressionLevel Optimal
 Write-Output "Release package: $zip"
+
+$extensionVersion = (Get-Content src/NovaLand/BrowserAudioExtension/manifest.json -Raw | ConvertFrom-Json).version
+$extensionZip = Join-Path $PWD "artifacts/NovaLand_Tarayici_Eklentisi_v$extensionVersion.zip"
+if (Test-Path $extensionZip) { Remove-Item $extensionZip -Force }
+Compress-Archive -Path "$stage/Tarayici_Ses_Eklentisi" -DestinationPath $extensionZip -CompressionLevel Optimal
+Write-Output "Extension package: $extensionZip"

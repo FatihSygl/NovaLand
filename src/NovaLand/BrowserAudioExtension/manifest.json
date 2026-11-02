@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NovaLand • Tarayıcı bağlantısı",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Site seslerini ayarla; istersen Instagram ve X erişimini NovaLand ayarlarından engelle.",
   "permissions": [
     "storage",
@@ -29,7 +29,11 @@
         "media.js"
       ],
       "all_frames": true,
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "exclude_matches": [
+        "*://*.whatsapp.com/*",
+        "*://*.whatsapp.net/*"
+      ]
     }
   ],
   "icons": {

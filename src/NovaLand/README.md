@@ -643,3 +643,29 @@ kaldırmak için uygulamadan kapat ve eşleşmiş eklentinin bağlantı kurması
 bekle. NovaLand açılamıyorsa uzantıyı devre dışı bırakmak engeli kaldırır.
 Gizli mod varsayılan olarak kapsam dışıdır. Gezilen adresler veya sayfa
 içerikleri uygulamaya gönderilmez; yalnızca engelin uygulanma durumu iletilir.
+
+## 1.3.13 — Pano takibinin toparlanması
+
+Pano dinleyicisi ana ada yerine bağımsız bir Windows mesaj penceresi kullanır.
+Başlangıçta ve takip tekrar açıldığında mevcut pano da okunur; yoğun veya
+gecikmeli pano sahiplerinde yaklaşık üç saniyeye yayılan sınırlı tekrar
+denemeleri yapılır. Ana pencere gizleme/konum değişiklikleri dinleyiciyi
+etkilemez. Windows dinleyici kaydı başarısız olursa yalnızca bu durumda
+iki saniyelik sıra numarası kontrolü devreye girer. Normal durumda sürekli
+pano taraması yoktur. Sekme açılırken kaçırılan son kopyalama telafi edilir.
+Özel pano gizlilik işareti ve uygulamanın kendi kopyalarını yeniden geçmişe
+eklememe davranışı korunur. PNG, bitmap, Unicode metin ve dosya listesi için
+Windows kontrolleri genişletilmiştir.
+
+Pano takibi kapalıysa sayfada açık bir açıklama ve Etkinleştir düğmesi
+görünür; kullanıcının kapatma tercihi kendiliğinden değiştirilmez.
+Ekran görüntüsü taraması Bluetooth hatalarından ayrılmıştır.
+Sabitlemeler ve geçmiş sınırları değişmez; önceki oturumdaki sabitlenmemiş
+geçmiş diskte saklanmadığı için geri getirilemez.
+
+Tarayıcı eklentisi 0.8.1 WhatsApp alanlarını sayfa kodu ve medya takibinden
+çıkarır. Ayrı eklenti ZIP'i de yayına eklenir. Bu değişiklik için tarayıcıda
+eski eklenti dosyalarını güncelleyip uzantıyı yenilemek, ardından açık
+WhatsApp sekmesini yenilemek gerekir; uygulama güncellemesi tek başına
+tarayıcının yüklü klasörünü değiştirmez. Bu sürüm WhatsApp sayfasını okumaz
+ve onun için ses kontrolü sunmaz.

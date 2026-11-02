@@ -35,7 +35,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: release-package
-          path: artifacts/NovaLand_v*_win-x64.zip
+          path: |
+            artifacts/NovaLand_v*_win-x64.zip
+            artifacts/NovaLand_Tarayici_Eklentisi_v*.zip
           if-no-files-found: error
           retention-days: 7
   release:
@@ -64,5 +66,5 @@ jobs:
             echo "Release $tag already exists; keeping it unchanged."
             exit 0
           fi
-          gh release create "$tag" "package/NovaLand_v${VERSION}_win-x64.zip" \
+          gh release create "$tag" "package/NovaLand_v${VERSION}_win-x64.zip" package/NovaLand_Tarayici_Eklentisi_v*.zip \
             --target "$COMMIT" --title "NovaLand ${VERSION}" --generate-notes --latest

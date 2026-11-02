@@ -5,6 +5,7 @@ public sealed class ScreenshotService
 {
     private readonly Dictionary<string, DateTime> _seen = new(StringComparer.OrdinalIgnoreCase);
     public event Action<byte[], string, DateTime>? ImageFound;
+    public void Reset() => _seen.Clear();
     public async Task ScanAsync()
     {
         var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

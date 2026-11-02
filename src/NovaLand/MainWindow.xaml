@@ -556,6 +556,7 @@
        <Grid.RowDefinitions>
         <RowDefinition Height="45" />
         <RowDefinition Height="42" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
        </Grid.RowDefinitions>
        <Grid>
@@ -574,7 +575,13 @@
         <Button x:Name="ImageHistoryTab" Content="Görseller" Style="{StaticResource Chip}" Click="ImageHistory_Click" Margin="0,0,6,0" />
         <Button x:Name="DocumentHistoryTab" Content="Dosyalar" Style="{StaticResource Chip}" Click="DocumentHistory_Click" />
        </StackPanel>
-       <Grid Grid.Row="2" x:Name="TextHistoryPanel">
+       <Border x:Name="ClipboardCaptureNotice" Grid.Row="2" Visibility="Collapsed" Background="#1C1C1E" CornerRadius="12" Padding="10,8" Margin="0,0,0,8">
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+         <TextBlock Text="Pano geçmişi kapalı." FontSize="11" Foreground="#B8B8C0" VerticalAlignment="Center"/>
+         <Button Grid.Column="1" Content="Etkinleştir" Style="{StaticResource GhostButton}" Padding="8,4" FontSize="10" Click="EnableClipboardCapture_Click"/>
+        </Grid>
+       </Border>
+       <Grid Grid.Row="3" x:Name="TextHistoryPanel">
         <TextBlock x:Name="ClipboardEmpty" Text="Bir metin kopyaladığında burada görünür." FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <StackPanel>
@@ -585,7 +592,7 @@
          </StackPanel>
         </ScrollViewer>
        </Grid>
-       <Grid Grid.Row="2" x:Name="ImageHistoryPanel" Visibility="Collapsed">
+       <Grid Grid.Row="3" x:Name="ImageHistoryPanel" Visibility="Collapsed">
         <TextBlock x:Name="ImageEmpty" Text="Kopyalanan görseller ve kaydedilen SS’ler burada." TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <StackPanel>
@@ -596,7 +603,7 @@
          </StackPanel>
         </ScrollViewer>
        </Grid>
-       <Grid Grid.Row="2" x:Name="DocumentHistoryPanel" Visibility="Collapsed">
+       <Grid Grid.Row="3" x:Name="DocumentHistoryPanel" Visibility="Collapsed">
         <TextBlock x:Name="DocumentEmpty" Text="Dosya Gezgini’nde bir belgeyi kopyala.&#10;Son kopyaladığın dosyalar burada görünür." TextAlignment="Center" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <ItemsControl x:Name="DocumentList"><ItemsControl.ItemTemplate><DataTemplate>

@@ -4,6 +4,10 @@ globalThis.NovaAudio = {
     try { const u = new URL(url); return /^https?:$/.test(u.protocol) ? u.hostname.toLowerCase() : null; }
     catch { return null; }
   },
+  ignoredHost(url) {
+    const host = this.host(url);
+    return !!host && /(^|[.])whatsapp[.](com|net)[.]?$/i.test(host);
+  },
   socialHost(url) {
     const host = this.host(url)?.replace(/\.$/, "");
     return !!host && ["instagram.com", "x.com", "twitter.com"].some(domain => host === domain || host.endsWith("." + domain));

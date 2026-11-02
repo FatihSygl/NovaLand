@@ -1,5 +1,7 @@
 (() => {
   "use strict";
+  // Messaging pages are outside NovaLand's media integration.
+  if (/(^|[.])whatsapp[.](com|net)[.]?$/i.test(location.hostname)) return;
   const known = new WeakSet();
   let target = null, timer, reportTimer, scanTimer, stopped = false, previousCount = 0;
   const media = () => [...document.querySelectorAll("video,audio")];

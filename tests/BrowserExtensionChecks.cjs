@@ -56,6 +56,13 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}
 }
 (async () => {
   const w = await worker();
+  check(manifest.content_scripts[0].exclude_matches.includes("*://*.whatsapp.com/*"), "WhatsApp excluded from content injection");
+  for (const hostname of ["web.whatsapp.com", "whatsapp.com", "mmg.whatsapp.net"]) {
+    const isolated = vm.createContext({location: {hostname}});
+    vm.runInContext(fs.readFileSync(path.join(root, "media.js"), "utf8"), isolated);
+    check(true, "WhatsApp exits before accessing DOM, observer, timers or extension messages: " + hostname);
+    check(vm.runInContext("NovaAudio.ignoredHost(" + JSON.stringify("https://" + hostname) + ")", w.context), "WhatsApp excluded from background media reports");
+  }
   for (const url of ["https://instagram.com", "https://www.instagram.com/reels/", "http://m.x.com", "https://twitter.com/home", "https://X.COM.", "https://a.b.twitter.com"]) {
     check(vm.runInContext("NovaAudio.socialHost(" + JSON.stringify(url) + ")", w.context), "target " + url);
   }
@@ -116,5 +123,15 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}
   await audio.sync();
   check(audio.state.mediaWrites.some(w=>w.message.type==="media-volume" && w.message.volume===23), "site volume command remains functional with blocking enabled");
   check(!JSON.stringify(audio.state.body).includes("private"), "media reporting still excludes URLs");
+  audio.state.commands = [];
+  const beforeWhatsApp = audio.state.mediaWrites.filter(w => w.id === 12).length;
+  const whatsApp = {id:12, url:"https://web.whatsapp.com/"};
+  audio.state.open.push(whatsApp);
+  await new Promise(resolve => audio.chrome.runtime.onMessage.listeners[0](
+    {type:"media-report",state:{count:1,volume:80,playing:true}},
+    {tab:whatsApp,frameId:0,documentId:"wa"}, resolve));
+  await audio.sync();
+  check(audio.state.mediaWrites.filter(w => w.id === 12).length === beforeWhatsApp, "WhatsApp receives no media commands");
+  check(!audio.state.body.tabs.some(t => t.host === "web.whatsapp.com"), "WhatsApp is not reported to native app");
   console.log(checks + " browser extension checks passed");
 })().catch(error => { console.error(error); process.exitCode = 1; });

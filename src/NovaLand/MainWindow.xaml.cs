@@ -207,14 +207,7 @@ public partial class MainWindow : Window
             Environment.GetCommandLineArgs().Any(arg => arg.Equals("--startup", StringComparison.OrdinalIgnoreCase)), DateTime.Now);
         if (greeting is not null)
             EnqueueActivity("launch-greeting", 30, () => RenderLaunchGreeting(greeting));
-        if (PresentationSource.FromVisual(this) is HwndSource source)
-        {
-            _clipboard = new ClipboardService(source) { Enabled = _settings.CaptureClipboard };
-            _clipboard.FilesReceived += paths => _documents.Add(paths);
-            _clipboard.TextReceived += text => _clipboardHistory.Add(text);
-            _clipboard.ImageReceived += png => _images.Add(png, "Kopyalanan görsel", DateTime.Now);
-            if (!_clipboard.Listening) StatusText.Text = "Pano dinleyicisi başlatılamadı.";
-        }
+        InitializeClipboardCapture();
         _devicePoll.Start();
         _ = ScanDevicesAsync();
         SystemParameters.StaticPropertyChanged += DisplaySettingsChanged;
@@ -525,6 +518,7 @@ public partial class MainWindow : Window
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
         FilesView.Visibility = key == "Files" ? Visibility.Visible : Visibility.Collapsed;
         ClipboardView.Visibility = key == "Clipboard" ? Visibility.Visible : Visibility.Collapsed;
+        if (key == "Clipboard") { RefreshClipboardCaptureState(); _clipboard?.Refresh(); }
         TodoView.Visibility = key == "Todo" ? Visibility.Visible : Visibility.Collapsed;
         ControlsView.Visibility = key == "Controls" ? Visibility.Visible : Visibility.Collapsed;
         if (key is "Settings" or "Music") RefreshBrowserAudio();
@@ -714,10 +708,12 @@ public partial class MainWindow : Window
         try
         {
             await _bluetooth.ScanAsync();
-            if (_settings.CaptureClipboard && !_exiting) await _screenshots.ScanAsync();
+
         }
         catch (Exception ex) { DiagnosticLog.Write("DevicePoll", ex); }
         finally { _deviceBusy = false; if (_expanded && _tab == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); } }
+        // A Bluetooth failure must not disable screenshot history.
+        await ScanScreenshotsAsync();
     }
     private void CaptureClipboardCheck_Changed(object sender, RoutedEventArgs e)
     {
@@ -725,6 +721,8 @@ public partial class MainWindow : Window
         _settings.CaptureClipboard = CaptureClipboardCheck.IsChecked == true;
         if (_clipboard is not null) _clipboard.Enabled = _settings.CaptureClipboard;
         if (!_settings.CaptureClipboard) { _clipboardHistory.Clear(); _images.Clear(); _documents.Clear(); }
+        else { _screenshots.Reset(); _ = ScanScreenshotsAsync(); }
+        RefreshClipboardCaptureState();
         SaveSettings();
     }
     private void AutoHideCheck_Changed(object sender, RoutedEventArgs e)

@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   (async () => {
     await ready;
     const host = NovaAudio.host(sender.tab.url);
-    if (!host || !message.state || !Number.isInteger(message.state.count) || message.state.count < 0 || message.state.count > 256) return;
+    if (!host || NovaAudio.ignoredHost(sender.tab.url) || !message.state || !Number.isInteger(message.state.count) || message.state.count < 0 || message.state.count > 256) return;
     const volume = NovaAudio.volume(message.state.volume); if (volume === null) return;
     let tab = tabs.get(sender.tab.id);
     if (!tab || tab.host !== host) { tab = {id: crypto.randomUUID(), host, frames: new Map()}; tabs.set(sender.tab.id, tab); }
@@ -71,7 +71,7 @@ async function sync() {
     const entries = [];
     for (const [id, tab] of tabs) {
       const actual = current.get(id);
-      if (!actual || actual.incognito || NovaAudio.host(actual.url) !== tab.host) { tabs.delete(id); continue; }
+      if (!actual || actual.incognito || NovaAudio.ignoredHost(actual.url) || NovaAudio.host(actual.url) !== tab.host) { tabs.delete(id); continue; }
       // Hidden/silent tabs may have heavily throttled page timers. Refresh their
       // existing media frames from the worker so a muted tab remains controllable.
       for (const [frameId,frame] of tab.frames) if (Date.now() - frame.at > 5000) {
