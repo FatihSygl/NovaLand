@@ -3,6 +3,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using NovaIsland.Services;
+using Brushes = System.Windows.Media.Brushes;
 internal static class PlacementChecks
 {
     public static void Run()
