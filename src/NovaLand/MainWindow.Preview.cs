@@ -27,7 +27,7 @@ public partial class MainWindow
         QuickSiteCard.DataContext = selected;
         QuickSiteCard.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
         SystemVolumeRow.Visibility = selected is null ? Visibility.Visible : Visibility.Collapsed;
-        AudioSourceTitle.Text = selected is null ? "Sistem" : selected.Name + " · " + selected.Kind;
+        AudioSourceTitle.Text = selected is null ? (_audioTargets.Count > 0 ? $"Sistem · {_audioTargets.Count} kaynak" : "Sistem") : selected.Name + " · " + selected.Kind;
     }
 
     private string _selectedAudioKey = "";
@@ -43,6 +43,10 @@ public partial class MainWindow
         Add("Sistem", "");
         if (_audioTargets.Count > 0) menu.Items.Add(new Separator());
         foreach (var target in _audioTargets) Add(target.Name + " · " + target.Kind, target.Key);
+        menu.Items.Add(new Separator());
+        var browser = new MenuItem { Header = _browserAudio?.Connected == true ? "Tarayıcı bağlantısı · Bağlı" : "Site seslerini bağla…" };
+        browser.Click += (_, _) => { SetTab("Settings"); BrowserConnection.IsExpanded = true; BrowserConnection.BringIntoView(); };
+        menu.Items.Add(browser);
         _dialogOpen = true; SyncActivityPause();
         menu.Closed += (_, _) => { _dialogOpen = false; SyncActivityPause(); };
         menu.IsOpen = true;

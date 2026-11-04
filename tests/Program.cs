@@ -47,6 +47,25 @@ documents.Add(new[] { "", "relative.pdf" });
 Assert(documents.Items.Count == 10, "invalid document paths ignored");
 documents.Clear();
 Assert(documents.Items.Count == 0, "document history clears independently");
+var desktop = new NovaIsland.Models.DockBox(-1920, -120, 1920, 1080);
+var workArea = new NovaIsland.Models.DockBox(-1920, -120, 1920, 1040);
+foreach (var edge in new[] { NovaIsland.Models.IslandEdge.Left, NovaIsland.Models.IslandEdge.Right,
+    NovaIsland.Models.IslandEdge.Top, NovaIsland.Models.IslandEdge.Bottom })
+{
+    var shown = NovaIsland.Models.DockLayout.Place(desktop,workArea,edge,.5,.3,350,80,false);
+    var hidden = NovaIsland.Models.DockLayout.Place(desktop,workArea,edge,.5,.3,350,80,true);
+    Assert(edge switch {
+        NovaIsland.Models.IslandEdge.Left => hidden.X < shown.X && hidden.X + 350 > desktop.Left,
+        NovaIsland.Models.IslandEdge.Right => hidden.X > shown.X && hidden.X < desktop.Right,
+        NovaIsland.Models.IslandEdge.Top => hidden.Y < shown.Y && hidden.Y + 80 > desktop.Top,
+        _ => hidden.Y > shown.Y && hidden.Y < desktop.Bottom
+    }, edge + " hides toward its own edge and leaves a reachable strip");
+    Assert(edge is NovaIsland.Models.IslandEdge.Left or NovaIsland.Models.IslandEdge.Right
+        ? shown.Y == hidden.Y : shown.X == hidden.X, edge + " hide preserves anchor along edge");
+}
+var floatingShown = NovaIsland.Models.DockLayout.Place(desktop,workArea,NovaIsland.Models.IslandEdge.Floating,.5,.3,350,80,false);
+Assert(floatingShown == NovaIsland.Models.DockLayout.Place(desktop,workArea,NovaIsland.Models.IslandEdge.Floating,.5,.3,350,80,true),
+    "floating island is never moved offscreen by hide");
 var version = new Version(1,0,0);
 string Json(string tag="v1.0.1", bool draft=false, bool prerelease=false, string? url=null, string? digest=null, long size=5) => JsonSerializer.Serialize(new { tag_name=tag, draft, prerelease, assets=new[]{new { name=$"NovaLand_{tag}_win-x64.zip", browser_download_url=url??$"https://github.com/FatihSygl/NovaLand/releases/download/{tag}/NovaLand_{tag}_win-x64.zip",size,digest=digest??"sha256:"+new string('a',64)}} });
 Assert(UpdatePackage.ParseRelease(Json(),version)?.Version==new Version(1,0,1),"new stable release selected");

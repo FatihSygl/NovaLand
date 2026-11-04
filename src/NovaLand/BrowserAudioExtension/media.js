@@ -2,6 +2,7 @@
   "use strict";
   // Messaging pages are outside NovaLand's media integration.
   if (/(^|[.])whatsapp[.](com|net)[.]?$/i.test(location.hostname)) return;
+  if (globalThis.__novaMedia?.version === 3) { globalThis.__novaMedia.refresh(); return; }
   const known = new WeakSet();
   let target = null, timer, reportTimer, scanTimer, stopped = false, previousCount = 0;
   const media = () => [...document.querySelectorAll("video,audio")];
@@ -36,7 +37,7 @@
     timer = setTimeout(report, state.count ? 1800 : document.visibilityState === "visible" ? 5000 : 10000);
   }
   chrome.runtime.onMessage.addListener((message, sender, reply) => {
-    if (message?.type === "media-snapshot") { reply(snapshot()); return; }
+    if (message?.type === "media-snapshot") { reply(snapshot()); queueReport(); return; }
     if (message?.type !== "media-volume" || !Number.isInteger(message.volume) || message.volume < 0 || message.volume > 100) return;
     target = message.volume; discover(); const all = media();
     for (const element of all) apply(element, target);
@@ -50,5 +51,6 @@
   });
   observer.observe(document.documentElement, {childList: true, subtree: true});
   document.addEventListener("visibilitychange", queueReport);
+  globalThis.__novaMedia = {version:3, refresh:queueReport};
   report();
 })();

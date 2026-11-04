@@ -140,7 +140,8 @@
   </Style>
  </Window.Resources>
  <Grid x:Name="IslandRoot" Margin="12,0,12,12">
-  <Border x:Name="Shell" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave" CornerRadius="0,0,22,22" Background="#101012" BorderThickness="0,0,0,0.5" BorderBrush="#303036">
+  <Border x:Name="Shell" RenderTransformOrigin="0.5,0.5" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave" CornerRadius="0,0,22,22" Background="#101012" BorderThickness="0,0,0,0.5" BorderBrush="#303036">
+   <Border.RenderTransform><ScaleTransform x:Name="EdgeHideScale"/></Border.RenderTransform>
    <Border.Effect>
     <DropShadowEffect Color="#000000" BlurRadius="24" ShadowDepth="6" Opacity="0.32" />
    </Border.Effect>
@@ -827,7 +828,7 @@
         <TextBlock Text="GENEL" Style="{StaticResource SectionLabel}" Margin="2,12,0,8" />
         <Border Style="{StaticResource InsetCard}" Padding="14,3">
          <StackPanel>
-          <CheckBox x:Name="AutoHideCheck" Content="Üst kenara çekilerek gizlen" Checked="AutoHideCheck_Changed" Unchecked="AutoHideCheck_Changed" Margin="0" />
+          <CheckBox x:Name="AutoHideCheck" Content="Ekran kenarına çekilerek gizlen" Checked="AutoHideCheck_Changed" Unchecked="AutoHideCheck_Changed" Margin="0" />
           <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="StayTopCheck" Content="Diğer pencerelerin önünde tut" Checked="StayTopCheck_Changed" Unchecked="StayTopCheck_Changed" Margin="0" />
           <Border Height="0.5" Background="#252529" />
@@ -843,7 +844,7 @@
          </StackPanel>
         </Border>
         <TextBlock Text="Son kopyalananlar bu oturumda kalır.&#10;Sabitlediklerin saklanır." Foreground="#686872" FontSize="9" TextWrapping="Wrap" Margin="3,12,0,16" />
-        <Expander Style="{StaticResource QuietDisclosure}" Margin="0,8,0,0">
+        <Expander x:Name="BrowserConnection" Style="{StaticResource QuietDisclosure}" Margin="0,8,0,0">
          <Expander.Header>
           <TextBlock Text="Tarayıcı bağlantısı" Foreground="#8C8C95" FontSize="10" />
          </Expander.Header>
@@ -908,5 +909,6 @@
     </Grid>
    </Grid>
   </Border>
+  <Border x:Name="EdgeRevealHandle" Visibility="Collapsed" Width="4" Height="32" CornerRadius="2" Background="#A0A0A8" Opacity="0.65" Cursor="Hand" ToolTipService.IsEnabled="False" MouseEnter="Shell_MouseEnter" MouseLeave="Shell_MouseLeave"/>
  </Grid>
 </Window>

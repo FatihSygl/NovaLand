@@ -24,7 +24,7 @@ public sealed class BrowserAudioBridge : IDisposable
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
     public string Key { get; }
     public bool Listening { get; private set; }
-    public bool Connected { get { lock (_gate) return _clients.Values.Any(c => Fresh(c.At)); } }
+    public bool Connected { get { lock (_gate) return _clients.Values.Any(c => DateTimeOffset.UtcNow - c.At < TimeSpan.FromSeconds(75)); } }
     private static bool Fresh(DateTimeOffset at) => DateTimeOffset.UtcNow - at < TimeSpan.FromSeconds(12);
 
     public BrowserAudioBridge(string? key = null, int port = 47864)

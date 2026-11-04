@@ -9,17 +9,17 @@ const root = path.join(__dirname, "../src/NovaLand/BrowserAudioExtension");
 let checks = 0;
 function check(value, label) { assert.ok(value, label); checks++; }
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.json")));
-check(manifest.version === "0.8.2", "audio-only extension version");
+check(manifest.version === "0.9.0", "audio-only extension version");
 check(!manifest.web_accessible_resources, "blocking page is no longer exposed");
 function event() { return {listeners: [], addListener(fn) { this.listeners.push(fn); }}; }
-async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}) {
-  const state = {rules, writes: 0, open: [], updates: [], body: null, policy: false, commands: [], offline: false, unauthorized: false, failRules, mediaWrites: []};
+async function worker({rules = [], key = "a".repeat(64), failRules = false, open = []} = {}) {
+  const state = {rules, writes: 0, open, injected: [], updates: [], body: null, policy: false, commands: [], offline: false, unauthorized: false, failRules, mediaWrites: []};
   const storage = {key, client: randomUUID()};
   const timers = new Map();
   const chrome = {
     storage: {
       local: {get: async () => ({...storage}), set: async values => Object.assign(storage, values)},
-      session: {set: async values => { state.connection = values.connection; }},
+      session: {get:async () => ({connection:state.connection}), set: async values => { state.connection = values.connection; }},
       onChanged: event()
     },
     runtime: {onMessage: event(), onStartup: event(), getURL: p => "chrome-extension://test/" + p},
@@ -30,6 +30,7 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}
       sendMessage: async (id, message) => { state.mediaWrites.push({id, message}); return {count: 1, volume: message.volume ?? 100, playing: true}; },
       onRemoved: event(), onUpdated: event(), onActivated: event()
     },
+    scripting: {executeScript:async options => { state.injected.push(options); return []; }},
     alarms: {create() {}, onAlarm: event()},
     declarativeNetRequest: {
       getDynamicRules: async () => state.rules,
@@ -99,5 +100,32 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false} = {}
   await w.sync();
   check(!w.state.body.tabs.some(t=>t.host==="web.whatsapp.com"), "no WhatsApp media reporting");
   check(!w.state.mediaWrites.some(t=>t.id===12), "no WhatsApp media commands");
+  const alreadyOpen = await worker({open:[
+    {id:21,url:"https://www.youtube.com/watch?v=already-open"},
+    {id:22,url:"https://kick.com/player"},
+    {id:23,url:"https://web.whatsapp.com"},
+    {id:24,url:"chrome://extensions"},
+    {id:25,url:"https://youtube.com",incognito:true}
+  ]});
+  await vm.runInContext("rescanMedia()",alreadyOpen.context);
+  check(alreadyOpen.state.injected.some(x=>x.target.tabId===21), "already-open YouTube is bootstrapped without page reload");
+  check(alreadyOpen.state.injected.some(x=>x.target.tabId===22), "other existing media sites are bootstrapped");
+  check(alreadyOpen.state.injected.every(x=>[21,22].includes(x.target.tabId)), "bootstrap excludes WhatsApp, private and internal pages");
+  const scanReply = await new Promise(resolve=>alreadyOpen.chrome.runtime.onMessage.listeners[0]({type:"audio-rescan"},{},resolve));
+  check(scanReply.ok, "popup rescan confirms native connection");
+  check(manifest.permissions.includes("scripting"), "bootstrap permission declared");
+  let observers = 0, reports = 0;
+  const pageContext = vm.createContext({
+    location:{hostname:"www.youtube.com"},
+    document:{documentElement:{},visibilityState:"visible",querySelectorAll:()=>[],addEventListener(){}},
+    MutationObserver:class {constructor(){observers++;} observe(){} disconnect(){}},
+    chrome:{runtime:{onMessage:event(),sendMessage:async()=>{reports++;}}},
+    setTimeout:()=>1,clearTimeout(){}
+  });
+  const mediaCode = fs.readFileSync(path.join(root,"media.js"),"utf8");
+  vm.runInContext(mediaCode,pageContext); await Promise.resolve();
+  vm.runInContext(mediaCode,pageContext); await Promise.resolve();
+  check(observers===1, "rescanning does not duplicate observers or page integration");
+  check(reports===1, "rescanning requests refresh without duplicate immediate media reports");
   console.log(checks + " browser extension checks passed");
 })().catch(error=>{console.error(error);process.exitCode=1;});

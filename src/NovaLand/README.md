@@ -681,3 +681,24 @@ DNR izni yalnızca bu geçiş temizliğini yapabilmek için tutulur.
 Temizlik başarısızsa eski uzantıyı kaldırıp yeni eklentiyi yüklemek eski
 kuralları da kaldırır. Pano düzeltmeleri, ses ayarları ve diğer uygulama
 özellikleri korunur.
+
+## 1.3.15 — Kenara çekilme ve tarayıcı sesini yeniden bulma
+
+Sol, sağ ve alt kenarda gizlenirken ada hafifçe daralıp kenara doğru kayar;
+yerinde ince bir tutamaç kalır. Tutamaç üzerinde 150 ms durunca ada geri
+gelir. Kenara sürüklenerek bırakılan açık panel küçülür; fare çekilince
+gizlenir. Metin girerken, sürgü tutulurken ve menü açıkken panel korunur.
+Gizlenme ayarı tüm ekran kenarlarını ifade eder. Serbest konum gizlenmez.
+
+Eklenti 0.9.0 kurulum/yenileme/servis yeniden başlama ve eşleştirmede zaten
+açık medya sayfalarını yeniden bağlar. Aynı sayfada tekrar tarama ek gözlemci
+oluşturmaz. Eklenti penceresinde Sekmeleri tara ve bağlantı/hatalı kod/medya
+sayısı açıklaması bulunur. WhatsApp, gizli ve tarayıcının iç sayfaları
+taramaya dahil edilmez. Site sesleri ana sayfada ses çubuğunun üstündeki
+Sistem menüsündedir; kaynak sayısı başlıkta görünür. Bu menüden tarayıcı
+bağlantısı ayarlarına da gidilir. Boşta 30 saniyelik eklenti bağlantısı
+saniyelik medya oturumu yokken yanlış biçimde kopmuş görünmez.
+
+Uygulama ve eklenti ayrı güncellenir: Opera uzantısını bu ZIP'in eklenti
+klasörüyle güncelle, uzantıyı Yenile, NovaLand kodunu girip Bağlan'a bas.
+Opera'nın bu sitelerde uzantı erişimine izin vermesi gerekir.

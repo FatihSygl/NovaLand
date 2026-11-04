@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "NovaLand • Site Sesleri",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "Video ve ses oynatıcılarının sesini NovaLand üzerinden sekme sekme ayarla.",
   "permissions": [
     "storage",
     "alarms",
-    "declarativeNetRequestWithHostAccess"
+    "declarativeNetRequestWithHostAccess",
+    "scripting"
   ],
   "host_permissions": [
     "http://*/*",

@@ -161,7 +161,7 @@ public partial class MainWindow : Window
         _hoverRevealTimer.Tick += (_, _) =>
         {
             _hoverRevealTimer.Stop();
-            if (Shell.IsMouseOver && !_exiting) RevealFromEdge();
+            if ((Shell.IsMouseOver || EdgeRevealHandle.IsMouseOver) && !_exiting) RevealFromEdge();
         };
         _seekDebounce.Tick += async (_, _) =>
         {
@@ -254,6 +254,7 @@ public partial class MainWindow : Window
         _autoHideTimer.Stop();
         if (!_settings.AutoHide || _expanded || _dialogOpen || _dragArmed || _activities.HasWork || VolumeOverlay || _islandEdge == IslandEdge.Floating) return;
         _forceHide = force;
+        delay = Math.Max(delay, (int)Math.Max(1, (_edgeMotionUntil - DateTimeOffset.UtcNow).TotalMilliseconds));
         _autoHideTimer.Interval = TimeSpan.FromMilliseconds(delay);
         _autoHideTimer.Start();
     }
@@ -261,7 +262,9 @@ public partial class MainWindow : Window
     private void HideToEdge()
     {
         if (!_settings.AutoHide || _expanded || _dialogOpen || _dragArmed || !IsVisible || _activities.HasWork || VolumeOverlay || _islandEdge == IslandEdge.Floating) return;
+        if (_dockHidden) return;
         _dockHidden = true;
+        AnimateEdgeVisibility(true);
         ApplyDockPosition(true);
         RefreshCompact();
     }
@@ -272,6 +275,7 @@ public partial class MainWindow : Window
         _autoHideTimer.Stop(); _forceHide = false;
         if (!_dockHidden) return;
         _dockHidden = false;
+        AnimateEdgeVisibility(false);
         ApplyDockPosition(true);
         RefreshCompact();
     }
@@ -287,6 +291,10 @@ public partial class MainWindow : Window
     private void Shell_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
     {
         _hoverRevealTimer.Stop();
+        if (_settings.AutoHide && _islandEdge is IslandEdge.Left or IslandEdge.Right or IslandEdge.Bottom
+            && _expanded && !_dialogOpen && !_dragArmed && !IsMouseCaptureWithin
+            && Keyboard.FocusedElement is not System.Windows.Controls.TextBox)
+            SetExpanded(false);
         // Automatic activities retain their own deadlines via QueueAutoHide's guards.
         QueueAutoHide(1);
     }
@@ -1305,8 +1313,8 @@ public partial class MainWindow : Window
         RefreshQuickSite();
         BrowserAudioStatus.Text = _browserAudio?.Listening != true ? "Bağlantı açılamadı" : _browserAudio.Connected ? "Bağlı" : "Eklenti bekleniyor";
         BrowserAudioHelp.Text = _browserAudio?.Connected == true
-            ? "Site sesleri müzik sayfasında. Açık medya sekmeni bir kez yenilemeyi dene."
-            : "Ses eklentisini yükle ve aşağıdaki kodla eşleştir. Sonra YouTube veya Kick sekmesini yenile.";
+            ? "Ana sayfadaki Sistem menüsünden YouTube veya siteyi seç. Görünmüyorsa eklentide Sekmeleri tara’ya bas."
+            : "Ses eklentisini yükle ve aşağıdaki kodla eşleştir. Eklentide Bağlan’a basınca açık medya sekmeleri taranır.";
     }
     private void BrowserMute_Click(object sender, RoutedEventArgs e)
     {

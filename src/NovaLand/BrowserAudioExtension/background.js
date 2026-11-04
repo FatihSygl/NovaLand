@@ -4,6 +4,7 @@ const API = "http://127.0.0.1:47864/sync";
 const tabs = new Map();
 let config = {}, busy = false, nextSync, pulse, lastSync = 0;
 const acks = new Set();
+const scanning = new Set();
 const ready = chrome.storage.local.get(["key", "client", "preferences"]).then(async saved => {
   config = {key: saved.key || "", client: saved.client || crypto.randomUUID(), preferences: saved.preferences || {}};
   if (!saved.client) await chrome.storage.local.set({client: config.client});
@@ -19,7 +20,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.key) {
     ready.then(async () => {
       config.key = changes.key.newValue || "";
-      schedule();
+      await rescanMedia(); schedule();
     }).catch(() => {});
   }
 });
@@ -31,6 +32,21 @@ function maintainPulse() {
   if ([...tabs.values()].some(t => [...t.frames.values()].some(f => f.count > 0))) {
     if (!pulse) pulse = setInterval(schedule, 1000);
   } else { clearInterval(pulse); pulse = null; }
+}
+async function rescanMedia(oneTab) {
+  await ready;
+  if (!config.key) return;
+  const open = oneTab ? [oneTab] : await chrome.tabs.query({});
+  await Promise.allSettled(open.filter(tab => Number.isInteger(tab.id) && !tab.incognito &&
+    NovaAudio.host(tab.url) && !NovaAudio.ignoredHost(tab.url)).slice(0,64).map(async tab => {
+      if (scanning.has(tab.id)) return;
+      scanning.add(tab.id);
+      try {
+        // Reconnect already-open pages after installing/reloading the extension or worker.
+        // media.js is idempotent and preserves user-selected volume on subsequent scans.
+        await chrome.scripting.executeScript({target:{tabId:tab.id,allFrames:true},files:["media.js"]});
+      } finally { scanning.delete(tab.id); }
+    }));
 }
 async function sendVolume(tabId, tab, volume) {
   const frames = [...tab.frames.entries()].filter(([,f]) => f.count > 0);
@@ -46,6 +62,17 @@ async function sendVolume(tabId, tab, volume) {
   return applied;
 }
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.type === "audio-rescan" && !sender.tab) {
+    (async () => {
+      await ready;
+      const saved = await chrome.storage.local.get("key");
+      config.key = saved.key || "";
+      await rescanMedia(); await sync();
+      const savedState = await chrome.storage.session.get("connection");
+      return savedState.connection || {ok:false,error:config.key ? "connection" : "pairing"};
+    })().then(reply).catch(() => reply({ok:false,error:"connection"}));
+    return true;
+  }
   if (message?.type !== "media-report" || !sender.tab || sender.tab.incognito) return;
   (async () => {
     await ready;
@@ -91,9 +118,9 @@ async function sync() {
     }
     const response = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json", Authorization:"Bearer " + config.key},
       body:JSON.stringify({client:config.client, tabs:entries.slice(0,64), acks:ackBatch}), signal:AbortSignal.timeout(2500)});
-    if (!response.ok) throw new Error("Connection");
+    if (!response.ok) throw new Error(response.status === 401 ? "pairing" : "connection");
     const result = await response.json(); ackBatch.forEach(id => acks.delete(id));
-    await chrome.storage.session.set({connection:{ok:true, at:Date.now()}});
+    await chrome.storage.session.set({connection:{ok:true, at:Date.now(), mediaTabs:entries.length}});
     for (const command of (result.commands || []).slice(0,64)) {
       if (acks.has(command.id)) continue;
       const entry = [...tabs.entries()].find(([,t]) => t.id === command.tab);
@@ -109,15 +136,16 @@ async function sync() {
     }
     if (acks.size > 128) acks.clear();
     if (result.commands?.length) schedule();
-  } catch {
-    await chrome.storage.session.set({connection:{ok:false, at:Date.now()}}).catch(() => {});
+  } catch (error) {
+    await chrome.storage.session.set({connection:{ok:false, at:Date.now(), error:error.message === "pairing" ? "pairing" : "connection"}}).catch(() => {});
   } finally { busy = false; maintainPulse(); }
 }
 chrome.tabs.onRemoved.addListener(id => { tabs.delete(id); maintainPulse(); schedule(); });
-chrome.tabs.onUpdated.addListener((id, change) => {
+chrome.tabs.onUpdated.addListener((id, change, tab) => {
   if (change.url || change.status === "loading") {
     tabs.delete(id);
   }
+  if (change.status === "complete" && tab) rescanMedia(tab).catch(() => {});
   maintainPulse(); schedule();
 });
 chrome.tabs.onActivated.addListener(schedule);
@@ -125,4 +153,4 @@ chrome.alarms.create("nova-audio", {periodInMinutes:0.5});
 chrome.alarms.onAlarm.addListener(alarm => { if (alarm.name === "nova-audio") schedule(); });
 chrome.runtime.onStartup.addListener(schedule);
 
-ready.then(schedule).catch(() => {});
+ready.then(async () => { await rescanMedia(); schedule(); }).catch(() => {});

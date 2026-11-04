@@ -69,6 +69,7 @@ public partial class MainWindow
             _ => new Thickness(12)
         };
         UpdateShellCorners((double)GetValue(ShellRadiusProperty));
+        UpdateEdgeHandle();
 
     }
     private void UpdateShellCorners(double radius)
@@ -96,7 +97,7 @@ public partial class MainWindow
         var target = DockLayout.Place(_placementBounds, _placementWork, _islandEdge, _anchorX, _anchorY, width, height, _dockHidden);
         void Move(DependencyProperty property, double from, double to)
         {
-            if (animated && double.IsFinite(from)) BeginAnimation(property, new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(280))
+            if (animated && SystemParameters.ClientAreaAnimation && double.IsFinite(from)) BeginAnimation(property, new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(_islandEdge is IslandEdge.Left or IslandEdge.Right or IslandEdge.Bottom ? 340 : 280))
                 { EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut } });
             else { BeginAnimation(property, null); SetValue(property, to); }
         }
@@ -128,6 +129,7 @@ public partial class MainWindow
             if (Math.Abs(cursor.X - _pressCursor.X) * _dragScaleX < SystemParameters.MinimumHorizontalDragDistance
                 && Math.Abs(cursor.Y - _pressCursor.Y) * _dragScaleY < SystemParameters.MinimumVerticalDragDistance) return;
             _dockHidden = false;
+            ResetEdgeVisibility();
             double width = ActualWidth, height = ActualHeight;
             BeginAnimation(WidthProperty, null); BeginAnimation(HeightProperty, null);
             Width = _targetWidth = width; Height = _targetHeight = height;
@@ -168,10 +170,12 @@ public partial class MainWindow
         }
         if (moved)
         {
+            if (_settings.AutoHide && _islandEdge != IslandEdge.Floating && _expanded) SetExpanded(false);
+            ResetEdgeVisibility();
             UpdatePlacementChrome(); RefreshCompact(); ApplyDockPosition(true);
             SyncActivityPause();
         }
-        QueueAutoHide(1);
+        QueueAutoHide(360);
     }
     private void SavePlacement()
     {
@@ -195,6 +199,7 @@ public partial class MainWindow
     {
         if (_dragArmed) FinishPlacementDrag(true);
         _islandEdge = IslandEdge.Top; _anchorX = 0.5; _anchorY = 0.15; _dockHidden = false;
+        ResetEdgeVisibility();
         UpdatePlacementMonitor(Forms.Screen.PrimaryScreen); SavePlacement();
         UpdatePlacementChrome(); RefreshCompact(); ApplyDockPosition(true); e.Handled = true;
     }
