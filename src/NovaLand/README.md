@@ -735,3 +735,14 @@ ve tarayıcı profilleri değiştirilmez. Daha eski uygulama yeni eklentiyi geri
 düşürmez. Paket eksikse mevcut klasör korunur; yerleştirme hatasında önceki
 dosyalar geri yüklenir. Yerel eşleştirme kodu yönetilen uzantı klasöründedir;
 internete veya GitHub'a yazılmaz.
+
+## 1.3.17 — Sürükleme ve kenara yapışma düzeltmesi
+
+Sürükleme başladığında görünür konum ve boyut korunarak eski animasyonlar
+durdurulur. Konum animasyonları sonunda kalıcı temel konum hedefe eşittir.
+Bırakma anında fare kenardaysa o kenar seçilir; pencere kenarı biraz aşmışsa
+serbest konum sayılmaz. Gerçek Windows pencere sınırı ve fare konumu aynı
+fiziksel koordinatlarla değerlendirilir. Alt görev çubuğuna yaklaşma da
+algılanır. Açık panel bırakma anında zorla küçültülmez; fare ayrılınca
+mevcut kenar gizlenmesi çalışır. Sürükleme sırasında oyun modu geçişi
+işlemi kesmez. Konumu sıfırla konum kilidini de açar.

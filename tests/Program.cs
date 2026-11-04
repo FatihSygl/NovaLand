@@ -78,6 +78,22 @@ Assert(!NovaIsland.Models.FullscreenPolicy.Covers(new(-1920,0,1920,1040),monitor
 Assert(!NovaIsland.Models.FullscreenPolicy.Covers(new(0,0,1920,1080),monitor), "other monitor rectangle cannot match");
 Assert(!NovaIsland.Models.FullscreenPolicy.Covers(new(0,0,0,0),monitor), "empty window is not fullscreen");
 ManagedExtensionChecks.Run(Assert);
+var snapScreen = new NovaIsland.Models.DockBox(0,0,1920,1080);
+var snapWork = new NovaIsland.Models.DockBox(0,0,1920,1040);
+Assert(NovaIsland.Models.DockLayout.SnapReleased(snapScreen,snapWork,new(-70,200,350,80),new(3,230)) == NovaIsland.Models.IslandEdge.Left,
+    "left overshoot docks instead of becoming floating");
+Assert(NovaIsland.Models.DockLayout.SnapReleased(snapScreen,snapWork,new(1700,200,350,80),new(1918,230)) == NovaIsland.Models.IslandEdge.Right,
+    "right overshoot docks instead of becoming floating");
+Assert(NovaIsland.Models.DockLayout.SnapReleased(snapScreen,snapWork,new(500,-60,350,80),new(650,2)) == NovaIsland.Models.IslandEdge.Top,
+    "top overshoot docks instead of becoming floating");
+Assert(NovaIsland.Models.DockLayout.SnapReleased(snapScreen,snapWork,new(500,1000,350,80),new(650,1038)) == NovaIsland.Models.IslandEdge.Bottom,
+    "bottom taskbar boundary docks");
+Assert(NovaIsland.Models.DockLayout.SnapReleased(snapScreen,snapWork,new(400,300,350,80),new(550,330)) == NovaIsland.Models.IslandEdge.Floating,
+    "centre remains freely positioned");
+Assert(NovaIsland.Models.DockLayout.SnapReleased(snapScreen,snapWork,new(-50,400,350,80),new(250,430)) == NovaIsland.Models.IslandEdge.Left,
+    "window contact docks even when header pointer is inset");
+Assert(NovaIsland.Models.DockLayout.SnapReleased(new(-1920,0,1920,1080),new(-1920,0,1920,1040),new(-1980,200,350,80),new(-1918,230)) == NovaIsland.Models.IslandEdge.Left,
+    "negative-coordinate monitor docks at its own left edge");
 var version = new Version(1,0,0);
 string Json(string tag="v1.0.1", bool draft=false, bool prerelease=false, string? url=null, string? digest=null, long size=5) => JsonSerializer.Serialize(new { tag_name=tag, draft, prerelease, assets=new[]{new { name=$"NovaLand_{tag}_win-x64.zip", browser_download_url=url??$"https://github.com/FatihSygl/NovaLand/releases/download/{tag}/NovaLand_{tag}_win-x64.zip",size,digest=digest??"sha256:"+new string('a',64)}} });
 Assert(UpdatePackage.ParseRelease(Json(),version)?.Version==new Version(1,0,1),"new stable release selected");

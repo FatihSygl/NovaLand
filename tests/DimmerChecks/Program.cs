@@ -33,6 +33,7 @@ internal static class Program
         ClipboardChecks.Run();
         TaskSwitcherChecks.Run();
         PerformanceChecks.Run();
+        PlacementChecks.Run();
     }
     private static List<IntPtr> Surfaces()
     {

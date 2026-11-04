@@ -14,7 +14,7 @@ public partial class MainWindow
     }
     private void RefreshGameMode()
     {
-        if (_exiting || !_loaded) return;
+        if (_exiting || !_loaded || _dragArmed || _dragging || IsMouseCaptureWithin) return;
         bool suppress = _manualGameMode || (_settings.HideInFullscreen && FullscreenService.ShouldHide());
         if (_immersiveSuppressed == suppress) return;
         if (suppress)

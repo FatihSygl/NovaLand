@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Interop;
 using NovaIsland.Models;
+using NovaIsland.Services;
 using Forms = System.Windows.Forms;
 using Color = System.Windows.Media.Color;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
@@ -28,6 +29,8 @@ public partial class MainWindow
 
     [StructLayout(LayoutKind.Sequential)]
     private struct CursorLocation { public int X; public int Y; }
+    [StructLayout(LayoutKind.Sequential)] private struct PlacementRect { public int Left, Top, Right, Bottom; }
+    [DllImport("user32.dll",EntryPoint="GetWindowRect")] private static extern bool GetPlacementRect(IntPtr hwnd,out PlacementRect rect);
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetCursorPos(out CursorLocation point);
@@ -95,13 +98,9 @@ public partial class MainWindow
     {
         if (_immersiveSuppressed || _dragging || _placementBounds.Width <= 0) return;
         var target = DockLayout.Place(_placementBounds, _placementWork, _islandEdge, _anchorX, _anchorY, width, height, _dockHidden);
-        void Move(DependencyProperty property, double from, double to)
-        {
-            if (animated && SystemParameters.ClientAreaAnimation && double.IsFinite(from)) BeginAnimation(property, new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(_islandEdge is IslandEdge.Left or IslandEdge.Right or IslandEdge.Bottom ? 340 : 280))
-                { EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut } });
-            else { BeginAnimation(property, null); SetValue(property, to); }
-        }
-        Move(LeftProperty, Left, target.X); Move(TopProperty, Top, target.Y);
+        int duration = animated ? (_islandEdge is IslandEdge.Left or IslandEdge.Right or IslandEdge.Bottom ? 340 : 280) : 0;
+        WindowPlacementMotion.Move(this,LeftProperty,target.X,duration);
+        WindowPlacementMotion.Move(this,TopProperty,target.Y,duration);
     }
 
     private bool IsPlacementControl(object source)
@@ -130,11 +129,9 @@ public partial class MainWindow
                 && Math.Abs(cursor.Y - _pressCursor.Y) * _dragScaleY < SystemParameters.MinimumVerticalDragDistance) return;
             _dockHidden = false;
             ResetEdgeVisibility();
-            double width = ActualWidth, height = ActualHeight;
-            BeginAnimation(WidthProperty, null); BeginAnimation(HeightProperty, null);
-            Width = _targetWidth = width; Height = _targetHeight = height;
-            ApplyDockPosition(false);
-            _dragStartLeft = Left; _dragStartTop = Top;
+            var frozen = WindowPlacementMotion.Freeze(this);
+            _targetWidth = frozen.Width; _targetHeight = frozen.Height;
+            _dragStartLeft = frozen.Left; _dragStartTop = frozen.Top;
             var matrix = (PresentationSource.FromVisual(this) as HwndSource)?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
             _dragScaleX = matrix.M11; _dragScaleY = matrix.M22;
             _dragging = true; Pill.Cursor = Cursors.SizeAll; SyncActivityPause();
@@ -162,15 +159,24 @@ public partial class MainWindow
         Pill.Cursor = Cursors.Hand;
         if (moved && !cancel)
         {
-            if (GetCursorPos(out var cursor)) UpdatePlacementMonitor(Forms.Screen.FromPoint(new System.Drawing.Point(cursor.X, cursor.Y)));
-            _islandEdge = DockLayout.Snap(_placementBounds, new DockBox(Left, Top, ActualWidth, ActualHeight));
-            _anchorX = DockLayout.Anchor((Left + ActualWidth / 2 - _placementBounds.Left) / _placementBounds.Width);
-            _anchorY = DockLayout.Anchor((Top - _placementBounds.Top) / _placementBounds.Height, 0.15);
+            if (GetCursorPos(out var cursor))
+            {
+                var screen = Forms.Screen.FromPoint(new System.Drawing.Point(cursor.X,cursor.Y));
+                UpdatePlacementMonitor(screen);
+                DockBox Box(System.Drawing.Rectangle r) => new(r.Left,r.Top,r.Width,r.Height);
+                if (GetPlacementRect(new WindowInteropHelper(this).Handle,out var rect))
+                {
+                    var nativeWindow = new DockBox(rect.Left,rect.Top,rect.Right-rect.Left,rect.Bottom-rect.Top);
+                    _islandEdge = DockLayout.SnapReleased(Box(screen.Bounds),Box(screen.WorkingArea),nativeWindow,new(cursor.X,cursor.Y));
+                    _anchorX = DockLayout.Anchor((nativeWindow.Left+nativeWindow.Width/2-screen.Bounds.Left)/screen.Bounds.Width);
+                    _anchorY = DockLayout.Anchor((nativeWindow.Top-screen.Bounds.Top)/(double)screen.Bounds.Height,.15);
+                }
+                else _islandEdge = DockLayout.Snap(_placementBounds,new(Left,Top,ActualWidth,ActualHeight),40);
+            }
             SavePlacement();
         }
         if (moved)
         {
-            if (_settings.AutoHide && _islandEdge != IslandEdge.Floating && _expanded) SetExpanded(false);
             ResetEdgeVisibility();
             UpdatePlacementChrome(); RefreshCompact(); ApplyDockPosition(true);
             SyncActivityPause();
@@ -199,6 +205,7 @@ public partial class MainWindow
     {
         if (_dragArmed) FinishPlacementDrag(true);
         _islandEdge = IslandEdge.Top; _anchorX = 0.5; _anchorY = 0.15; _dockHidden = false;
+        _settings.IslandPositionLocked = false; RefreshPlacementButtons();
         ResetEdgeVisibility();
         UpdatePlacementMonitor(Forms.Screen.PrimaryScreen); SavePlacement();
         UpdatePlacementChrome(); RefreshCompact(); ApplyDockPosition(true); e.Handled = true;

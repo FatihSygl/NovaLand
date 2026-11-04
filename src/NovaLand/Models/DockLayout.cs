@@ -33,6 +33,28 @@ public static class DockLayout
         return new(left, top);
     }
 
+    public static IslandEdge SnapReleased(DockBox screen, DockBox work, DockBox window, DockPoint cursor, double distance = 40)
+    {
+        // Explicitly dragging the pointer to a screen edge wins, including taskbar boundaries.
+        var pointer = new[] {
+            (IslandEdge.Top, Math.Abs(cursor.Y - screen.Top)),
+            (IslandEdge.Right, Math.Abs(cursor.X - screen.Right)),
+            (IslandEdge.Bottom, Math.Min(Math.Abs(cursor.Y - screen.Bottom), Math.Abs(cursor.Y - work.Bottom))),
+            (IslandEdge.Left, Math.Abs(cursor.X - screen.Left))
+        };
+        var pointed = pointer.OrderBy(p => p.Item2).First();
+        if (pointed.Item2 <= distance) return pointed.Item1;
+        // Crossing an edge must remain docked; abs(distance) incorrectly rejects overshoot.
+        var touching = new[] {
+            (IslandEdge.Top, Math.Max(0, window.Top - screen.Top)),
+            (IslandEdge.Right, Math.Max(0, screen.Right - window.Right)),
+            (IslandEdge.Bottom, Math.Max(0, Math.Min(screen.Bottom,work.Bottom) - window.Bottom)),
+            (IslandEdge.Left, Math.Max(0, window.Left - screen.Left))
+        };
+        var edge = touching.OrderBy(p => p.Item2).ThenBy(p => pointer.First(x=>x.Item1==p.Item1).Item2).First();
+        return edge.Item2 <= distance ? edge.Item1 : IslandEdge.Floating;
+    }
+
     public static IslandEdge Snap(DockBox screen, DockBox window, double distance = 28)
     {
         var candidates = new[] { (IslandEdge.Top, Math.Abs(window.Top - screen.Top)),
