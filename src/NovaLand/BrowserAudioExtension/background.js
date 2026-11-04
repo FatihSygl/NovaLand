@@ -1,13 +1,14 @@
 "use strict";
-importScripts("core.js");
+importScripts("managed.js","core.js");
 const API = "http://127.0.0.1:47864/sync";
 const tabs = new Map();
 let config = {}, busy = false, nextSync, pulse, lastSync = 0;
 const acks = new Set();
 const scanning = new Set();
 const ready = chrome.storage.local.get(["key", "client", "preferences"]).then(async saved => {
-  config = {key: saved.key || "", client: saved.client || crypto.randomUUID(), preferences: saved.preferences || {}};
+  config = {key: NovaManagedConfig.key || saved.key || "", client: saved.client || crypto.randomUUID(), preferences: saved.preferences || {}};
   if (!saved.client) await chrome.storage.local.set({client: config.client});
+  if (NovaManagedConfig.installId && saved.key !== config.key) await chrome.storage.local.set({key:config.key});
   // Migration only: remove the old rule even without pairing or a running app.
   // The DNR permission is retained solely to clear installations of 0.8.x.
   try {
@@ -120,7 +121,16 @@ async function sync() {
       body:JSON.stringify({client:config.client, tabs:entries.slice(0,64), acks:ackBatch}), signal:AbortSignal.timeout(2500)});
     if (!response.ok) throw new Error(response.status === 401 ? "pairing" : "connection");
     const result = await response.json(); ackBatch.forEach(id => acks.delete(id));
-    await chrome.storage.session.set({connection:{ok:true, at:Date.now(), mediaTabs:entries.length}});
+    if (NovaManagedConfig.installId && result.extensionInstallId === NovaManagedConfig.installId &&
+        NovaAudio.newerVersion(result.extensionVersion,chrome.runtime.getManifest().version)) {
+      const savedReload = await chrome.storage.session.get("autoReloadVersion");
+      if (savedReload.autoReloadVersion !== result.extensionVersion) {
+        await chrome.storage.session.set({autoReloadVersion:result.extensionVersion});
+        chrome.runtime.reload();
+        return;
+      }
+    }
+    await chrome.storage.session.set({connection:{ok:true, at:Date.now(), mediaTabs:entries.length, managed:!!NovaManagedConfig.installId}});
     for (const command of (result.commands || []).slice(0,64)) {
       if (acks.has(command.id)) continue;
       const entry = [...tabs.entries()].find(([,t]) => t.id === command.tab);

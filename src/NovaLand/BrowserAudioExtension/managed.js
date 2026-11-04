@@ -1,0 +1,1 @@
+globalThis.NovaManagedConfig = {installId:"",key:""};

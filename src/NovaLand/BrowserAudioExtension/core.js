@@ -8,6 +8,12 @@ globalThis.NovaAudio = {
     const host = this.host(url);
     return !!host && /(^|[.])whatsapp[.](com|net)[.]?$/i.test(host);
   },
+  newerVersion(candidate, current) {
+    if (!/^\d+\.\d+\.\d+$/.test(candidate || "") || !/^\d+\.\d+\.\d+$/.test(current || "")) return false;
+    const next = candidate.split(".").map(Number), old = current.split(".").map(Number);
+    for (let i=0;i<3;i++) { if(next[i]!==old[i]) return next[i]>old[i]; }
+    return false;
+  },
   volume(value) { return Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : null; },
   summarize(frames) {
     const live = frames.filter(f => f.count > 0);

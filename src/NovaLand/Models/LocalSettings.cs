@@ -5,6 +5,8 @@ namespace NovaIsland.Models;
 
 public sealed class LocalSettings
 {
+    public string LastOpenedVersion { get; set; } = "";
+    public bool HideInFullscreen { get; set; } = true;
     public bool WelcomeShown { get; set; } = false;
     public string IslandEdge { get; set; } = "Top";
     public string IslandMonitor { get; set; } = "";

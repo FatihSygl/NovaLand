@@ -66,6 +66,18 @@ foreach (var edge in new[] { NovaIsland.Models.IslandEdge.Left, NovaIsland.Model
 var floatingShown = NovaIsland.Models.DockLayout.Place(desktop,workArea,NovaIsland.Models.IslandEdge.Floating,.5,.3,350,80,false);
 Assert(floatingShown == NovaIsland.Models.DockLayout.Place(desktop,workArea,NovaIsland.Models.IslandEdge.Floating,.5,.3,350,80,true),
     "floating island is never moved offscreen by hide");
+Assert(!NovaIsland.Models.UpdateArrival.ShouldNotify("", "1.3.16", false, false), "new install keeps welcome instead of update notice");
+Assert(NovaIsland.Models.UpdateArrival.ShouldNotify("", "1.3.16", true, false), "existing user receives first update arrival");
+Assert(NovaIsland.Models.UpdateArrival.ShouldNotify("", "1.3.16", false, true), "updater handoff receives update arrival");
+Assert(!NovaIsland.Models.UpdateArrival.ShouldNotify("1.3.16", "1.3.16", true, true), "same version never repeats update arrival");
+Assert(NovaIsland.Models.UpdateArrival.ShouldNotify("1.3.15", "1.3.16", true, false), "newer version receives update arrival");
+Assert(!NovaIsland.Models.UpdateArrival.ShouldNotify("1.3.17", "1.3.16", true, false), "recovery downgrade is not shown as update");
+var monitor = new NovaIsland.Models.DockBox(-1920,0,1920,1080);
+Assert(NovaIsland.Models.FullscreenPolicy.Covers(monitor,monitor), "borderless fullscreen recognized on negative-coordinate monitor");
+Assert(!NovaIsland.Models.FullscreenPolicy.Covers(new(-1920,0,1920,1040),monitor), "ordinary taskbar work area is not fullscreen");
+Assert(!NovaIsland.Models.FullscreenPolicy.Covers(new(0,0,1920,1080),monitor), "other monitor rectangle cannot match");
+Assert(!NovaIsland.Models.FullscreenPolicy.Covers(new(0,0,0,0),monitor), "empty window is not fullscreen");
+ManagedExtensionChecks.Run(Assert);
 var version = new Version(1,0,0);
 string Json(string tag="v1.0.1", bool draft=false, bool prerelease=false, string? url=null, string? digest=null, long size=5) => JsonSerializer.Serialize(new { tag_name=tag, draft, prerelease, assets=new[]{new { name=$"NovaLand_{tag}_win-x64.zip", browser_download_url=url??$"https://github.com/FatihSygl/NovaLand/releases/download/{tag}/NovaLand_{tag}_win-x64.zip",size,digest=digest??"sha256:"+new string('a',64)}} });
 Assert(UpdatePackage.ParseRelease(Json(),version)?.Version==new Version(1,0,1),"new stable release selected");

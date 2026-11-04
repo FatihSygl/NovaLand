@@ -21,6 +21,7 @@ public partial class MainWindow
         _updateTimer.Start();
         // Commit only after the main window and its services have initialized.
         UpdateService.MarkSuccessfulStart();
+        RecordUpdateArrival();
     }
 
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e) => await CheckUpdatesAsync(true);

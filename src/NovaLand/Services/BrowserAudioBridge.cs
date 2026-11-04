@@ -22,6 +22,8 @@ public sealed class BrowserAudioBridge : IDisposable
     private readonly int _port;
     private TcpListener? _listener;
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
+    public string ExtensionVersion { get; set; } = "";
+    public string ExtensionInstallId { get; set; } = "";
     public string Key { get; }
     public bool Listening { get; private set; }
     public bool Connected { get { lock (_gate) return _clients.Values.Any(c => DateTimeOffset.UtcNow - c.At < TimeSpan.FromSeconds(75)); } }
@@ -106,7 +108,7 @@ public sealed class BrowserAudioBridge : IDisposable
                         if (!Fresh(entry.Value.At) || entry.Value.Client == sync.Client && (sync.Acks.Contains(entry.Key) || !sync.Tabs.Any(t => t.Id == entry.Value.Command.Tab))) _commands.Remove(entry.Key);
                     commands = _commands.Values.Where(p => p.Client == sync.Client && DateTimeOffset.UtcNow - p.At < TimeSpan.FromSeconds(4)).Select(p => p.Command).ToArray();
                 }
-                await Reply(stream, 200, JsonSerializer.Serialize(new { commands, blockSocialSites = false }, Json), origin, ct);
+                await Reply(stream, 200, JsonSerializer.Serialize(new { commands, blockSocialSites = false, extensionVersion = ExtensionVersion, extensionInstallId = ExtensionInstallId }, Json), origin, ct);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) when (ex is IOException or SocketException or JsonException or ArgumentException) { }

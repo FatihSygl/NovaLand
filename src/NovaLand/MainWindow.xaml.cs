@@ -110,6 +110,7 @@ public partial class MainWindow : Window
         _activities.Changed += action =>
         {
             _updateNotice = false; _showingNotice = false; _audioNotice = null; _activitySong = null; _reminderNotice = false; _launchGreeting = null;
+            _updateArrivalVisible = false;
             NoticeIcon.RenderTransform = Transform.Identity;
             GreetingOrbit.BeginAnimation(RotateTransform.AngleProperty, null);
             GreetingSpark.BeginAnimation(OpacityProperty, null);
@@ -180,6 +181,7 @@ public partial class MainWindow : Window
         StayTopCheck.IsChecked = _settings.AlwaysOnTop;
         StartupCheck.IsChecked = StartupService.IsEnabled();
         WaterCheck.IsChecked = _settings.WaterReminder;
+        FullscreenCheck.IsChecked = _settings.HideInFullscreen;
         Topmost = _settings.AlwaysOnTop;
         _clock.Tick += Clock_Tick;
         _mediaPoll.Tick += async (_, _) => await RefreshMediaAsync();
@@ -191,11 +193,14 @@ public partial class MainWindow : Window
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        if (_loaded) return;
         _loaded = true;
+        PrepareUpdateArrival();
         RefreshCompact();
         ReflowPlacement();
         CreateTray();
-        try { _browserAudio = new BrowserAudioBridge(); _browserAudio.Start(); }
+        InitializeGameMode();
+        try { _browserAudio = new BrowserAudioBridge(); await PrepareBrowserExtensionAsync(); _browserAudio.Start(); }
         catch (Exception ex) { DiagnosticLog.Write("Browser audio initialization", ex); }
         RefreshBrowserAudio();
         // Refresh the registered executable after moving/updating the app, but never
@@ -204,7 +209,7 @@ public partial class MainWindow : Window
             StatusText.Text = "Otomatik başlangıç yolu güncellenemedi. Ayarlardan yeniden etkinleştirebilirsin.";
         var greeting = LaunchGreeting.Create(_settings.WelcomeShown,
             Environment.GetCommandLineArgs().Any(arg => arg.Equals("--startup", StringComparison.OrdinalIgnoreCase)), DateTime.Now);
-        if (greeting is not null)
+        if (greeting is not null && !_showUpdateArrival)
             EnqueueActivity("launch-greeting", 30, () => RenderLaunchGreeting(greeting));
         InitializeClipboardCapture();
         _devicePoll.Start();
@@ -252,7 +257,7 @@ public partial class MainWindow : Window
     private void QueueAutoHide(int delay = AutoHideDelayMs, bool force = false)
     {
         _autoHideTimer.Stop();
-        if (!_settings.AutoHide || _expanded || _dialogOpen || _dragArmed || _activities.HasWork || VolumeOverlay || _islandEdge == IslandEdge.Floating) return;
+        if (_immersiveSuppressed || !_settings.AutoHide || _expanded || _dialogOpen || _dragArmed || _activities.HasWork || VolumeOverlay || _islandEdge == IslandEdge.Floating) return;
         _forceHide = force;
         delay = Math.Max(delay, (int)Math.Max(1, (_edgeMotionUntil - DateTimeOffset.UtcNow).TotalMilliseconds));
         _autoHideTimer.Interval = TimeSpan.FromMilliseconds(delay);
@@ -261,7 +266,7 @@ public partial class MainWindow : Window
 
     private void HideToEdge()
     {
-        if (!_settings.AutoHide || _expanded || _dialogOpen || _dragArmed || !IsVisible || _activities.HasWork || VolumeOverlay || _islandEdge == IslandEdge.Floating) return;
+        if (_immersiveSuppressed || !_settings.AutoHide || _expanded || _dialogOpen || _dragArmed || !IsVisible || _activities.HasWork || VolumeOverlay || _islandEdge == IslandEdge.Floating) return;
         if (_dockHidden) return;
         _dockHidden = true;
         AnimateEdgeVisibility(true);
@@ -271,6 +276,7 @@ public partial class MainWindow : Window
 
     private void RevealFromEdge()
     {
+        if (_immersiveSuppressed) return;
         _hoverRevealTimer.Stop();
         _autoHideTimer.Stop(); _forceHide = false;
         if (!_dockHidden) return;
@@ -312,6 +318,7 @@ public partial class MainWindow : Window
 
     private void SetExpanded(bool expanded)
     {
+        if (_immersiveSuppressed && expanded) return;
         if (!expanded) EndDockScrub();
         if (_expanded == expanded) return;
         _expanded = expanded;
@@ -387,6 +394,7 @@ public partial class MainWindow : Window
 
     private void RefreshCompact()
     {
+        if (_immersiveSuppressed) return;
         RefreshHome();
         PlacementTools.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
         HeaderBrand.Visibility = _expanded ? Visibility.Visible : Visibility.Collapsed;
@@ -475,6 +483,14 @@ public partial class MainWindow : Window
             NoticeIcon.Data = Geometry.Parse(AlarmGeometry);
             ClockPill.Text = _reminderClock;
             ClockPill.Visibility = Visibility.Visible;
+        }
+        UpdateSuccessTag.Visibility = notice && _updateArrivalVisible ? Visibility.Visible : Visibility.Collapsed;
+        if (notice && _updateArrivalVisible)
+        {
+            NoticeIcon.Data = FrozenVisualCache.Shape("M12,3 V14 M7,10 L12,15 17,10 M5,19 H19");
+            NoticeIcon.Stroke = System.Windows.Media.Brushes.White;
+            PillTitle.FontSize = 12; PillTitle.FontWeight = FontWeights.SemiBold;
+            PillSubtitle.Foreground = FrozenVisualCache.Brush(Color.FromRgb(152,152,162));
         }
         bool greeting = notice && _launchGreeting is not null;
         GreetingTag.Visibility = greeting ? Visibility.Visible : Visibility.Collapsed;
@@ -773,6 +789,7 @@ public partial class MainWindow : Window
 
     private void Clock_Tick(object? sender, EventArgs e)
     {
+        RefreshGameMode();
         if (_expanded && (_tab is "Settings" or "Music")) RefreshBrowserAudio();
         if (_expanded && _tab == "Music") _ = RefreshApplicationAudioAsync();
         CheckReminders();
@@ -796,7 +813,7 @@ public partial class MainWindow : Window
                 _timerRunning = false;
                 TimerStart.Content = "Yeniden başlat";
                 TimerLabel.Text = "Seans tamamlandı";
-                SystemSounds.Asterisk.Play();
+                if (!_immersiveSuppressed) SystemSounds.Asterisk.Play();
                 ShowNotification("Mola zamanı", $"{_duration.TotalMinutes:0} dakikalık seans tamamlandı. Biraz dinlen.");
             }
             RefreshTimerUi(false);
@@ -806,7 +823,7 @@ public partial class MainWindow : Window
         if (_settings.WaterReminder && DateTimeOffset.UtcNow - _lastWaterReminder >= TimeSpan.FromMinutes(45))
         {
             _lastWaterReminder = DateTimeOffset.UtcNow;
-            SystemSounds.Asterisk.Play();
+            if (!_immersiveSuppressed) SystemSounds.Asterisk.Play();
             ShowNotification("Su molası 💧", "Bir bardak su içme zamanı.");
         }
     }
@@ -998,7 +1015,7 @@ public partial class MainWindow : Window
                 foreach (var key in new[] { (0.0,0.0), (.15,-12.0), (.35,12.0), (.55,-8.0), (.75,8.0), (1.0,0.0) })
                     wobble.KeyFrames.Add(new EasingDoubleKeyFrame(key.Item2, KeyTime.FromPercent(key.Item1)));
                 turn.BeginAnimation(RotateTransform.AngleProperty, wobble);
-                SystemSounds.Exclamation.Play();
+                if (!_immersiveSuppressed) SystemSounds.Exclamation.Play();
             });
         }
     }
@@ -1138,12 +1155,16 @@ public partial class MainWindow : Window
             PlacementReset_Click(this, new RoutedEventArgs()); ShowFromTray();
         }));
         _tray.ContextMenuStrip.Items.Add("Ek karartmayı kapat", null, (_, _) => Dispatcher.Invoke(() => ExtraDimSlider.Value = 0));
+        var gameMode = new Forms.ToolStripMenuItem("Oyun modu · Tamamen gizle") { CheckOnClick = true };
+        gameMode.CheckedChanged += (_, _) => Dispatcher.Invoke(() => { _manualGameMode = gameMode.Checked; RefreshGameMode(); });
+        _tray.ContextMenuStrip.Items.Add(gameMode);
         _tray.ContextMenuStrip.Items.Add("Kapat", null, (_, _) => Dispatcher.Invoke(Quit));
         _tray.DoubleClick += (_, _) => Dispatcher.Invoke(ShowFromTray);
     }
 
     private void ShowFromTray()
     {
+        RefreshGameMode(); if (_immersiveSuppressed) return;
         Show();
         WindowState = WindowState.Normal;
         Activate();
@@ -1191,7 +1212,7 @@ public partial class MainWindow : Window
             blink.KeyFrames.Add(new EasingDoubleKeyFrame(0.25, KeyTime.FromPercent(0.5)));
             blink.KeyFrames.Add(new EasingDoubleKeyFrame(1, KeyTime.FromPercent(1)));
             AudioBatteryPanel.BeginAnimation(OpacityProperty, blink);
-            SystemSounds.Exclamation.Play();
+            if (!_immersiveSuppressed) SystemSounds.Exclamation.Play();
         }
         RefreshCompact();
     }
@@ -1237,9 +1258,11 @@ public partial class MainWindow : Window
         NoticeIcon.BeginAnimation(OpacityProperty, pulse);
     }
     private bool VolumeOverlay => !_expanded && DateTimeOffset.UtcNow < _volumeUntil;
-    private void SyncActivityPause() => _activities.Pause(_expanded || _dialogOpen || _dragging || VolumeOverlay, DateTimeOffset.UtcNow);
+    private void SyncActivityPause() => _activities.Pause(_immersiveSuppressed || _expanded || _dialogOpen || _dragging || VolumeOverlay, DateTimeOffset.UtcNow);
     private void EnqueueActivity(string key, int priority, Action show, bool replaceActive = false)
     {
+        RefreshGameMode();
+        if (_immersiveSuppressed) return;
         SyncActivityPause(); _activities.Enqueue(key, priority, show, DateTimeOffset.UtcNow, replaceActive);
         _activityTick.Start();
     }
@@ -1313,8 +1336,8 @@ public partial class MainWindow : Window
         RefreshQuickSite();
         BrowserAudioStatus.Text = _browserAudio?.Listening != true ? "Bağlantı açılamadı" : _browserAudio.Connected ? "Bağlı" : "Eklenti bekleniyor";
         BrowserAudioHelp.Text = _browserAudio?.Connected == true
-            ? "Ana sayfadaki Sistem menüsünden YouTube veya siteyi seç. Görünmüyorsa eklentide Sekmeleri tara’ya bas."
-            : "Ses eklentisini yükle ve aşağıdaki kodla eşleştir. Eklentide Bağlan’a basınca açık medya sekmeleri taranır.";
+            ? "Ana sayfadaki Sistem menüsünden siteyi seç. Sabit eklenti klasörünü bir kez yüklediğinde bağlantı ve güncellemeler otomatik sürer."
+            : "Sabit eklenti klasörünü tarayıcıya bir kez yükle. Otomatik bağlanır; sonraki güncellemelerde yeniden kurman gerekmez.";
     }
     private void BrowserMute_Click(object sender, RoutedEventArgs e)
     {
@@ -1334,11 +1357,12 @@ public partial class MainWindow : Window
         }
         catch { StatusText.Text = "Kod kopyalanamadı. Tekrar deneyebilirsin."; }
     }
-    private void BrowserExtension_Click(object sender, RoutedEventArgs e)
+    private async void BrowserExtension_Click(object sender, RoutedEventArgs e)
     {
-        var folder = Path.Combine(AppContext.BaseDirectory, "Tarayici_Ses_Eklentisi");
-        try { Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true }); }
-        catch { StatusText.Text = "ZIP içindeki Tarayici_Ses_Eklentisi klasörünü kullan."; }
+        await PrepareBrowserExtensionAsync();
+        if (_managedExtension is null) { StatusText.Text = "Eklenti klasörü hazırlanamadı. ZIP içindeki eklentiyi kullanabilirsin."; return; }
+        try { Process.Start(new ProcessStartInfo(_managedExtension.Folder) { UseShellExecute = true }); }
+        catch { StatusText.Text = "Eklenti klasörü açılamadı."; }
     }
     private void Quit_Click(object sender, RoutedEventArgs e) => Quit();
     private void Quit() { _exiting = true; Close(); }
@@ -1357,6 +1381,7 @@ public partial class MainWindow : Window
         _autoHideTimer.Stop(); _hoverRevealTimer.Stop(); _seekDebounce.Stop();
         _updateTimer.Stop(); _updates.Dispose();
         _activityTick.Stop();
+        _fullscreen?.Dispose();
         _browserAudio?.Dispose();
         _waveTick.Stop();
         _spectrum.Dispose();

@@ -9,20 +9,20 @@ const root = path.join(__dirname, "../src/NovaLand/BrowserAudioExtension");
 let checks = 0;
 function check(value, label) { assert.ok(value, label); checks++; }
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.json")));
-check(manifest.version === "0.9.0", "audio-only extension version");
+check(manifest.version === "0.10.0", "audio-only extension version");
 check(!manifest.web_accessible_resources, "blocking page is no longer exposed");
 function event() { return {listeners: [], addListener(fn) { this.listeners.push(fn); }}; }
-async function worker({rules = [], key = "a".repeat(64), failRules = false, open = []} = {}) {
-  const state = {rules, writes: 0, open, injected: [], updates: [], body: null, policy: false, commands: [], offline: false, unauthorized: false, failRules, mediaWrites: []};
+async function worker({rules = [], key = "a".repeat(64), failRules = false, open = [], managed = null} = {}) {
+  const state = {rules, writes: 0, open, injected: [], reloads:0, updates: [], body: null, policy: false, commands: [], offline: false, unauthorized: false, failRules, mediaWrites: []};
   const storage = {key, client: randomUUID()};
-  const timers = new Map();
+  const timers = new Map(), session = {};
   const chrome = {
     storage: {
       local: {get: async () => ({...storage}), set: async values => Object.assign(storage, values)},
-      session: {get:async () => ({connection:state.connection}), set: async values => { state.connection = values.connection; }},
+      session: {get:async () => ({...session,connection:state.connection}), set: async values => {Object.assign(session,values);if(values.connection)state.connection=values.connection;}},
       onChanged: event()
     },
-    runtime: {onMessage: event(), onStartup: event(), getURL: p => "chrome-extension://test/" + p},
+    runtime: {onMessage: event(), onStartup: event(), getManifest:()=>({version:"0.10.0"}), reload:()=>{state.reloads++;}, getURL: p => "chrome-extension://test/" + p},
     tabs: {
       query: async () => state.open.map(t => ({...t})),
       get: async id => { const t = state.open.find(t => t.id === id); if (!t) throw Error("closed"); return {...t}; },
@@ -47,10 +47,10 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false, open
     fetch: async (_, options) => {
       state.body = JSON.parse(options.body);
       if (state.offline) throw Error("offline");
-      return {ok: !state.unauthorized, json: async () => ({blockSocialSites: state.policy, commands: state.commands})};
+      return {ok: !state.unauthorized, json: async () => ({blockSocialSites: state.policy, commands: state.commands, extensionVersion:state.nextVersion,extensionInstallId:state.installId})};
     }
   });
-  context.importScripts = (...files) => files.forEach(file => vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context));
+  context.importScripts = (...files) => files.forEach(file => { if(file==="managed.js" && managed) context.NovaManagedConfig=managed; else vm.runInContext(fs.readFileSync(path.join(root,file),"utf8"),context); });
   vm.runInContext(fs.readFileSync(path.join(root, "background.js"), "utf8"), context);
   await vm.runInContext("ready", context);
   return {state, chrome, context, sync: () => vm.runInContext("sync()", context)};
@@ -127,5 +127,23 @@ async function worker({rules = [], key = "a".repeat(64), failRules = false, open
   vm.runInContext(mediaCode,pageContext); await Promise.resolve();
   check(observers===1, "rescanning does not duplicate observers or page integration");
   check(reports===1, "rescanning requests refresh without duplicate immediate media reports");
+  const managedInstall = await worker({key:"",managed:{installId:"stable-install",key:"b".repeat(64)}});
+  await managedInstall.sync();
+  check(managedInstall.state.connection.ok, "managed installation pairs automatically without manual code entry");
+  managedInstall.state.installId = "stable-install"; managedInstall.state.nextVersion = "0.11.0";
+  await managedInstall.sync();
+  check(managedInstall.state.reloads===1, "managed worker reloads after native files advance");
+  await managedInstall.sync();
+  check(managedInstall.state.reloads===1, "failed or delayed reload cannot loop for same target");
+  const foreign = await worker({managed:{installId:"stable-install",key:"b".repeat(64)}});
+  foreign.state.installId="other-install"; foreign.state.nextVersion="0.11.0";
+  await foreign.sync();
+  check(foreign.state.reloads===0, "other installation cannot request reload");
+  const manual = await worker();
+  manual.state.installId="any"; manual.state.nextVersion="0.11.0";
+  await manual.sync();
+  check(manual.state.reloads===0, "manual ZIP installation is never auto reloaded");
+  check(vm.runInContext('NovaAudio.newerVersion("0.10.0","0.9.9")',w.context), "version comparison is numeric");
+  check(!vm.runInContext('NovaAudio.newerVersion("0.9.9","0.10.0")',w.context), "older extension is never preferred");
   console.log(checks + " browser extension checks passed");
 })().catch(error=>{console.error(error);process.exitCode=1;});

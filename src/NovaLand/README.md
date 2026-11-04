@@ -702,3 +702,36 @@ saniyelik medya oturumu yokken yanlış biçimde kopmuş görünmez.
 Uygulama ve eklenti ayrı güncellenir: Opera uzantısını bu ZIP'in eklenti
 klasörüyle güncelle, uzantıyı Yenile, NovaLand kodunu girip Bağlan'a bas.
 Opera'nın bu sitelerde uzantı erişimine izin vermesi gerekir.
+
+## 1.3.16 — Güncelleme karşılaması, otomatik eklenti ve oyun modu
+
+Yeni sürüm ilk başarıyla açıldığında küçük adada çizilen tik ve yumuşak
+ölçek animasyonuyla NovaLand güncellendi bildirimi dört saniye gösterilir.
+Aynı sürümün sonraki açılışlarında tekrarlanmaz; yeni kurulumdaki hoş geldin
+korunur. Oyun modundayken bu bildirim de gösterilmez.
+
+Tam ekranda tamamen gizlen ayarı varsayılan açık. Ön plandaki başka bir
+uygulama bir monitörü tamamen kaplıyorsa veya Windows Direct3D tam ekran /
+sunum durumu bildiriyorsa ada ve ince tutamaç dahil bütün ada pencereleri
+gizlenir. Bildirimler ve sesleri atlanır; çıkışta birikmiş bildirim oynatılmaz.
+Oyun kapanınca ada odağı çalmadan geri gelir. Sayaç, pano ve müzik takibi
+çalışmaya devam eder. Pencereli oyunlar için tepsi menüsünde elle Oyun modu
+açılıp kapatılır. Bu seçenek Windows bildirimlerini değil NovaLand'ı susturur.
+Ön plan geçişi Windows olayıyla, aynı pencerenin tam ekrana geçişi mevcut
+saniyelik saat üzerinden kontrol edilir.
+
+Eklenti 0.10.0 sabit kurulum destekler. Uygulama Ayarlar > Tarayıcı bağlantısı >
+Sabit eklenti klasörü ile %LOCALAPPDATA%/NovaIsland/BrowserExtension klasörünü
+hazırlar. Opera/Chrome/Edge'de eski uzantıyı kaldırıp bu klasörü bir defa
+paketlenmemiş olarak yükle. Bu yerel kopya bilgisayarla otomatik eşleşir.
+Sonraki uygulama güncellemeleri klasörü günceller; çalışan eklenti daha yeni
+sürümü görünce bir defa runtime.reload yapar. Aynı klasör/uzantı kimliği ve
+Chrome'daki tercihler korunur. Yeni tarayıcı izinleri gerekirse tarayıcı ayrıca
+onay isteyebilir. Farklı klasörden elle yüklenen ZIP kopyası otomatik dosya
+güncellemesi almaz; site sesleri ve manuel eşleştirme çalışmaya devam eder.
+
+Sabit klasör yalnızca NovaLand'ın kendi işaretli klasörüdür; ilgisiz klasörler
+ve tarayıcı profilleri değiştirilmez. Daha eski uygulama yeni eklentiyi geriye
+düşürmez. Paket eksikse mevcut klasör korunur; yerleştirme hatasında önceki
+dosyalar geri yüklenir. Yerel eşleştirme kodu yönetilen uzantı klasöründedir;
+internete veya GitHub'a yazılmaz.

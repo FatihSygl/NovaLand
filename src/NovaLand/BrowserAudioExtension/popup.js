@@ -1,6 +1,7 @@
 const key = document.getElementById("key"), status = document.getElementById("status");
-chrome.storage.local.get("key").then(saved => { key.value = saved.key || ""; });
+chrome.storage.local.get("key").then(saved => { key.value = NovaManagedConfig.key || saved.key || ""; key.readOnly = !!NovaManagedConfig.installId; });
 function show(connection) {
+  document.getElementById("managed").textContent = NovaManagedConfig.installId ? "Otomatik bağlantı ve güncelleme etkin." : "Otomatik güncelleme için NovaLand ayarlarındaki sabit klasörü bir kez yükle.";
   if (connection?.ok && Date.now() - connection.at < 75000)
     status.textContent = connection.mediaTabs > 0
       ? "Bağlı · " + connection.mediaTabs + " medya sekmesi. NovaLand ana sayfasında Sistem menüsünden siteyi seç."

@@ -209,6 +209,11 @@
        </Grid>
        <TextBlock x:Name="AudioBatteryPercent" Text="—" FontSize="11" FontWeight="SemiBold" Margin="5,0,0,0" VerticalAlignment="Center" />
       </StackPanel>
+      <Grid x:Name="UpdateSuccessTag" Width="29" Height="29" Margin="12,0,0,0" Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+       <Grid.RenderTransform><ScaleTransform x:Name="UpdateSuccessScale"/></Grid.RenderTransform>
+       <Ellipse Fill="#20352A" Stroke="#42614D" StrokeThickness="0.8"/>
+       <Path x:Name="UpdateSuccessTick" Data="M7,14 L12,19 22,9" Stroke="#B7E8C6" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeDashArray="24 24"/>
+      </Grid>
       <Grid x:Name="GreetingTag" Width="29" Height="29" Margin="12,0,0,0" Visibility="Collapsed" IsHitTestVisible="False">
        <Ellipse x:Name="GreetingHalo" Fill="#B78355" Width="22" Height="22" Opacity="0.15">
         <Ellipse.Effect>
@@ -832,6 +837,8 @@
           <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="StayTopCheck" Content="Diğer pencerelerin önünde tut" Checked="StayTopCheck_Changed" Unchecked="StayTopCheck_Changed" Margin="0" />
           <Border Height="0.5" Background="#252529" />
+          <CheckBox x:Name="FullscreenCheck" Content="Tam ekranda tamamen gizlen" Checked="FullscreenCheck_Changed" Unchecked="FullscreenCheck_Changed" Margin="0"/>
+          <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="StartupCheck" Content="Windows ile başlat" Checked="StartupCheck_Changed" Unchecked="StartupCheck_Changed" Margin="0" />
          </StackPanel>
         </Border>
@@ -851,10 +858,10 @@
          <StackPanel>
           <TextBlock x:Name="BrowserAudioStatus" FontSize="10" Foreground="#A4B69E" Margin="0,0,0,5"/>
           <TextBlock x:Name="BrowserAudioHelp" FontSize="10" Foreground="#777780" TextWrapping="Wrap" Margin="0,0,0,9"/>
-          <TextBlock Text="Ses eklentisini bu bilgisayarla eşleştir." FontSize="10" Foreground="#777780" TextWrapping="Wrap" Margin="0,0,0,9" />
+          <TextBlock Text="Bu sabit klasörü bir kez yükle. Sonraki uygulama güncellemelerinde eklenti kendini yeniler; yeniden eşleştirme gerekmez." FontSize="10" Foreground="#777780" TextWrapping="Wrap" Margin="0,0,0,9" />
           <WrapPanel>
            <Button Content="Kodu kopyala" Style="{StaticResource Chip}" FontSize="10" Padding="10,7" Click="BrowserPair_Click" Margin="0,0,6,4" />
-           <Button Content="Eklenti klasörü ↗" Style="{StaticResource GhostButton}" FontSize="10" Padding="10,7" Click="BrowserExtension_Click" Margin="0,0,0,4" />
+           <Button Content="Sabit eklenti klasörü ↗" Style="{StaticResource GhostButton}" FontSize="10" Padding="10,7" Click="BrowserExtension_Click" Margin="0,0,0,4" />
           </WrapPanel>
          </StackPanel>
         </Expander>

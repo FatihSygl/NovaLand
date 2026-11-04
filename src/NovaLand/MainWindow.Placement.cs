@@ -93,7 +93,7 @@ public partial class MainWindow
     }
     private void MovePlacement(bool animated, double width, double height)
     {
-        if (_dragging || _placementBounds.Width <= 0) return;
+        if (_immersiveSuppressed || _dragging || _placementBounds.Width <= 0) return;
         var target = DockLayout.Place(_placementBounds, _placementWork, _islandEdge, _anchorX, _anchorY, width, height, _dockHidden);
         void Move(DependencyProperty property, double from, double to)
         {
