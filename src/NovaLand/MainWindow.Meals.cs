@@ -9,7 +9,8 @@ namespace NovaIsland;
 
 public partial class MainWindow
 {
-    private const string MissingMeal = "Bugün için menü kaydı yok.";
+    private const string MissingMeal = "Bugün kayıt yok.";
+    private sealed record MealDishRow(string Text, bool IsStatus = false);
     private static readonly CultureInfo TurkishCulture = CultureInfo.GetCultureInfo("tr-TR");
     private static readonly TimeZoneInfo AnkaraTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Turkey Standard Time");
 
@@ -36,10 +37,11 @@ public partial class MainWindow
             _mealDay = day;
             _dormLoading = false;
             _dormRetryAt = default;
-            MealsDateText.Text = day.ToString("d MMMM yyyy, dddd", TurkishCulture);
+            MealsDateText.Text = day.ToString("d MMMM", TurkishCulture);
+            MealsWeekdayText.Text = day.ToString("dddd", TurkishCulture);
             var school = DailyMealMenus.GetSchool(day);
-            SchoolLunchText.Text = school?.Lunch ?? MissingMeal;
-            SchoolDinnerText.Text = school?.Dinner ?? MissingMeal;
+            SchoolLunchDishes.ItemsSource = MealRows(SplitSchoolDishes(school?.Lunch));
+            SchoolDinnerDishes.ItemsSource = MealRows(SplitSchoolDishes(school?.Dinner));
         }
 
         if (!_dormLoading && DateTimeOffset.UtcNow >= _dormRetryAt)
@@ -49,13 +51,13 @@ public partial class MainWindow
     private async Task RefreshDormMealsAsync(DateOnly day)
     {
         _dormLoading = true;
-        DormBreakfastText.Text = DormDinnerText.Text = "Menü alınıyor…";
+        DormBreakfastDishes.ItemsSource = DormDinnerDishes.ItemsSource = MealRows(null, "Menü alınıyor…");
         try
         {
             var menu = await DailyMealMenus.GetDormAsync(day);
             if (_mealDay != day) return;
-            DormBreakfastText.Text = menu.Breakfast ?? MissingMeal;
-            DormDinnerText.Text = menu.Dinner ?? MissingMeal;
+            DormBreakfastDishes.ItemsSource = MealRows(menu.Breakfast);
+            DormDinnerDishes.ItemsSource = MealRows(menu.Dinner);
             _dormRetryAt = menu.Breakfast is null || menu.Dinner is null
                 ? DateTimeOffset.UtcNow.AddMinutes(15)
                 : DateTimeOffset.MaxValue;
@@ -63,7 +65,7 @@ public partial class MainWindow
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
         {
             if (_mealDay != day) return;
-            DormBreakfastText.Text = DormDinnerText.Text = "Menüye şu an ulaşılamıyor.";
+            DormBreakfastDishes.ItemsSource = DormDinnerDishes.ItemsSource = MealRows(null, "Menüye ulaşılamıyor.");
             _dormRetryAt = DateTimeOffset.UtcNow.AddMinutes(1);
         }
         finally
@@ -71,6 +73,14 @@ public partial class MainWindow
             if (_mealDay == day) _dormLoading = false;
         }
     }
+
+    private static IEnumerable<MealDishRow> MealRows(string[]? dishes, string status = MissingMeal) =>
+        dishes is { Length: > 0 }
+            ? dishes.Select(dish => new MealDishRow(dish))
+            : new[] { new MealDishRow(status, IsStatus: true) };
+
+    private static string[]? SplitSchoolDishes(string? menu) =>
+        menu?.Split(" · ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private void MealSource_Click(object sender, RoutedEventArgs e)
     {

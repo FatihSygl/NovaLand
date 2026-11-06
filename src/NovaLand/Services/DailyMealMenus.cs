@@ -20,7 +20,7 @@ internal static class DailyMealMenus
     };
 
     internal sealed record SchoolMenu(string? Lunch, string? Dinner);
-    internal sealed record DormMenu(string? Breakfast, string? Dinner);
+    internal sealed record DormMenu(string[]? Breakfast, string[]? Dinner);
     private sealed record ApiMeal(string CitySlug, DateOnly ServeDate, string MealType, string Status, ApiDish[]? Items);
     private sealed record ApiDish(int OrderIndex, string? Name, bool IsAlternative);
 
@@ -44,14 +44,14 @@ internal static class DailyMealMenus
         return resource is null ? [] : JsonSerializer.Deserialize<Dictionary<DateOnly, SchoolMenu>>(resource) ?? [];
     }
 
-    private static string? FormatMeal(ApiMeal? meal)
+    private static string[]? FormatMeal(ApiMeal? meal)
     {
         if (meal?.Items is not { Length: > 0 } items) return null;
         var groups = items.Where(item => !string.IsNullOrWhiteSpace(item.Name))
             .GroupBy(item => item.OrderIndex)
             .OrderBy(group => group.Key)
-            .Select(group => string.Join(" / ", group.OrderBy(item => item.IsAlternative).Select(item => item.Name)));
-        string text = string.Join(" · ", groups);
-        return text.Length == 0 ? null : text;
+            .Select(group => string.Join(" / ", group.OrderBy(item => item.IsAlternative).Select(item => item.Name)))
+            .ToArray();
+        return groups.Length == 0 ? null : groups;
     }
 }
