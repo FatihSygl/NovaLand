@@ -823,79 +823,139 @@
         <Button Content="Windows ses ayarları ↗" Style="{StaticResource GhostButton}" FontSize="10" HorizontalAlignment="Left" Margin="0,8,0,0" Click="SoundSettings_Click" />
        </StackPanel>
       </ScrollViewer>
-      <ScrollViewer x:Name="MealsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+      <ScrollViewer x:Name="MealsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <ScrollViewer.Resources>
+        <Style x:Key="MealSegment" TargetType="RadioButton">
+         <Setter Property="Foreground" Value="#A1A1A8"/>
+         <Setter Property="FontSize" Value="11"/>
+         <Setter Property="FontWeight" Value="SemiBold"/>
+         <Setter Property="MinHeight" Value="25"/>
+         <Setter Property="Template">
+          <Setter.Value>
+           <ControlTemplate TargetType="RadioButton">
+            <Border x:Name="SegmentSurface" Background="Transparent" CornerRadius="7" BorderThickness="1"
+                    BorderBrush="Transparent" Padding="6,3">
+             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </Border>
+            <ControlTemplate.Triggers>
+             <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Foreground" Value="#F2F2F7"/>
+             </Trigger>
+             <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="SegmentSurface" Property="Background" Value="#3A3A3C"/>
+              <Setter Property="Foreground" Value="#F2F2F7"/>
+             </Trigger>
+             <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="SegmentSurface" Property="BorderBrush" Value="#85858C"/>
+             </Trigger>
+            </ControlTemplate.Triggers>
+           </ControlTemplate>
+          </Setter.Value>
+         </Setter>
+        </Style>
+        <Style x:Key="MealGroup" TargetType="Border">
+         <Setter Property="Background" Value="#1C1C1E"/>
+         <Setter Property="BorderBrush" Value="#303034"/>
+         <Setter Property="BorderThickness" Value="0.5"/>
+         <Setter Property="CornerRadius" Value="17"/>
+        </Style>
+        <Style x:Key="MealHeading" TargetType="TextBlock">
+         <Setter Property="FontSize" Value="12"/>
+         <Setter Property="FontWeight" Value="SemiBold"/>
+         <Setter Property="Foreground" Value="#F2F2F7"/>
+        </Style>
         <DataTemplate x:Key="MealDishRow">
-         <Grid Margin="0,0,0,4">
-          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
-          <Ellipse x:Name="DishMarker" Width="3" Height="3" Fill="#777781" Margin="0,6,6,0" VerticalAlignment="Top"/>
-          <TextBlock x:Name="DishLabel" Grid.Column="1" Text="{Binding Text}" FontSize="11.5" Foreground="#C8C8D0" TextWrapping="Wrap"/>
-         </Grid>
+         <TextBlock x:Name="DishLabel" Text="{Binding Text}" FontSize="12" Foreground="#D1D1D6"
+                    TextWrapping="Wrap" Padding="0,0,0,2"/>
          <DataTemplate.Triggers>
           <DataTrigger Binding="{Binding IsStatus}" Value="True">
-           <Setter TargetName="DishMarker" Property="Visibility" Value="Collapsed"/>
-           <Setter TargetName="DishLabel" Property="Foreground" Value="#91919D"/>
+           <Setter TargetName="DishLabel" Property="Foreground" Value="#98989F"/>
           </DataTrigger>
          </DataTemplate.Triggers>
         </DataTemplate>
        </ScrollViewer.Resources>
-       <StackPanel Margin="0,10,0,1">
-        <DockPanel Margin="1,0,0,9">
-         <Border DockPanel.Dock="Right" Background="#1D1D22" CornerRadius="9" Padding="8,4" VerticalAlignment="Center">
+       <StackPanel Margin="0,10,0,2">
+        <StackPanel Margin="2,0,0,12">
+         <TextBlock Text="Bugünün menüsü" FontSize="22" FontWeight="SemiBold"/>
+         <TextBlock x:Name="MealsDateText" FontSize="11" Foreground="#A1A1A6" Margin="0,3,0,0"/>
+        </StackPanel>
+        <Border Background="#222224" CornerRadius="10" Padding="3" Margin="0,0,0,9">
+         <UniformGrid Columns="2">
+          <RadioButton x:Name="SchoolMealsSegment" Content="Ankara Üniversitesi" GroupName="MealSource"
+                       Style="{StaticResource MealSegment}" IsChecked="True"/>
+          <RadioButton x:Name="DormMealsSegment" Content="Ankara KYK" GroupName="MealSource"
+                       Style="{StaticResource MealSegment}"/>
+         </UniformGrid>
+        </Border>
+        <StackPanel>
+         <StackPanel.Style>
+          <Style TargetType="StackPanel">
+           <Setter Property="Visibility" Value="Collapsed"/>
+           <Style.Triggers>
+            <DataTrigger Binding="{Binding IsChecked, ElementName=SchoolMealsSegment}" Value="True">
+             <Setter Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+           </Style.Triggers>
+          </Style>
+         </StackPanel.Style>
+         <Border Style="{StaticResource MealGroup}">
           <StackPanel>
-           <TextBlock x:Name="MealsDateText" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
-           <TextBlock x:Name="MealsWeekdayText" FontSize="9" Foreground="#A0A0AA" HorizontalAlignment="Right" Margin="0,1,0,0"/>
+           <Grid Margin="14,10">
+            <Grid.ColumnDefinitions>
+             <ColumnDefinition Width="76"/>
+             <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Öğle" Style="{StaticResource MealHeading}"/>
+            <ItemsControl x:Name="SchoolLunchDishes" Grid.Column="1" ItemTemplate="{StaticResource MealDishRow}"/>
+           </Grid>
+           <Border Height="0.5" Background="#38383C" Margin="14,0"/>
+           <Grid Margin="14,10">
+            <Grid.ColumnDefinitions>
+             <ColumnDefinition Width="76"/>
+             <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Akşam" Style="{StaticResource MealHeading}"/>
+            <ItemsControl x:Name="SchoolDinnerDishes" Grid.Column="1" ItemTemplate="{StaticResource MealDishRow}"/>
+           </Grid>
           </StackPanel>
          </Border>
-         <TextBlock Text="Bugünün menüsü" Style="{StaticResource PageTitle}" VerticalAlignment="Center"/>
-        </DockPanel>
-        <Border Style="{StaticResource InsetCard}" Padding="12,10" Margin="0,0,0,7">
-         <StackPanel>
-          <DockPanel LastChildFill="True">
-           <Border DockPanel.Dock="Left" Background="#332923" Width="26" Height="26" CornerRadius="8" Margin="0,0,8,0">
-            <Path Data="M2,8 L10,3 18,8 Z M4,11 V16 M8,11 V16 M12,11 V16 M16,11 V16 M2,18 H18" Stroke="#DDB797" StrokeThickness="1.55" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="14" Height="14" Stretch="Uniform"/>
-           </Border>
-           <TextBlock Text="Ankara Üniversitesi" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-          </DockPanel>
-          <Border Height="1" Background="#FFFFFF" Opacity="0.07" Margin="0,7,0,7"/>
-          <Grid>
-           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="17"/><ColumnDefinition/></Grid.ColumnDefinitions>
-          <StackPanel Grid.Column="0">
-           <TextBlock Text="Öğle" FontSize="11" FontWeight="SemiBold" Foreground="#E8E8EF" Margin="0,0,0,5"/>
-           <ItemsControl x:Name="SchoolLunchDishes" ItemTemplate="{StaticResource MealDishRow}"/>
+        </StackPanel>
+        <StackPanel>
+         <StackPanel.Style>
+          <Style TargetType="StackPanel">
+           <Setter Property="Visibility" Value="Collapsed"/>
+           <Style.Triggers>
+            <DataTrigger Binding="{Binding IsChecked, ElementName=DormMealsSegment}" Value="True">
+             <Setter Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+           </Style.Triggers>
+          </Style>
+         </StackPanel.Style>
+         <Border Style="{StaticResource MealGroup}">
+          <StackPanel>
+           <Grid Margin="14,10">
+            <Grid.ColumnDefinitions>
+             <ColumnDefinition Width="76"/>
+             <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Kahvaltı" Style="{StaticResource MealHeading}"/>
+            <ItemsControl x:Name="DormBreakfastDishes" Grid.Column="1" ItemTemplate="{StaticResource MealDishRow}"/>
+           </Grid>
+           <Border Height="0.5" Background="#38383C" Margin="14,0"/>
+           <Grid Margin="14,10">
+            <Grid.ColumnDefinitions>
+             <ColumnDefinition Width="76"/>
+             <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Akşam" Style="{StaticResource MealHeading}"/>
+            <ItemsControl x:Name="DormDinnerDishes" Grid.Column="1" ItemTemplate="{StaticResource MealDishRow}"/>
+           </Grid>
           </StackPanel>
-           <Border Grid.Column="1" Width="1" Background="#FFFFFF" Opacity="0.07" Margin="0,1"/>
-          <StackPanel Grid.Column="2">
-           <TextBlock Text="Akşam" FontSize="11" FontWeight="SemiBold" Foreground="#E8E8EF" Margin="0,0,0,5"/>
-           <ItemsControl x:Name="SchoolDinnerDishes" ItemTemplate="{StaticResource MealDishRow}"/>
-          </StackPanel>
-          </Grid>
-         </StackPanel>
-        </Border>
-        <Border Style="{StaticResource InsetCard}" Padding="12,10" Margin="0,0,0,7">
-         <StackPanel>
-          <DockPanel LastChildFill="True">
-           <Button DockPanel.Dock="Right" Content="kepce.org ↗" Style="{StaticResource GhostButton}" FontSize="10" Padding="5,4" Click="MealSource_Click" ToolTip="Ankara KYK menüsünün kaynağını aç" VerticalAlignment="Center"/>
-           <Border DockPanel.Dock="Left" Background="#26312B" Width="26" Height="26" CornerRadius="8" Margin="0,0,8,0">
-            <Path Data="M3,9 L10,3 17,9 V17 H3 Z M8,17 V12 H12 V17" Stroke="#ADC9B4" StrokeThickness="1.55" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="14" Height="14" Stretch="Uniform"/>
-           </Border>
-           <TextBlock Text="Ankara KYK" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-          </DockPanel>
-          <Border Height="1" Background="#FFFFFF" Opacity="0.07" Margin="0,7,0,7"/>
-          <Grid>
-           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="17"/><ColumnDefinition/></Grid.ColumnDefinitions>
-          <StackPanel Grid.Column="0">
-           <TextBlock Text="Kahvaltı" FontSize="11" FontWeight="SemiBold" Foreground="#E8E8EF" Margin="0,0,0,5"/>
-           <ItemsControl x:Name="DormBreakfastDishes" ItemTemplate="{StaticResource MealDishRow}"/>
-          </StackPanel>
-           <Border Grid.Column="1" Width="1" Background="#FFFFFF" Opacity="0.07" Margin="0,1"/>
-          <StackPanel Grid.Column="2">
-           <TextBlock Text="Akşam" FontSize="11" FontWeight="SemiBold" Foreground="#E8E8EF" Margin="0,0,0,5"/>
-           <ItemsControl x:Name="DormDinnerDishes" ItemTemplate="{StaticResource MealDishRow}"/>
-          </StackPanel>
-          </Grid>
-         </StackPanel>
-        </Border>
+         </Border>
+         <Button Content="Kaynak: kepce.org ↗" Style="{StaticResource GhostButton}" Padding="4,5"
+                 Click="MealSource_Click" HorizontalAlignment="Right" Margin="0,3,0,0"/>
+        </StackPanel>
        </StackPanel>
       </ScrollViewer>
       <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">

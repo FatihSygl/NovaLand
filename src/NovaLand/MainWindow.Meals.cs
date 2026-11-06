@@ -37,8 +37,7 @@ public partial class MainWindow
             _mealDay = day;
             _dormLoading = false;
             _dormRetryAt = default;
-            MealsDateText.Text = day.ToString("d MMMM", TurkishCulture);
-            MealsWeekdayText.Text = day.ToString("dddd", TurkishCulture);
+            MealsDateText.Text = day.ToString("d MMMM yyyy, dddd", TurkishCulture);
             var school = DailyMealMenus.GetSchool(day);
             SchoolLunchDishes.ItemsSource = MealRows(SplitSchoolDishes(school?.Lunch));
             SchoolDinnerDishes.ItemsSource = MealRows(SplitSchoolDishes(school?.Dinner));
@@ -80,7 +79,18 @@ public partial class MainWindow
             : new[] { new MealDishRow(status, IsStatus: true) };
 
     private static string[]? SplitSchoolDishes(string? menu) =>
-        menu?.Split(" · ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        menu?.Split(" · ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(FormatSchoolDish)
+            .ToArray();
+
+    private static string FormatSchoolDish(string dish)
+    {
+        var casing = TurkishCulture.TextInfo;
+        if (dish != casing.ToUpper(dish)) return dish;
+
+        string lower = casing.ToLower(dish);
+        return casing.ToUpper(lower[..1]) + lower[1..];
+    }
 
     private void MealSource_Click(object sender, RoutedEventArgs e)
     {
