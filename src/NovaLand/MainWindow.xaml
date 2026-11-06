@@ -843,7 +843,8 @@
               <Setter Property="Foreground" Value="#F2F2F7"/>
              </Trigger>
              <Trigger Property="IsChecked" Value="True">
-              <Setter TargetName="SegmentSurface" Property="Background" Value="#3A3A3C"/>
+              <Setter TargetName="SegmentSurface" Property="Background" Value="#202023"/>
+              <Setter TargetName="SegmentSurface" Property="BorderBrush" Value="#303034"/>
               <Setter Property="Foreground" Value="#F2F2F7"/>
              </Trigger>
              <Trigger Property="IsKeyboardFocused" Value="True">
@@ -855,8 +856,8 @@
          </Setter>
         </Style>
         <Style x:Key="MealGroup" TargetType="Border">
-         <Setter Property="Background" Value="#1C1C1E"/>
-         <Setter Property="BorderBrush" Value="#303034"/>
+         <Setter Property="Background" Value="#141416"/>
+         <Setter Property="BorderBrush" Value="#252529"/>
          <Setter Property="BorderThickness" Value="0.5"/>
          <Setter Property="CornerRadius" Value="17"/>
         </Style>
@@ -928,7 +929,7 @@
                   <Setter Property="Foreground" Value="#ADC9FF"/>
                  </DataTrigger>
                  <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                  <Setter Property="Background" Value="#3B4861"/>
+                  <Setter Property="Background" Value="#263044"/>
                   <Setter Property="Foreground" Value="#F2F2F7"/>
                   <Setter Property="FontWeight" Value="SemiBold"/>
                  </DataTrigger>
@@ -942,13 +943,13 @@
             </DataTemplate>
            </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <Border Height="0.5" Background="#38383C" Margin="3,4,3,1"/>
+          <Border Height="0.5" Background="#28282C" Margin="3,4,3,1"/>
           <Button Content="Bugüne dön" Style="{StaticResource GhostButton}" Click="MealToday_Click"
                   Foreground="#ADC9FF" HorizontalAlignment="Right" Padding="7,5"/>
          </StackPanel>
         </Border>
         <StackPanel x:Name="MealsMenus">
-        <Border Background="#222224" CornerRadius="10" Padding="3" Margin="0,0,0,9">
+        <Border Background="#101012" BorderBrush="#252529" BorderThickness="0.5" CornerRadius="10" Padding="3" Margin="0,0,0,9">
          <UniformGrid Columns="2">
           <RadioButton x:Name="SchoolMealsSegment" Content="Ankara Üniversitesi" GroupName="MealSource"
                        Style="{StaticResource MealSegment}" IsChecked="True"/>
@@ -977,7 +978,7 @@
             <TextBlock Text="Öğle" Style="{StaticResource MealHeading}"/>
             <ItemsControl x:Name="SchoolLunchDishes" Grid.Column="1" ItemTemplate="{StaticResource MealDishRow}"/>
            </Grid>
-           <Border Height="0.5" Background="#38383C" Margin="14,0"/>
+           <Border Height="0.5" Background="#28282C" Margin="14,0"/>
            <Grid Margin="14,10">
             <Grid.ColumnDefinitions>
              <ColumnDefinition Width="76"/>
@@ -1010,7 +1011,7 @@
             <TextBlock Text="Kahvaltı" Style="{StaticResource MealHeading}"/>
             <ItemsControl x:Name="DormBreakfastDishes" Grid.Column="1" ItemTemplate="{StaticResource MealDishRow}"/>
            </Grid>
-           <Border Height="0.5" Background="#38383C" Margin="14,0"/>
+           <Border Height="0.5" Background="#28282C" Margin="14,0"/>
            <Grid Margin="14,10">
             <Grid.ColumnDefinitions>
              <ColumnDefinition Width="76"/>
