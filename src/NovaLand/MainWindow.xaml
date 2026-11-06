@@ -823,6 +823,31 @@
         <Button Content="Windows ses ayarları ↗" Style="{StaticResource GhostButton}" FontSize="10" HorizontalAlignment="Left" Margin="0,8,0,0" Click="SoundSettings_Click" />
        </StackPanel>
       </ScrollViewer>
+      <ScrollViewer x:Name="MealsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+       <StackPanel Margin="0,12,0,8">
+        <TextBlock Text="Bugünün menüsü" Style="{StaticResource PageTitle}"/>
+        <TextBlock x:Name="MealsDateText" Foreground="#9898A2" FontSize="11" Margin="0,4,0,0"/>
+        <TextBlock Text="ANKARA ÜNİVERSİTESİ" Style="{StaticResource SectionLabel}" Margin="2,12,0,6"/>
+        <Border Style="{StaticResource InsetCard}" Padding="12,10">
+         <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="21"/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <StackPanel><TextBlock Text="Öğle" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,5"/><TextBlock x:Name="SchoolLunchText" TextWrapping="Wrap" FontSize="11" Foreground="#B6B6BF"/></StackPanel>
+          <Border Grid.Column="1" Width="1" Background="#2C2C31" Margin="0,1"/>
+          <StackPanel Grid.Column="2"><StackPanel><TextBlock Text="Akşam" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,5"/><TextBlock x:Name="SchoolDinnerText" TextWrapping="Wrap" FontSize="11" Foreground="#B6B6BF"/></StackPanel></StackPanel>
+         </Grid>
+        </Border>
+        <TextBlock Text="ANKARA KYK" Style="{StaticResource SectionLabel}" Margin="2,12,0,6"/>
+        <Border Style="{StaticResource InsetCard}" Padding="12,10">
+         <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="21"/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <StackPanel><TextBlock Text="Kahvaltı" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,5"/><TextBlock x:Name="DormBreakfastText" TextWrapping="Wrap" FontSize="11" Foreground="#B6B6BF"/></StackPanel>
+          <Border Grid.Column="1" Width="1" Background="#2C2C31" Margin="0,1"/>
+          <StackPanel Grid.Column="2"><StackPanel><TextBlock Text="Akşam" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,5"/><TextBlock x:Name="DormDinnerText" TextWrapping="Wrap" FontSize="11" Foreground="#B6B6BF"/></StackPanel></StackPanel>
+         </Grid>
+        </Border>
+        <Button Content="Kaynak · kepce.org ↗" Style="{StaticResource GhostButton}" FontSize="10" HorizontalAlignment="Left" Click="MealSource_Click" Margin="0,4,0,0"/>
+       </StackPanel>
+      </ScrollViewer>
       <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <StackPanel Margin="0,12,0,8">
         <StackPanel Orientation="Horizontal">
@@ -848,6 +873,8 @@
           <CheckBox x:Name="CaptureClipboardCheck" Content="Metin, görsel ve dosya geçmişini tut" Checked="CaptureClipboardCheck_Changed" Unchecked="CaptureClipboardCheck_Changed" Margin="0" />
           <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="WaterCheck" Content="45 dakikada bir su molası" Checked="WaterCheck_Changed" Unchecked="WaterCheck_Changed" Margin="0" />
+          <Border Height="0.5" Background="#252529" />
+          <CheckBox x:Name="MealsCheck" Content="Günlük yemek menüsünü göster" Checked="MealsCheck_Changed" Unchecked="MealsCheck_Changed" Margin="0" />
          </StackPanel>
         </Border>
         <TextBlock Text="Son kopyalananlar bu oturumda kalır.&#10;Sabitlediklerin saklanır." Foreground="#686872" FontSize="9" TextWrapping="Wrap" Margin="3,12,0,16" />
@@ -904,6 +931,9 @@
        </Button>
        <Button x:Name="ControlsTab" Tag="Controls" Style="{StaticResource DockTab}" Click="Tab_Click" ToolTip="Kontroller">
         <Path Data="M3,7 L8,7 M12,7 L21,7 M3,17 L14,17 M18,17 L21,17 M10,4 L10,10 M16,14 L16,20" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.65" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" />
+       </Button>
+       <Button x:Name="MealsTab" Tag="Meals" Style="{StaticResource DockTab}" Click="Tab_Click" ToolTip="Yemek" Visibility="Collapsed">
+        <Path Data="M2,2 V8 A3,3 0 0 0 8,8 V2 M5,2 V21 M18,2 C14,4 13,8 13,13 H18 M18,2 V21" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.65" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform"/>
        </Button>
        <Button x:Name="SettingsTab" Tag="Settings" Style="{StaticResource DockTab}" Click="Tab_Click" ToolTip="Ayarlar">
         <Path Data="M10,2 L14,2 14.7,5 16.3,5.7 19,4.2 21.8,7 20.3,9.7 21,11.3 24,12 24,16 21,16.7 20.3,18.3 21.8,21 19,23.8 16.3,22.3 14.7,23 14,26 10,26 9.3,23 7.7,22.3 5,23.8 2.2,21 3.7,18.3 3,16.7 0,16 0,12 3,11.3 3.7,9.7 2.2,7 5,4.2 7.7,5.7 9.3,5 Z M16,14 A4,4 0 1 1 8,14 A4,4 0 1 1 16,14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.65" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" />

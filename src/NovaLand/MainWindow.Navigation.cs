@@ -12,8 +12,8 @@ public partial class MainWindow
 {
     private bool _dockScrubbing;
     private int _pageTransitionVersion;
-    private static readonly string[] DockOrder = ["Music", "Focus", "Todo", "Files", "Clipboard", "Controls", "Settings"];
-    private IEnumerable<Button> NavigationButtons => DockButtons.Children.OfType<Button>();
+    private static readonly string[] DockOrder = ["Music", "Focus", "Todo", "Files", "Clipboard", "Controls", "Meals", "Settings"];
+    private IEnumerable<Button> NavigationButtons => DockButtons.Children.OfType<Button>().Where(button => button.Visibility == Visibility.Visible);
     private void NavigationDock_Loaded(object sender, RoutedEventArgs e) => UpdateDockSelection(false);
     private void NavigationDock_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateDockSelection(false);
     private void UpdateDockSelection(bool animate)

@@ -182,6 +182,8 @@ public partial class MainWindow : Window
         StayTopCheck.IsChecked = _settings.AlwaysOnTop;
         StartupCheck.IsChecked = StartupService.IsEnabled();
         WaterCheck.IsChecked = _settings.WaterReminder;
+        MealsCheck.IsChecked = _settings.MealsEnabled;
+        MealsTab.Visibility = _settings.MealsEnabled ? Visibility.Visible : Visibility.Collapsed;
         FullscreenCheck.IsChecked = _settings.HideInFullscreen;
         Topmost = _settings.AlwaysOnTop;
         _clock.Tick += Clock_Tick;
@@ -329,6 +331,7 @@ public partial class MainWindow : Window
         if (!expanded) EndDockScrub();
         if (_expanded == expanded) return;
         _expanded = expanded;
+        if (expanded && _tab == "Meals") RefreshMeals();
         SyncActivityPause();
         if (expanded) RevealFromEdge();
         _autoHideTimer.Stop();
@@ -555,7 +558,9 @@ public partial class MainWindow : Window
         if (key == "Music") _ = RefreshApplicationAudioAsync();
         if (key == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); }
         SettingsView.Visibility = key == "Settings" ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, ControlsTab, SettingsTab })
+        MealsView.Visibility = key == "Meals" ? Visibility.Visible : Visibility.Collapsed;
+        if (key == "Meals" && _expanded) RefreshMeals();
+        foreach (var tab in new[] { MusicTab, FocusTab, TodoTab, FilesTab, ClipboardTab, ControlsTab, MealsTab, SettingsTab })
             tab.Style = (Style)FindResource((string?)tab.Tag == key ? "DockActive" : "DockTab");
         UpdateDockSelection(changed && _expanded);
         if (_expanded)
@@ -800,6 +805,7 @@ public partial class MainWindow : Window
         if (_expanded && (_tab is "Settings" or "Music")) RefreshBrowserAudio();
         if (_expanded && _tab == "Music") _ = RefreshApplicationAudioAsync();
         CheckReminders();
+        if (_expanded && _tab == "Meals" && _mealDay != AnkaraToday()) RefreshMeals();
         if (DateTime.UtcNow > _volumeChangedUntil && _expanded && MusicView.Visibility == Visibility.Visible)
         {
             var vol = AudioService.ReadVolume();
