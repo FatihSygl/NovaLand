@@ -19,7 +19,6 @@ public sealed class LocalSettings
     public bool AutoHide { get; set; } = true;
     public bool CaptureClipboard { get; set; } = true;
     public bool MealsEnabled { get; set; }
-    public bool WaterReminder { get; set; } = false;
     public List<string> FilePaths { get; set; } = new();
 }
 

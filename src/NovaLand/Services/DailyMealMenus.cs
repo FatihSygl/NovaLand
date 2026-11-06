@@ -26,10 +26,10 @@ internal static class DailyMealMenus
 
     public static SchoolMenu? GetSchool(DateOnly day) => SchoolMenus.Value.GetValueOrDefault(day);
 
-    public static async Task<DormMenu> GetDormAsync(DateOnly day)
+    public static async Task<DormMenu> GetDormAsync(DateOnly day, CancellationToken cancellationToken)
     {
         string date = day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        var json = await Client.GetStringAsync($"https://kepce.org/api/v1/menus?city=ankara&date={date}")
+        var json = await Client.GetStringAsync($"https://kepce.org/api/v1/menus?city=ankara&date={date}", cancellationToken)
             .ConfigureAwait(false);
         var meals = JsonSerializer.Deserialize<ApiMeal[]>(json, ApiJson) ?? [];
         var matching = meals.Where(meal => meal.CitySlug == "ankara" && meal.ServeDate == day &&

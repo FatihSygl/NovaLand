@@ -37,7 +37,6 @@ public partial class MainWindow : Window
     private bool _mediaBusy;
     private bool _brightnessSupported;
     private DateTime _volumeChangedUntil = DateTime.MinValue;
-    private DateTimeOffset _lastWaterReminder = DateTimeOffset.UtcNow;
     private DateTimeOffset _endAt;
     private TimeSpan _duration = TimeSpan.FromMinutes(25);
     private TimeSpan _remaining = TimeSpan.FromMinutes(25);
@@ -181,7 +180,6 @@ public partial class MainWindow : Window
 
         StayTopCheck.IsChecked = _settings.AlwaysOnTop;
         StartupCheck.IsChecked = StartupService.IsEnabled();
-        WaterCheck.IsChecked = _settings.WaterReminder;
         MealsCheck.IsChecked = _settings.MealsEnabled;
         MealsTab.Visibility = _settings.MealsEnabled ? Visibility.Visible : Visibility.Collapsed;
         FullscreenCheck.IsChecked = _settings.HideInFullscreen;
@@ -329,6 +327,7 @@ public partial class MainWindow : Window
     {
         if (_immersiveSuppressed && expanded) return;
         if (!expanded) EndDockScrub();
+        if (!expanded && _tab == "Meals") CloseMealCalendar();
         if (_expanded == expanded) return;
         _expanded = expanded;
         if (expanded && _tab == "Meals") RefreshMeals();
@@ -371,6 +370,8 @@ public partial class MainWindow : Window
     private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Escape && _dragArmed) { FinishPlacementDrag(true); e.Handled = true; return; }
+        if (e.Key == Key.Escape && _tab == "Meals" && CloseMealCalendar(restoreFocus: true))
+        { e.Handled = true; return; }
         if (e.Key == Key.Escape) { SetExpanded(false); e.Handled = true; }
         if ((e.Key == Key.Enter || e.Key == Key.Space) && !_expanded)
         { if (!_activities.Acknowledge(DateTimeOffset.UtcNow)) SetExpanded(true); e.Handled = true; }
@@ -547,6 +548,7 @@ public partial class MainWindow : Window
         string previousTab = _tab;
         var previousPage = changed && _expanded ? CapturePageSurface() : null;
         _tab = key;
+        if (previousTab == "Meals" && changed) CloseMealCalendar();
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
         FilesView.Visibility = key == "Files" ? Visibility.Visible : Visibility.Collapsed;
@@ -805,7 +807,7 @@ public partial class MainWindow : Window
         if (_expanded && (_tab is "Settings" or "Music")) RefreshBrowserAudio();
         if (_expanded && _tab == "Music") _ = RefreshApplicationAudioAsync();
         CheckReminders();
-        if (_expanded && _tab == "Meals" && _mealDay != AnkaraToday()) RefreshMeals();
+        if (_expanded && _tab == "Meals" && _mealDay != CurrentMealDay) RefreshMeals();
         if (DateTime.UtcNow > _volumeChangedUntil && _expanded && MusicView.Visibility == Visibility.Visible)
         {
             var vol = AudioService.ReadVolume();
@@ -833,12 +835,6 @@ public partial class MainWindow : Window
         }
         UpdateTimeline();
         RefreshCompact();
-        if (_settings.WaterReminder && DateTimeOffset.UtcNow - _lastWaterReminder >= TimeSpan.FromMinutes(45))
-        {
-            _lastWaterReminder = DateTimeOffset.UtcNow;
-            if (!_immersiveSuppressed) SystemSounds.Asterisk.Play();
-            ShowNotification("Su molası 💧", "Bir bardak su içme zamanı.");
-        }
     }
 
     private void RefreshTimerUi(bool refreshCompact = true)
@@ -1125,14 +1121,6 @@ public partial class MainWindow : Window
         if (!_ready) return;
         Topmost = StayTopCheck.IsChecked == true;
         _settings.AlwaysOnTop = Topmost;
-        SaveSettings();
-    }
-
-    private void WaterCheck_Changed(object sender, RoutedEventArgs e)
-    {
-        if (!_ready) return;
-        _settings.WaterReminder = WaterCheck.IsChecked == true;
-        _lastWaterReminder = DateTimeOffset.UtcNow;
         SaveSettings();
     }
 

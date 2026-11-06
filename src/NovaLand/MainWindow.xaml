@@ -876,10 +876,78 @@
         </DataTemplate>
        </ScrollViewer.Resources>
        <StackPanel Margin="0,10,0,2">
-        <StackPanel Margin="2,0,0,12">
-         <TextBlock Text="Bugünün menüsü" FontSize="22" FontWeight="SemiBold"/>
-         <TextBlock x:Name="MealsDateText" FontSize="11" Foreground="#A1A1A6" Margin="0,3,0,0"/>
+        <StackPanel Margin="2,0,0,9">
+         <TextBlock x:Name="MealsTitle" Text="Bugünün menüsü" FontSize="22" FontWeight="SemiBold"/>
+         <Button x:Name="MealsDateButton" Style="{StaticResource GhostButton}" Click="MealsDate_Click"
+                 AutomationProperties.Name="{Binding Text, ElementName=MealsDateText}"
+                 AutomationProperties.HelpText="Menüyü görmek istediğiniz günü seçin" HorizontalAlignment="Left"
+                 Padding="0,4,7,4" Margin="0,1,0,0">
+          <StackPanel Orientation="Horizontal">
+           <TextBlock x:Name="MealsDateText" FontSize="11" VerticalAlignment="Center"/>
+           <Path Data="M0,0 L3,3 6,0" Stroke="#A1A1A6" StrokeThickness="1.1" StrokeStartLineCap="Round"
+                 StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Margin="7,2,0,0"/>
+          </StackPanel>
+         </Button>
         </StackPanel>
+        <Border x:Name="MealsCalendar" Style="{StaticResource MealGroup}" Visibility="Collapsed" Padding="10,7,10,5">
+         <StackPanel>
+          <DockPanel Margin="3,0,0,4">
+           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <Button x:Name="MealPreviousMonth" Style="{StaticResource GhostButton}" Click="MealMonth_Click" Tag="-1"
+                    AutomationProperties.Name="Önceki ay" Padding="8,5">
+             <Path Data="M5,0 L0,4 5,8" Stroke="#D1D1D6" StrokeThickness="1.45" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+            </Button>
+            <Button x:Name="MealNextMonth" Style="{StaticResource GhostButton}" Click="MealMonth_Click" Tag="1"
+                    AutomationProperties.Name="Sonraki ay" Padding="8,5">
+             <Path Data="M0,0 L5,4 0,8" Stroke="#D1D1D6" StrokeThickness="1.45" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+            </Button>
+           </StackPanel>
+           <TextBlock x:Name="MealCalendarMonth" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+          </DockPanel>
+          <UniformGrid Columns="7" Margin="0,3,0,4">
+           <TextBlock Text="Pzt" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+           <TextBlock Text="Sal" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+           <TextBlock Text="Çar" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+           <TextBlock Text="Per" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+           <TextBlock Text="Cum" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+           <TextBlock Text="Cmt" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+           <TextBlock Text="Paz" HorizontalAlignment="Center" FontSize="10" Foreground="#A1A1A6"/>
+          </UniformGrid>
+          <ItemsControl x:Name="MealCalendarDays">
+           <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="7"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+           <ItemsControl.ItemTemplate>
+            <DataTemplate>
+             <Button Content="{Binding Label}" Click="MealDay_Click" AutomationProperties.Name="{Binding Description}"
+                     HorizontalAlignment="Center" Width="31" Height="25" Padding="0" FontSize="11">
+              <Button.Style>
+               <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                <Setter Property="Foreground" Value="#E5E5EA"/>
+                <Style.Triggers>
+                 <DataTrigger Binding="{Binding IsToday}" Value="True">
+                  <Setter Property="FontWeight" Value="SemiBold"/>
+                  <Setter Property="Foreground" Value="#ADC9FF"/>
+                 </DataTrigger>
+                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                  <Setter Property="Background" Value="#3B4861"/>
+                  <Setter Property="Foreground" Value="#F2F2F7"/>
+                  <Setter Property="FontWeight" Value="SemiBold"/>
+                 </DataTrigger>
+                 <DataTrigger Binding="{Binding Date}" Value="{x:Null}">
+                  <Setter Property="Visibility" Value="Hidden"/>
+                 </DataTrigger>
+                </Style.Triggers>
+               </Style>
+              </Button.Style>
+             </Button>
+            </DataTemplate>
+           </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Border Height="0.5" Background="#38383C" Margin="3,4,3,1"/>
+          <Button Content="Bugüne dön" Style="{StaticResource GhostButton}" Click="MealToday_Click"
+                  Foreground="#ADC9FF" HorizontalAlignment="Right" Padding="7,5"/>
+         </StackPanel>
+        </Border>
+        <StackPanel x:Name="MealsMenus">
         <Border Background="#222224" CornerRadius="10" Padding="3" Margin="0,0,0,9">
          <UniformGrid Columns="2">
           <RadioButton x:Name="SchoolMealsSegment" Content="Ankara Üniversitesi" GroupName="MealSource"
@@ -956,6 +1024,7 @@
          <Button Content="Kaynak: kepce.org ↗" Style="{StaticResource GhostButton}" Padding="4,5"
                  Click="MealSource_Click" HorizontalAlignment="Right" Margin="0,3,0,0"/>
         </StackPanel>
+        </StackPanel>
        </StackPanel>
       </ScrollViewer>
       <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
@@ -981,8 +1050,6 @@
         <Border Style="{StaticResource InsetCard}" Padding="14,3">
          <StackPanel>
           <CheckBox x:Name="CaptureClipboardCheck" Content="Metin, görsel ve dosya geçmişini tut" Checked="CaptureClipboardCheck_Changed" Unchecked="CaptureClipboardCheck_Changed" Margin="0" />
-          <Border Height="0.5" Background="#252529" />
-          <CheckBox x:Name="WaterCheck" Content="45 dakikada bir su molası" Checked="WaterCheck_Changed" Unchecked="WaterCheck_Changed" Margin="0" />
           <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="MealsCheck" Content="Günlük yemek menüsünü göster" Checked="MealsCheck_Changed" Unchecked="MealsCheck_Changed" Margin="0" />
          </StackPanel>
