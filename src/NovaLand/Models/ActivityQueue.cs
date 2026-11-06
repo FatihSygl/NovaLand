@@ -1,20 +1,21 @@
 namespace NovaIsland.Models;
 public sealed class ActivityQueue<T> where T : class
 {
-    public sealed record Item(string Key, int Priority, T Value);
+    public sealed record Item(string Key, int Priority, T Value, bool RequiresAcknowledgment);
     private readonly List<Item> _pending = new();
     private DateTimeOffset _ends, _pausedAt;
     private bool _paused;
     public Item? Active { get; private set; }
+    public bool AwaitingAcknowledgment => Active?.RequiresAcknowledgment == true;
     public bool HasWork => Active is not null || _pending.Count > 0;
     public event Action<T?>? Changed;
-    public void Enqueue(string key, int priority, T value, DateTimeOffset now, bool replaceActive = false)
+    public void Enqueue(string key, int priority, T value, DateTimeOffset now, bool replaceActive = false, bool requiresAcknowledgment = false)
     {
         _pending.RemoveAll(x => x.Key == key);
-        var item = new Item(key, priority, value);
-        if (!_paused && replaceActive && Active?.Key == key && priority >= Active.Priority)
+        var item = new Item(key, priority, value, requiresAcknowledgment);
+        if (!_paused && !AwaitingAcknowledgment && replaceActive && Active?.Key == key && priority >= Active.Priority)
         { Active = item; _ends = now.AddSeconds(4); Changed?.Invoke(value); return; }
-        if (!_paused && Active is not null && priority > Active.Priority)
+        if (!_paused && !AwaitingAcknowledgment && Active is not null && priority > Active.Priority)
         {
             // Resume the interrupted event after the urgent event, with a full viewing period.
             if (Active.Key != key && !_pending.Any(x => x.Key == Active.Key)) _pending.Insert(0, Active);
@@ -24,7 +25,11 @@ public sealed class ActivityQueue<T> where T : class
         // Coalesce repeated songs/status updates while keeping only the newest queued version.
         _pending.Add(item);
         if (!_paused && Active is null) StartNext(now);
-        if (_pending.Count > 24) _pending.RemoveAt(_pending.FindLastIndex(x => x.Priority == _pending.Min(y => y.Priority)));
+        if (_pending.Count > 24)
+        {
+            var discard = _pending.AsEnumerable().Reverse().Where(x => !x.RequiresAcknowledgment).MinBy(x => x.Priority);
+            if (discard is not null) _pending.Remove(discard);
+        }
     }
     public void Pause(bool paused, DateTimeOffset now)
     {
@@ -35,7 +40,7 @@ public sealed class ActivityQueue<T> where T : class
         {
             if (Active is not null) _ends += now - _pausedAt;
             if (Active is null) StartNext(now);
-            else if (_pending.Any(x => x.Priority > Active.Priority || x.Key == Active.Key && x.Priority >= Active.Priority))
+            else if (!AwaitingAcknowledgment && _pending.Any(x => x.Priority > Active.Priority || x.Key == Active.Key && x.Priority >= Active.Priority))
             {
                 var old = Active; Active = null; if (!_pending.Any(x => x.Key == old.Key)) _pending.Insert(0, old); StartNext(now);
             }
@@ -44,7 +49,7 @@ public sealed class ActivityQueue<T> where T : class
     public void Tick(DateTimeOffset now)
     {
         if (_paused) return;
-        if (Active is not null && now >= _ends) { Active = null; StartNext(now); }
+        if (Active is not null && !AwaitingAcknowledgment && now >= _ends) { Active = null; StartNext(now); }
         else if (Active is null && _pending.Count > 0) StartNext(now);
     }
     private void StartNext(DateTimeOffset now)
@@ -55,5 +60,20 @@ public sealed class ActivityQueue<T> where T : class
         _ends = now.AddSeconds(4); Changed?.Invoke(Active.Value);
     }
     public void RemovePending(string key) => _pending.RemoveAll(x => x.Key == key);
-    public void Clear() { _pending.Clear(); Active = null; Changed?.Invoke(null); }
+    public bool Acknowledge(DateTimeOffset now)
+    {
+        if (_paused || !AwaitingAcknowledgment) return false;
+        Active = null;
+        StartNext(now);
+        return true;
+    }
+
+    public void ClearTransient(DateTimeOffset now)
+    {
+        _pending.RemoveAll(x => !x.RequiresAcknowledgment);
+        if (AwaitingAcknowledgment) return;
+        Active = null;
+        if (_paused) Changed?.Invoke(null);
+        else StartNext(now);
+    }
 }

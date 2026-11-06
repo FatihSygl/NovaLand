@@ -118,6 +118,7 @@ public partial class MainWindow : Window
             if (action is not null)
             {
                 action(); RevealFromEdge(); _autoHideTimer.Stop(); RefreshCompact();
+                if (!_activities.AwaitingAcknowledgment) _activityTick.Start();
             }
             else { RefreshCompact(); if (!_expanded && !VolumeOverlay) QueueAutoHide(1); }
         };
@@ -127,7 +128,7 @@ public partial class MainWindow : Window
             bool volume = VolumeOverlay;
             if (_wasVolume && !volume) { RefreshCompact(); if (!_activities.HasWork) QueueAutoHide(1); }
             _wasVolume = volume;
-            if (!_activities.HasWork && DateTimeOffset.UtcNow >= _volumeUntil) _activityTick.Stop();
+            if ((!_activities.HasWork || _activities.AwaitingAcknowledgment) && DateTimeOffset.UtcNow >= _volumeUntil) _activityTick.Stop();
         };
         _clipboardHistory.Pinned.CollectionChanged += (_, _) => UpdateClipboardEmpty();
         _images.Pinned.CollectionChanged += (_, _) => UpdateClipboardEmpty();
@@ -307,7 +308,13 @@ public partial class MainWindow : Window
 
     private void Pill_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!_dragging && Shell.IsMouseOver && !IsPlacementControl(e.OriginalSource)) ToggleExpanded();
+        if (_dragging || !Shell.IsMouseOver || IsPlacementControl(e.OriginalSource)) return;
+        if (!_expanded && _activities.Acknowledge(DateTimeOffset.UtcNow))
+        {
+            e.Handled = true;
+            return;
+        }
+        ToggleExpanded();
     }
 
     private void ToggleExpanded()
@@ -363,7 +370,7 @@ public partial class MainWindow : Window
         if (e.Key == Key.Escape && _dragArmed) { FinishPlacementDrag(true); e.Handled = true; return; }
         if (e.Key == Key.Escape) { SetExpanded(false); e.Handled = true; }
         if ((e.Key == Key.Enter || e.Key == Key.Space) && !_expanded)
-        { SetExpanded(true); e.Handled = true; }
+        { if (!_activities.Acknowledge(DateTimeOffset.UtcNow)) SetExpanded(true); e.Handled = true; }
     }
 
     private const double ExpandedHeight = 460;
@@ -1007,7 +1014,7 @@ public partial class MainWindow : Window
         {
             EnqueueActivity("reminder:" + item.Id, 80, () =>
             {
-                ShowNoticeVisual(item.Text, "Hatırlatıcı");
+                ShowNoticeVisual(item.Text, "Kapatmak için tıkla");
                 _reminderNotice = true; _reminderClock = item.Due.LocalDateTime.ToString("HH:mm");
                 NoticeIcon.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
                 var turn = new RotateTransform(); NoticeIcon.RenderTransform = turn;
@@ -1016,7 +1023,7 @@ public partial class MainWindow : Window
                     wobble.KeyFrames.Add(new EasingDoubleKeyFrame(key.Item2, KeyTime.FromPercent(key.Item1)));
                 turn.BeginAnimation(RotateTransform.AngleProperty, wobble);
                 if (!_immersiveSuppressed) SystemSounds.Exclamation.Play();
-            });
+            }, requiresAcknowledgment: true);
         }
     }
 
@@ -1257,13 +1264,13 @@ public partial class MainWindow : Window
         pulse.KeyFrames.Add(new EasingDoubleKeyFrame(1, KeyTime.FromPercent(1)));
         NoticeIcon.BeginAnimation(OpacityProperty, pulse);
     }
-    private bool VolumeOverlay => !_expanded && DateTimeOffset.UtcNow < _volumeUntil;
+    private bool VolumeOverlay => !_expanded && !_activities.AwaitingAcknowledgment && DateTimeOffset.UtcNow < _volumeUntil;
     private void SyncActivityPause() => _activities.Pause(_immersiveSuppressed || _expanded || _dialogOpen || _dragging || VolumeOverlay, DateTimeOffset.UtcNow);
-    private void EnqueueActivity(string key, int priority, Action show, bool replaceActive = false)
+    private void EnqueueActivity(string key, int priority, Action show, bool replaceActive = false, bool requiresAcknowledgment = false)
     {
         RefreshGameMode();
         if (_immersiveSuppressed) return;
-        SyncActivityPause(); _activities.Enqueue(key, priority, show, DateTimeOffset.UtcNow, replaceActive);
+        SyncActivityPause(); _activities.Enqueue(key, priority, show, DateTimeOffset.UtcNow, replaceActive, requiresAcknowledgment);
         _activityTick.Start();
     }
     private void Pill_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1279,10 +1286,10 @@ public partial class MainWindow : Window
         if (!AudioService.SetVolume(volume)) { StatusText.Text = "Ses değiştirilemedi."; return; }
         _compactVolume = volume;
         _volumeChangedUntil = DateTime.UtcNow.AddSeconds(2);
-        _volumeUntil = DateTimeOffset.UtcNow.AddSeconds(2);
+        if (!_activities.AwaitingAcknowledgment) _volumeUntil = DateTimeOffset.UtcNow.AddSeconds(2);
         SyncActivityPause();
         _activityTick.Start();
-        _wasVolume = true; RevealFromEdge(); RefreshCompact();
+        _wasVolume = VolumeOverlay; RevealFromEdge(); RefreshCompact();
         VolumeMiniFill.BeginAnimation(FrameworkElement.WidthProperty, new DoubleAnimation(128 * volume / 100.0, TimeSpan.FromMilliseconds(100)));
         VolumeValue.Text = $"{volume}%";
         if (_ready && SystemParameters.ClientAreaAnimation) VolumeValue.BeginAnimation(OpacityProperty, new DoubleAnimation(.4, 1, TimeSpan.FromMilliseconds(220)));
@@ -1308,7 +1315,7 @@ public partial class MainWindow : Window
 
     private void Hide_Click(object sender, RoutedEventArgs e)
     {
-        _activities.Clear(); _volumeUntil = DateTimeOffset.MinValue;
+        _activities.ClearTransient(DateTimeOffset.UtcNow); _volumeUntil = DateTimeOffset.MinValue;
         SetExpanded(false);
         if (_settings.AutoHide) HideToEdge();
     }

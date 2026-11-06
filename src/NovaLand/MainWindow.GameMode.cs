@@ -23,7 +23,9 @@ public partial class MainWindow
             _immersiveSuppressed = true;
             if (_expanded) SetExpanded(false);
             if (_dragArmed) FinishPlacementDrag(true);
-            _activities.Clear(); _activityTick.Stop();
+            SyncActivityPause();
+            _activities.ClearTransient(DateTimeOffset.UtcNow);
+            _activityTick.Stop();
             _hoverRevealTimer.Stop(); _autoHideTimer.Stop();
             _spectrum.Enabled = false; _waveTick.Stop();
             _gameHiddenWindows.Clear();
@@ -34,6 +36,7 @@ public partial class MainWindow
         else
         {
             _immersiveSuppressed = false;
+            SyncActivityPause();
             if (_visibleBeforeGame)
             {
                 bool activate = ShowActivated; ShowActivated = false;
