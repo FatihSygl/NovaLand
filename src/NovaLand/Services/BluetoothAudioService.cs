@@ -4,7 +4,7 @@ using NovaIsland.Models;
 namespace NovaIsland.Services;
 public sealed class BluetoothAudioService
 {
-    private sealed record KnownAudio(string Id,string Name,ulong Address,Guid Container);
+    private sealed record KnownAudio(string Id,string? Name,ulong Address,Guid Container);
     private readonly Dictionary<string,KnownAudio> _known = new();
     private readonly BluetoothAudioTracker _tracker = new();
     private List<BatteryNode> _batteryNodes = new();
@@ -22,10 +22,10 @@ public sealed class BluetoothAudioService
             devices=await DeviceInformation.FindAllAsync(BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected),new[]{"System.Devices.ContainerId","System.Devices.Aep.ContainerId"}).AsTask(timeout.Token);
         }
         catch(Exception ex){DiagnosticLog.Write("BluetoothEnumeration",ex);return;}
-        var audio=new List<KnownAudio>();
+        var audio=new List<(KnownAudio Device, string PairedName)>();
         foreach(var info in devices)
         {
-            if(_known.TryGetValue(info.Id,out var cached)){audio.Add(cached);continue;}
+            if(_known.TryGetValue(info.Id,out var cached)){audio.Add((cached, info.Name));continue;}
             try
             {
                 using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(2));
@@ -33,16 +33,16 @@ public sealed class BluetoothAudioService
                 if(device?.ClassOfDevice.MajorClass!=BluetoothMajorClass.AudioVideo)continue;
                 Guid container=Guid.Empty;
                 foreach(var key in new[]{"System.Devices.ContainerId","System.Devices.Aep.ContainerId"})
-                    if(info.Properties.TryGetValue(key,out var value)&&Guid.TryParse(value?.ToString(),out var g)){container=g;break;}
-                var item=new KnownAudio(info.Id,string.IsNullOrWhiteSpace(device.Name)?info.Name:device.Name,device.BluetoothAddress,container);
-                _known[info.Id]=item;audio.Add(item);
+                    if(info.Properties.TryGetValue(key,out var value)&&Guid.TryParse(value?.ToString(),out var g)&&g!=Guid.Empty){container=g;break;}
+                var item=new KnownAudio(info.Id,BluetoothBatteryReader.UsableName(device.Name),device.BluetoothAddress,container);
+                _known[info.Id]=item;audio.Add((item, info.Name));
             }
             catch(Exception ex){DiagnosticLog.Write("BluetoothDevice",ex);}
         }
         // Battery reads cannot hold connection/disconnection notices hostage.
         if(audio.Count>0)
         {
-            if(_batteryRead is null && (audio.Any(x=>!_tracker.IsConnected(x.Id))||DateTimeOffset.UtcNow-_lastBatteryRead>TimeSpan.FromSeconds(20)))
+            if(_batteryRead is null && (audio.Any(x=>!_tracker.IsConnected(x.Device.Id))||DateTimeOffset.UtcNow-_lastBatteryRead>TimeSpan.FromSeconds(20)))
                 _batteryRead=Task.Run(BluetoothBatteryReader.Read);
             if(_batteryRead is not null)
             {
@@ -55,7 +55,14 @@ public sealed class BluetoothAudioService
                 catch(Exception ex){DiagnosticLog.Write("BluetoothBattery",ex);_batteryRead=null;_lastBatteryRead=DateTimeOffset.UtcNow;}
             }
         }
-        Connected = audio.Select(x=>new BluetoothAudioSnapshot(x.Id,x.Name,BluetoothBatteryReader.Match(_batteryNodes,x.Address,x.Container))).ToArray();
+        Connected = audio.Select(entry =>
+        {
+            var device = entry.Device;
+            var name = BluetoothBatteryReader.ResolveName(entry.PairedName, device.Name, _batteryNodes,
+                device.Address, device.Container);
+            return new BluetoothAudioSnapshot(device.Id, name,
+                BluetoothBatteryReader.Match(_batteryNodes, device.Address, device.Container));
+        }).ToArray();
         _tracker.Update(Connected);
     }
 }

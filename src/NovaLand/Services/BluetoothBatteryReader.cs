@@ -1,12 +1,15 @@
 using System.Runtime.InteropServices;
 using System.Text;
 namespace NovaIsland.Services;
-public sealed record BatteryNode(string InstanceId, Guid Container, int? Percentage);
+public sealed record BatteryNode(string InstanceId, Guid Container, int? Percentage, string? Name = null, string? BusName = null);
 public static class BluetoothBatteryReader
 {
     // Windows HFP battery property; optional, driver-dependent. Never substitute laptop battery.
     private static readonly PropertyKey BatteryKey = new(new Guid("104EA319-6EE2-4701-BD47-8DDBF425BBE5"), 2);
     private static readonly PropertyKey ContainerKey = new(new Guid("8C7ED206-3F8A-4827-B3AB-AE9E1FAEFC6C"), 2);
+    private static readonly PropertyKey FriendlyNameKey = new(new Guid("A45C254E-DF1C-4EFD-8020-67D146A850E0"), 14);
+    private static readonly PropertyKey BusNameKey = new(new Guid("540B947E-8B40-45BC-A8A2-6A0B894CBDA2"), 4);
+
     public static List<BatteryNode> Read()
     {
         var nodes = new List<BatteryNode>();
@@ -27,20 +30,84 @@ public static class BluetoothBatteryReader
                 if (percentage is null && !instance.Contains("BTH", StringComparison.OrdinalIgnoreCase)) continue;
                 var containerBytes = GetProperty(set, ref info, ContainerKey, out _);
                 var container = containerBytes?.Length == 16 ? new Guid(containerBytes) : Guid.Empty;
-                nodes.Add(new BatteryNode(instance, container, percentage));
+                bool physicalDevice = IsPhysicalBluetoothDevice(instance);
+                nodes.Add(new BatteryNode(instance, container, percentage,
+                    physicalDevice ? ReadName(set, ref info, FriendlyNameKey) : null,
+                    physicalDevice ? ReadName(set, ref info, BusNameKey) : null));
             }
         }
         finally { SetupDiDestroyDeviceInfoList(set); }
         return nodes;
     }
-    public static int? Match(IReadOnlyList<BatteryNode> nodes, ulong address, Guid container)
+    public static int? Match(IReadOnlyList<BatteryNode> nodes, ulong address, Guid container) =>
+        MatchingNodes(nodes, address, container).Min(node => node.Percentage);
+
+    internal static string ResolveName(string? pairedName, string? deviceName, IReadOnlyList<BatteryNode> nodes,
+        ulong address, Guid container)
+    {
+        var name = UsableName(pairedName) ?? UsableName(deviceName);
+        if (name is not null) return name;
+
+        string hex = address.ToString("X12");
+        return MatchingNodes(nodes, address, container)
+            .Where(node => IsPhysicalBluetoothDevice(node.InstanceId))
+            .OrderByDescending(node => address != 0 && HasAddress(node.InstanceId, hex))
+            .Select(node => UsableName(node.Name) ?? UsableName(node.BusName))
+            .FirstOrDefault(value => value is not null) ?? "Bluetooth ses cihazı";
+    }
+
+    internal static string? UsableName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        name = name.Trim();
+        if (name.Equals("Bluetooth", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Bluetooth Device", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Bluetooth Audio Device", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        const string prefix = "Bluetooth ";
+        string address = name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? name[prefix.Length..] : name;
+        address = address.Replace(":", "").Replace("-", "");
+        return address.Length == 12 && address.All(Uri.IsHexDigit) ? null : name;
+    }
+
+    private static IEnumerable<BatteryNode> MatchingNodes(IReadOnlyList<BatteryNode> nodes, ulong address, Guid container)
     {
         string hex = address.ToString("X12");
-        var matchingContainers = nodes.Where(n => n.InstanceId.Contains(hex, StringComparison.OrdinalIgnoreCase) && n.Container != Guid.Empty).Select(n => n.Container).ToHashSet();
+        var matchingContainers = nodes
+            .Where(node => address != 0 && node.Container != Guid.Empty && HasAddress(node.InstanceId, hex))
+            .Select(node => node.Container).ToHashSet();
         if (container != Guid.Empty) matchingContainers.Add(container);
-        var values = nodes.Where(n => n.Percentage.HasValue && ((n.Container != Guid.Empty && matchingContainers.Contains(n.Container)) || n.InstanceId.Contains(hex, StringComparison.OrdinalIgnoreCase))).Select(n => n.Percentage!.Value).ToArray();
-        return values.Length > 0 ? values.Min() : null;
+        return nodes.Where(node => matchingContainers.Contains(node.Container) ||
+            (address != 0 && HasAddress(node.InstanceId, hex)));
     }
+
+    private static bool HasAddress(string instance, string hex)
+    {
+        for (int start = 0; start <= instance.Length - hex.Length;)
+        {
+            int index = instance.IndexOf(hex, start, StringComparison.OrdinalIgnoreCase);
+            if (index < 0) return false;
+            int end = index + hex.Length;
+            if ((index == 0 || !Uri.IsHexDigit(instance[index - 1])) &&
+                (end == instance.Length || !Uri.IsHexDigit(instance[end]))) return true;
+            start = index + 1;
+        }
+        return false;
+    }
+
+    private static bool IsPhysicalBluetoothDevice(string id) =>
+        id.StartsWith(@"BTHENUM\DEV_", StringComparison.OrdinalIgnoreCase) ||
+        id.StartsWith(@"BTHLE\DEV_", StringComparison.OrdinalIgnoreCase);
+
+    private static string? ReadName(IntPtr set, ref DeviceInfo info, PropertyKey key)
+    {
+        const uint stringProperty = 0x12;
+        var bytes = GetProperty(set, ref info, key, out var type, capacity: 1024);
+        return type == stringProperty && bytes is { Length: >= 2 } && bytes.Length % 2 == 0
+            ? Encoding.Unicode.GetString(bytes).TrimEnd('\0') : null;
+    }
+
     private static int? ParseBattery(uint type, byte[]? bytes)
     {
         if (bytes is null) return null;
@@ -54,9 +121,9 @@ public static class BluetoothBatteryReader
         };
         return value is >= 0 and <= 100 ? (int)value : null;
     }
-    private static byte[]? GetProperty(IntPtr set, ref DeviceInfo info, PropertyKey key, out uint type)
+    private static byte[]? GetProperty(IntPtr set, ref DeviceInfo info, PropertyKey key, out uint type, int capacity = 32)
     {
-        var buffer = new byte[32];
+        var buffer = new byte[capacity];
         if (!SetupDiGetDevicePropertyW(set, ref info, ref key, out type, buffer, buffer.Length, out var size, 0) || size > buffer.Length) return null;
         return buffer[..(int)size];
     }

@@ -12,7 +12,8 @@ public partial class MainWindow
     private OutputAudioRow[] _shownOutputs = [];
     private sealed record ConnectedAudioRow(string Name, int? Battery)
     {
-        public string BatteryLabel => Battery.HasValue ? $"%{Math.Clamp(Battery.Value, 0, 100)}" : "—";
+        public string BatteryLabel => Battery.HasValue ? $"%{Math.Clamp(Battery.Value, 0, 100)}" : "Pil bilgisi yok";
+        public Visibility BatteryIconVisibility => Battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
         public string BatteryHint => Battery.HasValue ? $"Kulaklık pili: {BatteryLabel}" : "Pil bilgisi yok";
         public double BatteryFillWidth => Battery.HasValue ? 17 * Math.Clamp(Battery.Value, 0, 100) / 100.0 : 0;
         public string BatteryColor => Battery is null ? "#777780" : Battery is <= 10 ? "#FF5B5D" : Battery is <= 20 ? "#FFB45B" : "#B9F879";

@@ -152,6 +152,7 @@ using(var updates = new UpdateService(new HttpClient(new FakeHttp(body,bytes))))
  catch(InvalidDataException){Assert(updates.ReadyExecutable is null,"tampered download never marked ready");}
 }
 AudioRegressionChecks.Run(Assert);
+BluetoothDeviceChecks.Run(Assert);
 Directory.Delete(root,true);Console.WriteLine($"{count} checks passed");
 sealed class FakeHttp(string metadata, byte[] package, HttpStatusCode status=HttpStatusCode.OK):HttpMessageHandler {
  protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token) {
