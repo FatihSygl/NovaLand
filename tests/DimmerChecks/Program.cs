@@ -34,6 +34,7 @@ internal static class Program
         TaskSwitcherChecks.Run();
         PerformanceChecks.Run();
         PlacementChecks.Run();
+        FileShelfAnimationChecks.Run(Check);
     }
     private static List<IntPtr> Surfaces()
     {

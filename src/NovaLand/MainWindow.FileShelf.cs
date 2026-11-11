@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using NovaIsland.Models;
+using NovaIsland.Services;
 using DragEventArgs = System.Windows.DragEventArgs;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Point = System.Windows.Point;
@@ -20,6 +21,7 @@ public partial class MainWindow
     private FileEntry? _draggedFile;
     private ListBoxItem? _fileDropMarker;
     private Point? _fileDragPosition;
+    private TranslateTransform? _fileDragCardPosition;
     private int? _fileInsertionIndex;
     private double _fileDragScrollStep;
 
@@ -37,7 +39,8 @@ public partial class MainWindow
         if (_files.Count < 2 || sender is not FrameworkElement grip) return;
         _fileGripOrigin = e.GetPosition(FileList);
         e.Handled = grip.CaptureMouse();
-        if (e.Handled && grip.RenderTransform is ScaleTransform scale) AnimateFileScale(scale, 0.88, 90);
+        if (e.Handled && SystemParameters.ClientAreaAnimation)
+            AnimateFileScale(RenderTransformAnimation.ForElement<ScaleTransform>(grip), 0.88, 90);
     }
 
     private void FileGrip_MouseUp(object sender, MouseButtonEventArgs e)
@@ -51,8 +54,8 @@ public partial class MainWindow
 
     private void FileGrip_LostCapture(object sender, MouseEventArgs e)
     {
-        if (sender is FrameworkElement { RenderTransform: ScaleTransform scale })
-            AnimateFileScale(scale, 1, 125);
+        if (sender is FrameworkElement grip && grip.ReadLocalValue(RenderTransformProperty) is ScaleTransform)
+            AnimateFileScale(RenderTransformAnimation.ForElement<ScaleTransform>(grip), 1, 125);
     }
 
     private void FileGrip_MouseMove(object sender, MouseEventArgs e)
@@ -70,16 +73,8 @@ public partial class MainWindow
 
         grip.ReleaseMouseCapture();
         e.Handled = true;
-        _draggedFile = file;
         var sourceRow = FileList.ItemContainerGenerator.ContainerFromItem(file) as ListBoxItem;
         var sourceContent = FileRowPart(sourceRow, "FileRowContent");
-        if (sourceContent is not null) AnimateFileOpacity(sourceContent, 0.42, 130);
-        FileDragName.Text = file.Name;
-        MoveFileDragCard(position);
-        FileDragCardScale.ScaleX = FileDragCardScale.ScaleY = 0.93;
-        AnimateFileScale(FileDragCardScale, 1, 155);
-        FileDragCard.Opacity = 0.35;
-        AnimateFileOpacity(FileDragCard, 0.96, 145);
         var viewport = FindFileScrollViewer(FileList);
         var autoScroll = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(35) };
         autoScroll.Tick += (_, _) =>
@@ -89,9 +84,19 @@ public partial class MainWindow
                 ScrollFileListBy(viewport, _fileDragScrollStep);
             }
         };
-        autoScroll.Start();
+        _draggedFile = file;
         try
         {
+            if (sourceContent is not null) AnimateFileOpacity(sourceContent, 0.42, 130);
+            FileDragName.Text = file.Name;
+            var cardScale = new ScaleTransform(0.93, 0.93);
+            _fileDragCardPosition = new TranslateTransform();
+            FileDragCard.RenderTransform = new TransformGroup { Children = { cardScale, _fileDragCardPosition } };
+            MoveFileDragCard(position);
+            AnimateFileScale(cardScale, 1, 155);
+            FileDragCard.Opacity = 0.35;
+            AnimateFileOpacity(FileDragCard, 0.96, 145);
+            autoScroll.Start();
             var data = new System.Windows.DataObject(FileReorderFormat, true);
             System.Windows.DragDrop.DoDragDrop(grip, data, System.Windows.DragDropEffects.Move);
         }
@@ -101,6 +106,7 @@ public partial class MainWindow
             _fileDragScrollStep = 0;
             _draggedFile = null;
             _fileDragPosition = null;
+            _fileDragCardPosition = null;
             FileDragOverlay.Visibility = Visibility.Collapsed;
             SetFileDropMarker(null);
             if (sourceContent is not null) AnimateFileOpacity(sourceContent, 1, 150);
@@ -130,7 +136,7 @@ public partial class MainWindow
     private void FileList_DragLeave(object sender, DragEventArgs e)
     {
         if (!IsFileReorder(e)) return;
-        if (GetCursorPos(out var cursor) &&
+        if (PresentationSource.FromVisual(FileList)?.CompositionTarget is not null && GetCursorPos(out var cursor) &&
             new Rect(FileList.RenderSize).Contains(FileList.PointFromScreen(new Point(cursor.X, cursor.Y)))) return;
         _fileDragScrollStep = 0;
         _fileDragPosition = null;
@@ -179,9 +185,10 @@ public partial class MainWindow
 
     private void MoveFileDragCard(Point position)
     {
+        if (_fileDragCardPosition is not { } offset) return;
         FileDragOverlay.Visibility = Visibility.Visible;
-        FileDragCardPosition.X = Math.Clamp(position.X + 17, 0, Math.Max(0, FileList.ActualWidth - FileDragCard.Width - 5));
-        FileDragCardPosition.Y = Math.Clamp(position.Y - FileDragCard.Height / 2, 0,
+        offset.X = Math.Clamp(position.X + 17, 0, Math.Max(0, FileList.ActualWidth - FileDragCard.Width - 5));
+        offset.Y = Math.Clamp(position.Y - FileDragCard.Height / 2, 0,
             Math.Max(0, FileList.ActualHeight - FileDragCard.Height));
     }
 
@@ -221,8 +228,8 @@ public partial class MainWindow
         var line = FileRowPart(row, "InsertionLine");
         if (line is null || !animate || !SystemParameters.ClientAreaAnimation) return;
         line.BeginAnimation(OpacityProperty, FileShelfAnimation(0.2, 1, 125));
-        if (line.RenderTransform is ScaleTransform scale)
-            scale.BeginAnimation(ScaleTransform.ScaleXProperty, FileShelfAnimation(0.78, 1, 145));
+        var scale = RenderTransformAnimation.ForElement<ScaleTransform>(line);
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, FileShelfAnimation(0.78, 1, 145));
     }
 
     private void AnimateFileArrival(FileEntry file, bool movedDown)
@@ -231,8 +238,11 @@ public partial class MainWindow
         var row = FileList.ItemContainerGenerator.ContainerFromItem(file) as ListBoxItem;
         if (FileRowPart(row, "FileRowTint") is { } tint)
             tint.BeginAnimation(OpacityProperty, FileShelfAnimation(1, 0, 320));
-        if (FileRowPart(row, "FileRowContent")?.RenderTransform is TranslateTransform offset)
+        if (FileRowPart(row, "FileRowContent") is { } content)
+        {
+            var offset = RenderTransformAnimation.ForElement<TranslateTransform>(content);
             offset.BeginAnimation(TranslateTransform.YProperty, FileShelfAnimation(movedDown ? -7 : 7, 0, 185));
+        }
     }
 
     private static FrameworkElement? FileRowPart(ListBoxItem? row, string name) =>

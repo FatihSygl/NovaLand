@@ -601,12 +601,6 @@
         <Canvas x:Name="FileDragOverlay" ClipToBounds="True" IsHitTestVisible="False" Visibility="Collapsed">
          <Border x:Name="FileDragCard" Width="174" Height="32" Padding="10,0" CornerRadius="10"
                  Background="#272C35" BorderBrush="#424D60" BorderThickness="1" RenderTransformOrigin="0,0.5">
-          <Border.RenderTransform>
-           <TransformGroup>
-            <ScaleTransform x:Name="FileDragCardScale"/>
-            <TranslateTransform x:Name="FileDragCardPosition"/>
-           </TransformGroup>
-          </Border.RenderTransform>
           <TextBlock x:Name="FileDragName" FontSize="11" FontWeight="SemiBold" Foreground="#E3E9F4"
                      TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
          </Border>
