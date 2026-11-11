@@ -326,6 +326,7 @@ public partial class MainWindow : Window
     private void SetExpanded(bool expanded)
     {
         if (_immersiveSuppressed && expanded) return;
+        if (!expanded && _draggedFile is not null) return;
         if (!expanded) EndDockScrub();
         if (!expanded && _tab == "Meals") CloseMealCalendar();
         if (_expanded == expanded) return;
