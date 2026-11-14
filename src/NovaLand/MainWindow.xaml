@@ -1096,6 +1096,32 @@
           <CheckBox x:Name="StartupCheck" Content="Windows ile başlat" Checked="StartupCheck_Changed" Unchecked="StartupCheck_Changed" Margin="0" />
          </StackPanel>
         </Border>
+        <TextBlock Text="SES PAYLAŞIMI" Style="{StaticResource SectionLabel}" Margin="2,12,0,8"/>
+        <Border Style="{StaticResource InsetCard}" Padding="14,5">
+         <StackPanel>
+          <CheckBox x:Name="DualHeadphonesCheck" Content="Çift kulaklık" Checked="DualHeadphones_Changed"
+                    Unchecked="DualHeadphones_Changed" Margin="0"/>
+          <StackPanel x:Name="DualHeadphonesPanel" Visibility="Collapsed" Margin="0,2,0,6">
+           <TextBlock Text="İlk kulaklığı Windows’ta varsayılan çıkış yap. İkinci kulaklığı aşağıdan seç."
+                      TextWrapping="Wrap" FontSize="10" Foreground="#A1A1AB" Margin="0,0,0,7"/>
+           <TextBlock x:Name="DualHeadphonesStatus" TextWrapping="Wrap" FontSize="10" Foreground="#C2C2CB"
+                      AutomationProperties.LiveSetting="Polite" Margin="0,0,0,4"/>
+           <ItemsControl x:Name="DualHeadphonesOutputs">
+            <ItemsControl.ItemTemplate><DataTemplate>
+             <Button Click="SecondHeadphone_Click" Style="{StaticResource OutputRowButton}" Padding="7,6"
+                     HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding Name}" ToolTip="{Binding Name}">
+              <Grid>
+               <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+               <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="11" VerticalAlignment="Center"/>
+               <TextBlock Grid.Column="1" Text="✓" Visibility="{Binding SelectedVisibility}" Foreground="#D7D7E3"
+                          FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"/>
+              </Grid>
+             </Button>
+            </DataTemplate></ItemsControl.ItemTemplate>
+           </ItemsControl>
+          </StackPanel>
+         </StackPanel>
+        </Border>
         <TextBlock Text="GÜNLÜK KULLANIM" Style="{StaticResource SectionLabel}" Margin="2,12,0,8" />
         <Border Style="{StaticResource InsetCard}" Padding="14,3">
          <StackPanel>

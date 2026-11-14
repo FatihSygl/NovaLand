@@ -181,6 +181,7 @@ public partial class MainWindow : Window
         StayTopCheck.IsChecked = _settings.AlwaysOnTop;
         StartupCheck.IsChecked = StartupService.IsEnabled();
         MealsCheck.IsChecked = _settings.MealsEnabled;
+        DualHeadphonesCheck.IsChecked = _settings.DualHeadphonesEnabled;
         MealsTab.Visibility = _settings.MealsEnabled ? Visibility.Visible : Visibility.Collapsed;
         FullscreenCheck.IsChecked = _settings.HideInFullscreen;
         Topmost = _settings.AlwaysOnTop;
@@ -213,6 +214,7 @@ public partial class MainWindow : Window
         if (greeting is not null && !_showUpdateArrival)
             EnqueueActivity("launch-greeting", 30, () => RenderLaunchGreeting(greeting));
         InitializeClipboardCapture();
+        ApplyDualHeadphonesSettings();
         _devicePoll.Start();
         _ = ScanDevicesAsync();
         SystemParameters.StaticPropertyChanged += DisplaySettingsChanged;
@@ -560,6 +562,7 @@ public partial class MainWindow : Window
         if (key is "Settings" or "Music") RefreshBrowserAudio();
         if (key == "Music") _ = RefreshApplicationAudioAsync();
         if (key == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); }
+        if (key == "Settings" && _settings.DualHeadphonesEnabled) _ = RefreshOutputAudioAsync();
         SettingsView.Visibility = key == "Settings" ? Visibility.Visible : Visibility.Collapsed;
         MealsView.Visibility = key == "Meals" ? Visibility.Visible : Visibility.Collapsed;
         if (key == "Meals" && _expanded) RefreshMeals();
@@ -749,7 +752,13 @@ public partial class MainWindow : Window
 
         }
         catch (Exception ex) { DiagnosticLog.Write("DevicePoll", ex); }
-        finally { _deviceBusy = false; if (_expanded && _tab == "Controls") { RefreshConnectedAudio(); _ = RefreshOutputAudioAsync(); } }
+        finally
+        {
+            _deviceBusy = false;
+            if (_expanded && _tab == "Controls") RefreshConnectedAudio();
+            if (_expanded && (_tab == "Controls" || (_tab == "Settings" && _settings.DualHeadphonesEnabled)))
+                _ = RefreshOutputAudioAsync();
+        }
         // A Bluetooth failure must not disable screenshot history.
         await ScanScreenshotsAsync();
     }
@@ -1387,6 +1396,7 @@ public partial class MainWindow : Window
         _browserAudio?.Dispose();
         _waveTick.Stop();
         _spectrum.Dispose();
+        _dualHeadphones.Dispose();
         _devicePoll.Stop();
         _clipboard?.Dispose();
         _images.Clear();

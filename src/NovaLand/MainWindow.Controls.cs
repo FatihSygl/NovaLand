@@ -58,6 +58,7 @@ public partial class MainWindow
         if (!_shownOutputs.SequenceEqual(items)) OutputAudioList.ItemsSource = _shownOutputs = items;
         OutputAudioEmpty.Text = "Ses çıkışı bulunamadı.";
         OutputAudioEmpty.Visibility = rows.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ShowSecondHeadphoneOutputs(rows);
     }
     private async void OutputAudio_Click(object sender, RoutedEventArgs e)
     {

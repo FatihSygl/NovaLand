@@ -19,6 +19,8 @@ public sealed class LocalSettings
     public bool AutoHide { get; set; } = true;
     public bool CaptureClipboard { get; set; } = true;
     public bool MealsEnabled { get; set; }
+    public bool DualHeadphonesEnabled { get; set; }
+    public string? SecondHeadphoneId { get; set; }
     public List<string> FilePaths { get; set; } = new();
 }
 
