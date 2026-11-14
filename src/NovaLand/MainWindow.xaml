@@ -108,19 +108,19 @@
    </Border>
   </DataTemplate>
   <Style x:Key="MusicSourceButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
-   <Setter Property="Padding" Value="8,6"/>
+   <Setter Property="Padding" Value="4,0,6,0"/>
    <Setter Property="FocusVisualStyle"><Setter.Value><Style TargetType="Control">
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Control">
-     <Border CornerRadius="10" BorderBrush="#72727C" BorderThickness="1"/>
+     <Border CornerRadius="7" BorderBrush="#72727C" BorderThickness="1"/>
     </ControlTemplate></Setter.Value></Setter>
    </Style></Setter.Value></Setter>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-    <Border x:Name="SourceSurface" Background="#222226" CornerRadius="10" Padding="{TemplateBinding Padding}">
+    <Border x:Name="SourceSurface" Background="Transparent" CornerRadius="7" Padding="{TemplateBinding Padding}">
      <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
     </Border>
     <ControlTemplate.Triggers>
-     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SourceSurface" Property="Background" Value="#2C2C31"/></Trigger>
-     <Trigger Property="IsPressed" Value="True"><Setter TargetName="SourceSurface" Property="Background" Value="#333339"/></Trigger>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SourceSurface" Property="Background" Value="#242428"/></Trigger>
+     <Trigger Property="IsPressed" Value="True"><Setter TargetName="SourceSurface" Property="Background" Value="#2C2C31"/></Trigger>
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
   </Style>
@@ -128,13 +128,13 @@
    <Setter Property="IsMoveToPointEnabled" Value="True"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Slider">
     <Grid x:Name="SliderSurface" Background="Transparent" MinHeight="24">
-     <Border Background="#34343A" CornerRadius="2" Height="4" Margin="7,0" VerticalAlignment="Center"/>
+     <Border Background="#39393E" CornerRadius="1.5" Height="3" Margin="7,0" VerticalAlignment="Center"/>
      <Track x:Name="PART_Track" VerticalAlignment="Center" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
             Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
       <Track.DecreaseRepeatButton>
        <RepeatButton Command="Slider.DecreaseLarge" Focusable="False">
         <RepeatButton.Template><ControlTemplate TargetType="RepeatButton">
-         <Border Height="4" Margin="7,0,0,0" Background="#CECED8" CornerRadius="2,0,0,2" VerticalAlignment="Center"/>
+         <Border Height="3" Margin="7,0,0,0" Background="#D7D7DF" CornerRadius="1.5,0,0,1.5" VerticalAlignment="Center"/>
         </ControlTemplate></RepeatButton.Template>
        </RepeatButton>
       </Track.DecreaseRepeatButton>
@@ -161,6 +161,14 @@
      <Trigger Property="IsEnabled" Value="False"><Setter TargetName="SliderSurface" Property="Opacity" Value="0.35"/></Trigger>
     </ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="MusicVolumePercentage" TargetType="TextBlock">
+   <Setter Property="FontSize" Value="11"/>
+   <Setter Property="Foreground" Value="#A3A3AD"/>
+   <Setter Property="Typography.NumeralAlignment" Value="Tabular"/>
+   <Setter Property="HorizontalAlignment" Value="Right"/>
+   <Setter Property="VerticalAlignment" Value="Center"/>
+   <Setter Property="IsHitTestVisible" Value="False"/>
   </Style>
   <Style x:Key="OutputRowButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
@@ -385,26 +393,25 @@
          <Path Fill="White" Width="23" Height="18" Stretch="Uniform" Data="F1 M1,1 L11,9 1,17 Z M11,1 L21,9 11,17 Z" />
         </Button>
        </StackPanel>
-       <Border Background="#18181B" CornerRadius="17" Padding="8,7,11,7" Margin="0,11,0,0"
+       <Border Background="#1A1A1D" CornerRadius="16" Padding="12,6,12,4" Margin="0,11,0,0"
                BorderBrush="#2B2B30" BorderThickness="0.5">
         <Grid>
-         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="4*"/>
-          <ColumnDefinition Width="12"/>
-          <ColumnDefinition Width="5*"/>
-         </Grid.ColumnDefinitions>
-         <Button x:Name="AudioSourceButton" Style="{StaticResource MusicSourceButton}"
+         <Grid.RowDefinitions>
+          <RowDefinition Height="25"/>
+          <RowDefinition Height="24"/>
+         </Grid.RowDefinitions>
+         <Button x:Name="AudioSourceButton" Panel.ZIndex="1" Margin="-4,0,43,0" Style="{StaticResource MusicSourceButton}"
                  Click="AudioSource_Click" ToolTip="{Binding Text, ElementName=AudioSourceTitle}"
                  AutomationProperties.Name="Ses kaynağını seç">
           <Grid>
            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
            <Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.35"
                  Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,7,0"/>
-           <TextBlock x:Name="AudioSourceTitle" Grid.Column="1" Text="Sistem" FontSize="11" FontWeight="Medium"
+           <TextBlock x:Name="AudioSourceTitle" Grid.Column="1" Text="Sistem" FontSize="11" FontWeight="SemiBold"
                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="#E2E2E7"/>
            <Path Grid.Column="2" Data="M1,1 L5,5 9,1" Stroke="#9797A1" StrokeThickness="1.3"
                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="7" Height="4" Stretch="Fill"
-                 VerticalAlignment="Center" Margin="7,0,0,0"/>
+                 VerticalAlignment="Center" Margin="6,0,0,0"/>
           </Grid>
          </Button>
          <Popup x:Name="AudioSourcePicker" PlacementTarget="{Binding ElementName=AudioSourceButton}"
@@ -443,22 +450,34 @@
            </ScrollViewer>
           </Border>
          </Popup>
-         <Grid Grid.Column="2" x:Name="SystemVolumeRow"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="34"/></Grid.ColumnDefinitions>
-          <Slider x:Name="VolumeSlider" Style="{StaticResource MusicVolumeSlider}" Minimum="0" Maximum="100" Value="50" ValueChanged="VolumeSlider_ValueChanged" AutomationProperties.Name="Sistem sesi"/>
-          <TextBlock x:Name="VolumeValue" Grid.Column="1" FontSize="10" Typography.NumeralAlignment="Tabular" Foreground="#A1A1AA" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+         <Grid x:Name="SystemVolumeRow" Grid.RowSpan="2">
+          <Grid.RowDefinitions>
+           <RowDefinition Height="25"/>
+           <RowDefinition Height="24"/>
+          </Grid.RowDefinitions>
+          <TextBlock x:Name="VolumeValue" Style="{StaticResource MusicVolumePercentage}"/>
+          <Slider Grid.Row="1" x:Name="VolumeSlider" Style="{StaticResource MusicVolumeSlider}" Minimum="0" Maximum="100" Value="50"
+                  ValueChanged="VolumeSlider_ValueChanged" AutomationProperties.Name="Sistem sesi"/>
          </Grid>
-         <Grid Grid.Column="2" x:Name="QuickSiteCard" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="34"/></Grid.ColumnDefinitions>
-          <Slider Style="{StaticResource MusicVolumeSlider}" Minimum="0" Maximum="100" Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Seçilen uygulama veya sitenin sesi"/>
-          <TextBlock Grid.Column="1" Text="{Binding Percent}" FontSize="10" Typography.NumeralAlignment="Tabular" Foreground="#A1A1AA" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+         <Grid x:Name="QuickSiteCard" Grid.RowSpan="2" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+           <RowDefinition Height="25"/>
+           <RowDefinition Height="24"/>
+          </Grid.RowDefinitions>
+          <TextBlock Text="{Binding Percent}" Style="{StaticResource MusicVolumePercentage}"/>
+          <Slider Grid.Row="1" Style="{StaticResource MusicVolumeSlider}" Minimum="0" Maximum="100"
+                  Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Seçilen uygulama veya sitenin sesi"/>
          </Grid>
-         <Grid Grid.Column="2" x:Name="SecondHeadphoneVolumeRow" Visibility="Collapsed" ToolTip="{Binding Text, ElementName=DualHeadphonesStatus}">
-           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="34"/></Grid.ColumnDefinitions>
-           <Slider x:Name="SecondHeadphoneVolume" Style="{StaticResource MusicVolumeSlider}" IsEnabled="False"
-                   Minimum="0" Maximum="100" Value="100" TickFrequency="1" IsSnapToTickEnabled="True"
-                   ValueChanged="SecondHeadphoneVolume_Changed" AutomationProperties.Name="İkinci kulaklığın sesi"/>
-           <TextBlock x:Name="SecondHeadphoneVolumeText" Grid.Column="1" FontSize="10" Typography.NumeralAlignment="Tabular" Foreground="#A1A1AA"
-                      VerticalAlignment="Center" HorizontalAlignment="Right"/>
-          </Grid>
+         <Grid x:Name="SecondHeadphoneVolumeRow" Grid.RowSpan="2" Visibility="Collapsed" ToolTip="{Binding Text, ElementName=DualHeadphonesStatus}">
+          <Grid.RowDefinitions>
+           <RowDefinition Height="25"/>
+           <RowDefinition Height="24"/>
+          </Grid.RowDefinitions>
+          <TextBlock x:Name="SecondHeadphoneVolumeText" Style="{StaticResource MusicVolumePercentage}"/>
+          <Slider Grid.Row="1" x:Name="SecondHeadphoneVolume" Style="{StaticResource MusicVolumeSlider}" IsEnabled="False"
+                  Minimum="0" Maximum="100" Value="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                  ValueChanged="SecondHeadphoneVolume_Changed" AutomationProperties.Name="İkinci kulaklığın sesi"/>
+         </Grid>
         </Grid>
        </Border>
       </StackPanel>
