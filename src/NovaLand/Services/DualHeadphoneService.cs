@@ -9,15 +9,31 @@ internal sealed class DualHeadphoneService : IDisposable
     private CancellationTokenSource? _cancel;
     private Task _worker = Task.CompletedTask;
     private bool _disposed;
-    private volatile int _secondVolume = 100;
+    private sealed class VolumeControl
+    {
+        public int Requested = -1;
+        public int Revision;
+    }
 
-    public int SecondVolume { set => _secondVolume = Math.Clamp(value, 0, 100); }
+    private VolumeControl _volume = new();
+    public int VolumeRevision => Volatile.Read(ref _volume.Revision);
+
+    public void SetSecondVolume(int percentage)
+    {
+        lock (_volume)
+        {
+            Interlocked.Increment(ref _volume.Revision);
+            _volume.Requested = Math.Clamp(percentage, 0, 100);
+        }
+    }
 
     // Settings and disposal are called from the UI thread. Only one audio route may own the devices.
-    public void SetTarget(string? targetId, Action<string, CancellationToken> report)
+    public void SetTarget(string? targetId, Action<string, CancellationToken> report,
+        Action<int?, int, CancellationToken> reportVolume)
     {
         if (_disposed) return;
         StopCurrent();
+        var volume = _volume = new VolumeControl();
         if (string.IsNullOrWhiteSpace(targetId)) return;
 
         _cancel = new CancellationTokenSource();
@@ -27,7 +43,7 @@ internal sealed class DualHeadphoneService : IDisposable
         {
             await previous.ConfigureAwait(false);
             if (!token.IsCancellationRequested)
-                await RunAsync(targetId, report, token).ConfigureAwait(false);
+                await RunAsync(targetId, volume, report, reportVolume, token).ConfigureAwait(false);
         });
     }
 
@@ -39,7 +55,8 @@ internal sealed class DualHeadphoneService : IDisposable
         _ = _worker.ContinueWith(_ => previous.Dispose(), TaskScheduler.Default);
     }
 
-    private async Task RunAsync(string targetId, Action<string, CancellationToken> report, CancellationToken token)
+    private async Task RunAsync(string targetId, VolumeControl volume, Action<string, CancellationToken> report,
+        Action<int?, int, CancellationToken> reportVolume, CancellationToken token)
     {
         string? lastStatus = null;
         void Report(string message)
@@ -64,7 +81,8 @@ internal sealed class DualHeadphoneService : IDisposable
                     else
                     {
                         using var target = devices.GetDevice(targetId);
-                        Play(devices, source, target, Report, token);
+                        try { Play(devices, source, target, volume, Report, reportVolume, token); }
+                        finally { reportVolume(null, Volatile.Read(ref volume.Revision), token); }
                     }
                 }
                 catch (Exception error) when (error is not OperationCanceledException)
@@ -92,7 +110,7 @@ internal sealed class DualHeadphoneService : IDisposable
     }
 
     private void Play(MMDeviceEnumerator devices, MMDevice source, MMDevice target,
-        Action<string> report, CancellationToken token)
+        VolumeControl volume, Action<string> report, Action<int?, int, CancellationToken> reportVolume, CancellationToken token)
     {
         // The primary device keeps playing normally. Loopback audio is buffered only in memory.
         string sourceId = source.ID;
@@ -116,28 +134,37 @@ internal sealed class DualHeadphoneService : IDisposable
         playback.Init(audio);
         var streamVolume = playback.AudioStreamVolume;
         var levels = new float[streamVolume.ChannelCount];
-        int appliedVolume = _secondVolume;
-        Array.Fill(levels, appliedVolume / 100f);
+        Array.Fill(levels, 1f);
         streamVolume.SetAllVolumes(levels);
+        var endpointVolume = target.AudioEndpointVolume;
         token.ThrowIfCancellationRequested();
         capture.Start();
         try
         {
             playback.Play();
             report($"Ses paylaşılıyor · {source.FriendlyName} → {target.FriendlyName}");
-            long lastCheck = Environment.TickCount64;
+            long lastCheck = Environment.TickCount64 - 750;
 
             while (!token.IsCancellationRequested)
             {
                 if (stopped.Task.IsCompleted)
                     throw new InvalidOperationException("Audio sharing playback stopped.", stopped.Task.GetAwaiter().GetResult());
 
-                int requestedVolume = _secondVolume;
-                if (requestedVolume != appliedVolume)
+                int revision;
+                int requestedVolume;
+                lock (volume)
                 {
-                    Array.Fill(levels, requestedVolume / 100f);
-                    streamVolume.SetAllVolumes(levels);
-                    appliedVolume = requestedVolume;
+                    revision = volume.Revision;
+                    requestedVolume = volume.Requested;
+                    volume.Requested = -1;
+                }
+                if (requestedVolume >= 0 && !token.IsCancellationRequested)
+                {
+                    using var currentOutput = devices.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                    if (!string.Equals(currentOutput.ID, sourceId, StringComparison.OrdinalIgnoreCase)) return;
+                    endpointVolume.MasterVolumeLevelScalar = requestedVolume / 100f;
+                    if (requestedVolume > 0 && endpointVolume.Mute) endpointVolume.Mute = false;
+                    reportVolume((int)Math.Round(endpointVolume.MasterVolumeLevelScalar * 100), revision, token);
                 }
 
                 while (!token.IsCancellationRequested && packets.GetNextPacketSize() > 0)
@@ -164,6 +191,8 @@ internal sealed class DualHeadphoneService : IDisposable
                     using var current = devices.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
                     if (!string.Equals(current.ID, sourceId, StringComparison.OrdinalIgnoreCase) ||
                         !IsActiveOutput(devices, targetId)) return;
+                    reportVolume(endpointVolume.Mute ? 0 : (int)Math.Round(endpointVolume.MasterVolumeLevelScalar * 100),
+                        revision, token);
                 }
 
                 if (token.WaitHandle.WaitOne(10)) return;

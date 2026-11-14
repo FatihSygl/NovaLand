@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Threading;
 using NovaIsland.Services;
 
 namespace NovaIsland;
@@ -9,7 +8,6 @@ public partial class MainWindow
     private readonly DualHeadphoneService _dualHeadphones = new();
     private OutputAudioRow[] _secondHeadphoneRows = [];
     private AudioOutput[] _lastAudioOutputs = [];
-    private readonly DispatcherTimer _saveSecondVolume = new() { Interval = TimeSpan.FromMilliseconds(400) };
     private bool _updatingSecondVolume;
 
     private void DualHeadphones_Changed(object sender, RoutedEventArgs e)
@@ -54,16 +52,7 @@ public partial class MainWindow
         if (!_ready || _updatingSecondVolume || !_settings.DualHeadphonesEnabled) return;
         int volume = (int)Math.Round(e.NewValue);
         SecondHeadphoneVolumeText.Text = $"{volume}%";
-        _settings.SecondHeadphoneVolume = volume;
-        _dualHeadphones.SecondVolume = volume;
-        _saveSecondVolume.Stop();
-        _saveSecondVolume.Start();
-    }
-
-    private void SaveSecondVolume_Tick(object? sender, EventArgs e)
-    {
-        _saveSecondVolume.Stop();
-        SaveSettings();
+        _dualHeadphones.SetSecondVolume(volume);
     }
 
     private void ShowSecondHeadphoneOutputs(AudioOutput[] outputs)
@@ -78,7 +67,7 @@ public partial class MainWindow
         var second = rows.FirstOrDefault(row => row.Selected);
         SecondHeadphoneName.Text = second?.Name ??
             (_settings.SecondHeadphoneId is null ? "İkinci kulaklığı seç" : "İkinci çıkış bekleniyor");
-        SecondHeadphoneVolume.IsEnabled = second is not null;
+        if (second is null) SecondHeadphoneVolume.IsEnabled = false;
         RefreshQuickSite();
     }
 
@@ -88,11 +77,8 @@ public partial class MainWindow
         string? target = enabled ? _settings.SecondHeadphoneId : null;
         DualHeadphonesPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
         if (!enabled) SecondHeadphonePicker.IsOpen = false;
-        _updatingSecondVolume = true;
-        SecondHeadphoneVolume.Value = Math.Clamp(_settings.SecondHeadphoneVolume, 0, 100);
-        _updatingSecondVolume = false;
-        SecondHeadphoneVolumeText.Text = $"{SecondHeadphoneVolume.Value:0}%";
-        _dualHeadphones.SecondVolume = (int)SecondHeadphoneVolume.Value;
+        SecondHeadphoneVolume.IsEnabled = false;
+        SecondHeadphoneVolumeText.Text = "–";
         if (enabled)
         {
             ShowSecondHeadphoneOutputs(_lastAudioOutputs);
@@ -106,6 +92,24 @@ public partial class MainWindow
             {
                 if (!_exiting && !token.IsCancellationRequested)
                     DualHeadphonesStatus.Text = message;
+            });
+        }, (level, revision, token) =>
+        {
+            _ = Dispatcher.InvokeAsync(() =>
+            {
+                if (_exiting || token.IsCancellationRequested) return;
+                SecondHeadphoneVolume.IsEnabled = level.HasValue;
+                if (level is not { } current)
+                {
+                    SecondHeadphoneVolumeText.Text = "–";
+                    return;
+                }
+                if (revision != _dualHeadphones.VolumeRevision) return;
+
+                _updatingSecondVolume = true;
+                SecondHeadphoneVolume.Value = current;
+                _updatingSecondVolume = false;
+                SecondHeadphoneVolumeText.Text = $"{current}%";
             });
         });
     }

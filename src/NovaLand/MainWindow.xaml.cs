@@ -186,7 +186,6 @@ public partial class MainWindow : Window
         FullscreenCheck.IsChecked = _settings.HideInFullscreen;
         Topmost = _settings.AlwaysOnTop;
         _clock.Tick += Clock_Tick;
-        _saveSecondVolume.Tick += SaveSecondVolume_Tick;
         _mediaPoll.Tick += async (_, _) => await RefreshMediaAsync();
         _brightnessDebounce.Tick += BrightnessDebounce_Tick;
         _ready = true;
@@ -1403,7 +1402,6 @@ public partial class MainWindow : Window
         _waveTick.Stop();
         _spectrum.Dispose();
         _dualHeadphones.Dispose();
-        if (_saveSecondVolume.IsEnabled) { _saveSecondVolume.Stop(); SaveSettings(); }
         _devicePoll.Stop();
         _clipboard?.Dispose();
         _images.Clear();

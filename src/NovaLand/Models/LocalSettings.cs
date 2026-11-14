@@ -21,7 +21,6 @@ public sealed class LocalSettings
     public bool MealsEnabled { get; set; }
     public bool DualHeadphonesEnabled { get; set; }
     public string? SecondHeadphoneId { get; set; }
-    public int SecondHeadphoneVolume { get; set; } = 100;
     public List<string> FilePaths { get; set; } = new();
 }
 
