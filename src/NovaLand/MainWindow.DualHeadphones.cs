@@ -77,7 +77,7 @@ public partial class MainWindow
             {
                 if (!_exiting && !token.IsCancellationRequested)
                     DualHeadphonesStatus.Text = message.StartsWith("Ses paylaşılıyor ·", StringComparison.Ordinal)
-                        ? "Ses paylaşılıyor" : message;
+                        ? "" : message;
             });
         }, (level, revision, token) =>
         {

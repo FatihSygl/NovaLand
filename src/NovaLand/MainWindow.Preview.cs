@@ -65,8 +65,6 @@ public partial class MainWindow
             _selectedAudioKey == SecondHeadphoneAudioKey && row.Selected, row.Id)));
         if (AudioSourceChoices.ItemsSource is not IEnumerable<AudioSourceChoice> oldChoices || !oldChoices.SequenceEqual(choices))
             AudioSourceChoices.ItemsSource = choices;
-        DualHeadphonesStatus.Visibility = _secondHeadphoneRows.Length > 0 && _sharedHeadphoneId is not null
-            ? Visibility.Visible : Visibility.Collapsed;
         ConnectAudioBrowserButton.Visibility = _browserAudio?.Connected == true ? Visibility.Collapsed : Visibility.Visible;
     }
 
