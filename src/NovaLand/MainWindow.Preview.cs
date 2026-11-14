@@ -8,8 +8,6 @@ using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using Button = System.Windows.Controls.Button;
-using ContextMenu = System.Windows.Controls.ContextMenu;
-using MenuItem = System.Windows.Controls.MenuItem;
 using Image = System.Windows.Controls.Image;
 using Orientation = System.Windows.Controls.Orientation;
 
@@ -27,32 +25,55 @@ public partial class MainWindow
         QuickSiteCard.DataContext = selected;
         QuickSiteCard.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
         SystemVolumeRow.Visibility = selected is null ? Visibility.Visible : Visibility.Collapsed;
-        var primary = _settings.DualHeadphonesEnabled ? _lastAudioOutputs.FirstOrDefault(output => output.Selected)?.Name : null;
-        AudioSourceTitle.Text = selected is null
-            ? primary ?? (_audioTargets.Count > 0 ? $"Sistem · {_audioTargets.Count} kaynak" : "Sistem")
-            : selected.Name + " · " + selected.Kind;
+        AudioSourceTitle.Text = selected?.Name ?? _primaryHeadphoneName ?? "Sistem";
+    }
+
+    private sealed record AudioSourceChoice(string Key, string Name, string Kind, bool Selected)
+    {
+        public Visibility SelectedVisibility => Selected ? Visibility.Visible : Visibility.Hidden;
     }
 
     private string _selectedAudioKey = "";
     private void AudioSource_Click(object sender, RoutedEventArgs e)
     {
-        var menu = new ContextMenu { PlacementTarget = AudioSourceButton, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom, MinWidth = 230, MaxHeight = 320 };
-        void Add(string name, string key)
+        AudioSourcePicker.IsOpen = true;
+    }
+
+    private void AudioSourcePicker_Opened(object? sender, EventArgs e)
+    {
+        _dialogOpen = true;
+        SyncActivityPause();
+        var choices = new List<AudioSourceChoice>
         {
-            var item = new MenuItem { Header = name, IsCheckable = true, IsChecked = _selectedAudioKey == key };
-            item.Click += (_, _) => { _selectedAudioKey = key; RefreshQuickSite(); Activate(); };
-            menu.Items.Add(item);
-        }
-        Add("Sistem", "");
-        if (_audioTargets.Count > 0) menu.Items.Add(new Separator());
-        foreach (var target in _audioTargets) Add(target.Name + " · " + target.Kind, target.Key);
-        menu.Items.Add(new Separator());
-        var browser = new MenuItem { Header = _browserAudio?.Connected == true ? "Tarayıcı bağlantısı · Bağlı" : "Site seslerini bağla…" };
-        browser.Click += (_, _) => { SetTab("Settings"); BrowserConnection.IsExpanded = true; BrowserConnection.BringIntoView(); };
-        menu.Items.Add(browser);
-        _dialogOpen = true; SyncActivityPause();
-        menu.Closed += (_, _) => { _dialogOpen = false; SyncActivityPause(); };
-        menu.IsOpen = true;
+            new("", "Sistem", "", string.IsNullOrEmpty(_selectedAudioKey))
+        };
+        choices.AddRange(_audioTargets.Select(target =>
+            new AudioSourceChoice(target.Key, target.Name, target.Kind, _selectedAudioKey == target.Key)));
+        AudioSourceChoices.ItemsSource = choices;
+        ConnectAudioBrowserButton.Visibility = _browserAudio?.Connected == true ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void AudioSourcePicker_Closed(object? sender, EventArgs e)
+    {
+        _dialogOpen = SecondHeadphonePicker.IsOpen;
+        SyncActivityPause();
+    }
+
+    private void ChooseAudioSource_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: AudioSourceChoice choice }) return;
+        _selectedAudioKey = choice.Key;
+        AudioSourcePicker.IsOpen = false;
+        RefreshQuickSite();
+        AudioSourceButton.Focus();
+    }
+
+    private void ConnectAudioBrowser_Click(object sender, RoutedEventArgs e)
+    {
+        AudioSourcePicker.IsOpen = false;
+        SetTab("Settings");
+        BrowserConnection.IsExpanded = true;
+        BrowserConnection.BringIntoView();
     }
 
     private void PreviewImage_Click(object sender, RoutedEventArgs e)

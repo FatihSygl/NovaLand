@@ -3,9 +3,11 @@ using NAudio.CoreAudioApi;
 
 namespace NovaIsland.Services;
 
-public sealed record AudioOutput(string Id, string Name, bool Selected);
+public sealed record AudioOutput(string Id, string Name, bool Selected, Guid Container = default);
 public static class AudioOutputService
 {
+    private static readonly PropertyKey ContainerKey = new(new Guid("8C7ED206-3F8A-4827-B3AB-AE9E1FAEFC6C"), 2);
+
     public static AudioOutput[] Read()
     {
         using var enumerator = new MMDeviceEnumerator();
@@ -18,11 +20,24 @@ public static class AudioOutputService
         {
             using (device)
             {
-                try { result.Add(new(device.ID, device.FriendlyName, device.ID == current)); }
+                try { result.Add(new(device.ID, device.FriendlyName, device.ID == current, ReadContainer(device))); }
                 catch (Exception ex) { DiagnosticLog.Write("AudioOutputRead", ex); }
             }
         }
         return result.OrderByDescending(x => x.Selected).ThenBy(x => x.Name).ToArray();
+    }
+
+    private static Guid ReadContainer(MMDevice device)
+    {
+        try
+        {
+            var value = device.Properties[ContainerKey]?.Value;
+            return value is Guid id ? id : Guid.TryParse(value as string, out var parsed) ? parsed : Guid.Empty;
+        }
+        catch (Exception error) when (error is COMException or NotSupportedException or NotImplementedException)
+        {
+            return Guid.Empty;
+        }
     }
 
     // PolicyConfig is a Windows COM compatibility interface used by audio switchers.

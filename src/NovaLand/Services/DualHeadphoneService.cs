@@ -28,13 +28,13 @@ internal sealed class DualHeadphoneService : IDisposable
     }
 
     // Settings and disposal are called from the UI thread. Only one audio route may own the devices.
-    public void SetTarget(string? targetId, Action<string, CancellationToken> report,
+    public void SetTarget(string? sourceId, string? targetId, Action<string, CancellationToken> report,
         Action<int?, int, CancellationToken> reportVolume)
     {
         if (_disposed) return;
         StopCurrent();
         var volume = _volume = new VolumeControl();
-        if (string.IsNullOrWhiteSpace(targetId)) return;
+        if (string.IsNullOrWhiteSpace(sourceId) || string.IsNullOrWhiteSpace(targetId)) return;
 
         _cancel = new CancellationTokenSource();
         var token = _cancel.Token;
@@ -43,7 +43,7 @@ internal sealed class DualHeadphoneService : IDisposable
         {
             await previous.ConfigureAwait(false);
             if (!token.IsCancellationRequested)
-                await RunAsync(targetId, volume, report, reportVolume, token).ConfigureAwait(false);
+                await RunAsync(sourceId, targetId, volume, report, reportVolume, token).ConfigureAwait(false);
         });
     }
 
@@ -55,7 +55,7 @@ internal sealed class DualHeadphoneService : IDisposable
         _ = _worker.ContinueWith(_ => previous.Dispose(), TaskScheduler.Default);
     }
 
-    private async Task RunAsync(string targetId, VolumeControl volume, Action<string, CancellationToken> report,
+    private async Task RunAsync(string sourceId, string targetId, VolumeControl volume, Action<string, CancellationToken> report,
         Action<int?, int, CancellationToken> reportVolume, CancellationToken token)
     {
         string? lastStatus = null;
@@ -74,8 +74,9 @@ internal sealed class DualHeadphoneService : IDisposable
                 {
                     using var devices = new MMDeviceEnumerator();
                     using var source = devices.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-                    if (string.Equals(source.ID, targetId, StringComparison.OrdinalIgnoreCase))
-                        Report("İkinci kulaklık varsayılan çıkış oldu. İlk kulaklığı tekrar varsayılan yap.");
+                    if (!string.Equals(source.ID, sourceId, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(source.ID, targetId, StringComparison.OrdinalIgnoreCase))
+                        Report("Varsayılan ses çıkışı değişti.");
                     else if (!IsActiveOutput(devices, targetId))
                         Report("İkinci çıkış bekleniyor. Kulaklık bağlanınca ses paylaşımı başlayacak.");
                     else

@@ -333,8 +333,34 @@
        <Border Background="#19191D" CornerRadius="18" Padding="14,9,14,10" Margin="0,12,0,0" BorderBrush="#29292F" BorderThickness="0.5">
         <StackPanel>
          <Button x:Name="AudioSourceButton" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="0,3,6,5" Click="AudioSource_Click" ToolTip="Sistem, uygulama veya site seç">
-          <StackPanel Orientation="Horizontal"><Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.4" Width="15" Height="16" Stretch="Uniform" Margin="0,0,9,0"/><TextBlock x:Name="AudioSourceTitle" Text="Sistem" FontSize="11" FontWeight="Medium" MaxWidth="230" TextTrimming="CharacterEllipsis" Foreground="#DCDCE4"/><Path Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2" Width="8" Height="4" Stretch="Fill" Margin="8,0,0,0"/></StackPanel>
+          <StackPanel Orientation="Horizontal"><Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.4" Width="15" Height="16" Stretch="Uniform" Margin="0,0,9,0"/><TextBlock x:Name="AudioSourceTitle" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="Sistem" FontSize="11" FontWeight="Medium" MaxWidth="230" TextTrimming="CharacterEllipsis" Foreground="#DCDCE4"/><Path Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2" Width="8" Height="4" Stretch="Fill" Margin="8,0,0,0"/></StackPanel>
          </Button>
+         <Popup x:Name="AudioSourcePicker" PlacementTarget="{Binding ElementName=AudioSourceButton}"
+                Placement="Top" VerticalOffset="-5" StaysOpen="False" AllowsTransparency="True"
+                Opened="AudioSourcePicker_Opened" Closed="AudioSourcePicker_Closed">
+          <Border Width="234" CornerRadius="13" Padding="5" Background="#202024" BorderBrush="#37373F" BorderThickness="1">
+           <ScrollViewer MaxHeight="210" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel KeyboardNavigation.TabNavigation="Cycle">
+             <ItemsControl x:Name="AudioSourceChoices">
+              <ItemsControl.ItemTemplate><DataTemplate>
+               <Button Click="ChooseAudioSource_Click" Style="{StaticResource OutputRowButton}" Padding="8,5"
+                       AutomationProperties.Name="{Binding Name}" HorizontalContentAlignment="Stretch">
+                <Grid>
+                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="18"/></Grid.ColumnDefinitions>
+                 <TextBlock Text="{Binding Name}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                 <TextBlock Grid.Column="1" Text="{Binding Kind}" Foreground="#90909C" FontSize="9" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                 <TextBlock Grid.Column="2" Text="✓" Visibility="{Binding SelectedVisibility}" Foreground="#BBCFF0"
+                            HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11"/>
+                </Grid>
+               </Button>
+              </DataTemplate></ItemsControl.ItemTemplate>
+             </ItemsControl>
+             <Button x:Name="ConnectAudioBrowserButton" Content="Tarayıcıyı bağla ↗" Style="{StaticResource GhostButton}"
+                     Click="ConnectAudioBrowser_Click" HorizontalAlignment="Left" Padding="8,5"/>
+            </StackPanel>
+           </ScrollViewer>
+          </Border>
+         </Popup>
          <Grid x:Name="SystemVolumeRow"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
           <Slider x:Name="VolumeSlider" Style="{StaticResource ControlSlider}" Minimum="0" Maximum="100" Value="50" ValueChanged="VolumeSlider_ValueChanged" AutomationProperties.Name="Sistem sesi"/>
           <TextBlock x:Name="VolumeValue" Grid.Column="1" FontSize="10" Foreground="#93939E" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -344,15 +370,15 @@
           <TextBlock Grid.Column="1" Text="{Binding Percent}" FontSize="10" Foreground="#93939E" VerticalAlignment="Center" HorizontalAlignment="Right"/>
          </Grid>
          <StackPanel x:Name="DualHeadphonesPanel" Visibility="Collapsed">
-          <Border Height="0.5" Background="#34343A" Margin="0,4,0,4"/>
-          <Button x:Name="SecondHeadphoneButton" Style="{StaticResource GhostButton}" Click="SecondHeadphonePicker_Click"
+          <Border Height="0.5" Background="#292930" Margin="0,3,0,3"/>
+          <Button x:Name="SecondHeadphoneButton" Style="{StaticResource OutputRowButton}" Click="SecondHeadphonePicker_Click"
                   ToolTip="{Binding Text, ElementName=DualHeadphonesStatus}" HorizontalContentAlignment="Stretch"
                   AutomationProperties.Name="İkinci kulaklığı seç" Padding="0,3,0,4">
            <Grid>
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Path Data="M2,9 V7 A6,6 0 0 1 14,7 V9 M2,8 H5 V13 H2 Z M11,8 H14 V13 H11 Z"
                   Width="15" Height="15" Stretch="Uniform" Stroke="#B7B7C2" StrokeThickness="1.2" Margin="0,0,9,0"/>
-            <TextBlock x:Name="SecondHeadphoneName" Grid.Column="1" Text="İkinci kulaklığı seç" FontSize="11"
+            <TextBlock x:Name="SecondHeadphoneName" MaxWidth="225" HorizontalAlignment="Left" Grid.Column="1" Text="İkinci kulaklığı seç" FontSize="11"
                        Foreground="#DCDCE4" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
             <Path Grid.Column="2" Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2"
                   Width="8" Height="4" Stretch="Fill" Margin="8,0,3,0" VerticalAlignment="Center"/>
@@ -369,7 +395,7 @@
           <Popup x:Name="SecondHeadphonePicker" PlacementTarget="{Binding ElementName=SecondHeadphoneButton}"
                  Placement="Top" VerticalOffset="-5" StaysOpen="False" AllowsTransparency="True"
                  Opened="SecondHeadphonePicker_Opened" Closed="SecondHeadphonePicker_Closed">
-           <Border Width="276" CornerRadius="13" Padding="8" Background="#202024" BorderBrush="#3B3B41" BorderThickness="1">
+           <Border Width="234" CornerRadius="13" Padding="5" Background="#202024" BorderBrush="#37373F" BorderThickness="1">
             <StackPanel KeyboardNavigation.TabNavigation="Cycle">
              <TextBlock Text="İKİNCİ SES ÇIKIŞI" Style="{StaticResource SectionLabel}" Margin="6,4,6,5"/>
              <TextBlock x:Name="DualHeadphonesStatus" TextWrapping="Wrap" FontSize="10" Foreground="#A1A1AB"

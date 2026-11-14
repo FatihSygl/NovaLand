@@ -52,6 +52,17 @@ public partial class MainWindow
         catch (Exception ex) { DiagnosticLog.Write("OutputList", ex); OutputAudioEmpty.Text = "Ses çıkışları okunamadı. Windows ses ayarlarını açabilirsin."; OutputAudioEmpty.Visibility = Visibility.Visible; }
         finally { _outputBusy = false; }
     }
+    private void ShowSystemVolume(int? volume)
+    {
+        VolumeSlider.IsEnabled = volume.HasValue;
+        VolumeValue.Text = volume is { } percentage ? $"{percentage}%" : "–";
+        if (volume is not { } level || Math.Abs(VolumeSlider.Value - level) < 1) return;
+        bool wasReady = _ready;
+        _ready = false;
+        VolumeSlider.Value = level;
+        _ready = wasReady;
+    }
+
     private void ShowOutputAudio(AudioOutput[] rows)
     {
         var items = rows.Select(x => new OutputAudioRow(x.Id, x.Name, x.Selected)).ToArray();
@@ -71,7 +82,7 @@ public partial class MainWindow
             StatusText.Text = changed ? "Ses çıkışı değiştirildi." : "Ses çıkışı değiştirilemedi. Windows ses ayarlarını kullanabilirsin.";
             ShowOutputAudio(await Task.Run(AudioOutputService.Read));
             var volume = AudioService.ReadVolume();
-            if (volume.HasValue) { _ready = false; VolumeSlider.Value = volume.Value; _ready = true; VolumeValue.Text = $"{volume.Value}%"; }
+            ShowSystemVolume(volume);
         }
         catch (Exception ex) { DiagnosticLog.Write("OutputChange", ex); StatusText.Text = "Ses çıkışı okunamadı. Windows ses ayarlarını kullanabilirsin."; }
         finally { _outputBusy = false; OutputAudioList.IsEnabled = true; }

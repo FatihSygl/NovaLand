@@ -226,9 +226,7 @@ public partial class MainWindow : Window
         // Initialize sliders without writing any new system settings.
         _ready = false;
         var volume = AudioService.ReadVolume();
-        VolumeSlider.IsEnabled = volume.HasValue;
-        if (volume.HasValue) VolumeSlider.Value = volume.Value;
-        VolumeValue.Text = volume.HasValue ? $"{volume.Value}%" : "Desteklenmiyor";
+        ShowSystemVolume(volume);
         _ready = true;
 
         var brightness = await Task.Run(BrightnessService.Read);
@@ -330,7 +328,7 @@ public partial class MainWindow : Window
         if (_immersiveSuppressed && expanded) return;
         if (!expanded && _draggedFile is not null) return;
         if (!expanded) EndDockScrub();
-        if (!expanded) SecondHeadphonePicker.IsOpen = false;
+        if (!expanded) { SecondHeadphonePicker.IsOpen = false; AudioSourcePicker.IsOpen = false; }
         if (!expanded && _tab == "Meals") CloseMealCalendar();
         if (_expanded == expanded) return;
         _expanded = expanded;
@@ -377,8 +375,8 @@ public partial class MainWindow : Window
         if (e.Key == Key.Escape && _dragArmed) { FinishPlacementDrag(true); e.Handled = true; return; }
         if (e.Key == Key.Escape && _tab == "Meals" && CloseMealCalendar(restoreFocus: true))
         { e.Handled = true; return; }
-        if (e.Key == Key.Escape && SecondHeadphonePicker.IsOpen)
-        { SecondHeadphonePicker.IsOpen = false; e.Handled = true; return; }
+        if (e.Key == Key.Escape && (SecondHeadphonePicker.IsOpen || AudioSourcePicker.IsOpen))
+        { SecondHeadphonePicker.IsOpen = false; AudioSourcePicker.IsOpen = false; e.Handled = true; return; }
         if (e.Key == Key.Escape) { SetExpanded(false); e.Handled = true; }
         if ((e.Key == Key.Enter || e.Key == Key.Space) && !_expanded)
         { if (!_activities.Acknowledge(DateTimeOffset.UtcNow)) SetExpanded(true); e.Handled = true; }
@@ -555,7 +553,7 @@ public partial class MainWindow : Window
         string previousTab = _tab;
         var previousPage = changed && _expanded ? CapturePageSurface() : null;
         _tab = key;
-        if (previousTab == "Music" && changed) SecondHeadphonePicker.IsOpen = false;
+        if (previousTab == "Music" && changed) { SecondHeadphonePicker.IsOpen = false; AudioSourcePicker.IsOpen = false; }
         if (previousTab == "Meals" && changed) CloseMealCalendar();
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
@@ -761,7 +759,7 @@ public partial class MainWindow : Window
         {
             _deviceBusy = false;
             if (_expanded && _tab == "Controls") RefreshConnectedAudio();
-            if (_expanded && (_tab == "Controls" || (_tab == "Music" && _settings.DualHeadphonesEnabled)))
+            if ((_expanded && _tab == "Controls") || _settings.DualHeadphonesEnabled)
                 _ = RefreshOutputAudioAsync();
         }
         // A Bluetooth failure must not disable screenshot history.
@@ -826,13 +824,7 @@ public partial class MainWindow : Window
         if (DateTime.UtcNow > _volumeChangedUntil && _expanded && MusicView.Visibility == Visibility.Visible)
         {
             var vol = AudioService.ReadVolume();
-            if (vol.HasValue && Math.Abs(VolumeSlider.Value - vol.Value) >= 1)
-            {
-                _ready = false;
-                VolumeSlider.Value = vol.Value;
-                VolumeValue.Text = $"{vol.Value}%";
-                _ready = true;
-            }
+            ShowSystemVolume(vol);
         }
         if (_timerRunning)
         {

@@ -1,5 +1,6 @@
 using System.Windows;
 using NovaIsland.Services;
+using NovaIsland.Models;
 
 namespace NovaIsland;
 
@@ -9,6 +10,9 @@ public partial class MainWindow
     private OutputAudioRow[] _secondHeadphoneRows = [];
     private AudioOutput[] _lastAudioOutputs = [];
     private bool _updatingSecondVolume;
+    private string? _sharedHeadphoneId;
+    private string? _primaryHeadphoneId;
+    private string? _primaryHeadphoneName;
 
     private void DualHeadphones_Changed(object sender, RoutedEventArgs e)
     {
@@ -43,7 +47,7 @@ public partial class MainWindow
 
     private void SecondHeadphonePicker_Closed(object? sender, EventArgs e)
     {
-        _dialogOpen = false;
+        _dialogOpen = AudioSourcePicker.IsOpen;
         SyncActivityPause();
     }
 
@@ -58,40 +62,53 @@ public partial class MainWindow
     private void ShowSecondHeadphoneOutputs(AudioOutput[] outputs)
     {
         _lastAudioOutputs = outputs;
-        if (!_settings.DualHeadphonesEnabled) return;
-        var rows = outputs.Where(output => !output.Selected)
-            .Select(output => new OutputAudioRow(output.Id, output.Name, output.Id == _settings.SecondHeadphoneId))
-            .ToArray();
-        if (!_secondHeadphoneRows.SequenceEqual(rows))
-            DualHeadphonesOutputs.ItemsSource = _secondHeadphoneRows = rows;
-        var second = rows.FirstOrDefault(row => row.Selected);
-        SecondHeadphoneName.Text = second?.Name ??
-            (_settings.SecondHeadphoneId is null ? "İkinci kulaklığı seç" : "İkinci çıkış bekleniyor");
-        if (second is null) SecondHeadphoneVolume.IsEnabled = false;
-        RefreshQuickSite();
+        ApplyDualHeadphonesSettings();
     }
 
     private void ApplyDualHeadphonesSettings()
     {
-        bool enabled = _settings.DualHeadphonesEnabled;
-        string? target = enabled ? _settings.SecondHeadphoneId : null;
-        DualHeadphonesPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
-        if (!enabled) SecondHeadphonePicker.IsOpen = false;
+        (AudioOutput Output, BluetoothAudioSnapshot? Device)[] headphones = _settings.DualHeadphonesEnabled
+            ? _lastAudioOutputs.Select(output => (Output: output, Device: FindBluetoothOutput(output)))
+                .Where(entry => entry.Device is not null).ToArray()
+            : [];
+        var primary = headphones.FirstOrDefault(entry => entry.Output.Selected);
+        var rows = headphones.Where(entry => !entry.Output.Selected && entry.Device!.Id != primary.Device?.Id)
+            .GroupBy(entry => entry.Device!.Id)
+            .Select(group => group.FirstOrDefault(entry => entry.Output.Id == _settings.SecondHeadphoneId) is { Device: not null } preferred
+                ? preferred : group.First()).ToArray();
+        bool visible = primary.Device is not null && rows.Length > 0;
+        var chosen = rows.FirstOrDefault(entry => entry.Output.Id == _settings.SecondHeadphoneId);
+        if (chosen.Device is null && rows.Length == 1) chosen = rows[0];
+        string? target = visible ? chosen.Output?.Id : null;
+
+        _primaryHeadphoneName = visible ? primary.Device!.Name : null;
+        DualHeadphonesPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        if (!visible) SecondHeadphonePicker.IsOpen = false;
+        SecondHeadphoneName.Text = target is null ? "İkinci kulaklığı seç" : chosen.Device!.Name;
+        var choices = rows.Select(entry => new OutputAudioRow(entry.Output.Id, entry.Device!.Name, entry.Output.Id == target)).ToArray();
+        if (!_secondHeadphoneRows.SequenceEqual(choices))
+            DualHeadphonesOutputs.ItemsSource = _secondHeadphoneRows = choices;
+        RefreshQuickSite();
+        string? source = target is null ? null : primary.Output.Id;
+        if (_sharedHeadphoneId == target && _primaryHeadphoneId == source)
+        {
+            if (target is null && visible) DualHeadphonesStatus.Text = "Bir kulaklık seç.";
+            return;
+        }
+
+        _sharedHeadphoneId = target;
+        _primaryHeadphoneId = source;
         SecondHeadphoneVolume.IsEnabled = false;
         SecondHeadphoneVolumeText.Text = "–";
-        if (enabled)
-        {
-            ShowSecondHeadphoneOutputs(_lastAudioOutputs);
-            DualHeadphonesStatus.Text = target is null ? "İkinci ses çıkışını seç." : "Ses çıkışları kontrol ediliyor…";
-        }
-        else RefreshQuickSite();
+        DualHeadphonesStatus.Text = target is null ? "Bir kulaklık seç." : "Çıkış bağlanıyor…";
 
-        _dualHeadphones.SetTarget(target, (message, token) =>
+        _dualHeadphones.SetTarget(source, target, (message, token) =>
         {
             _ = Dispatcher.InvokeAsync(() =>
             {
                 if (!_exiting && !token.IsCancellationRequested)
-                    DualHeadphonesStatus.Text = message;
+                    DualHeadphonesStatus.Text = message.StartsWith("Ses paylaşılıyor ·", StringComparison.Ordinal)
+                        ? "Ses paylaşılıyor" : message;
             });
         }, (level, revision, token) =>
         {
@@ -112,5 +129,20 @@ public partial class MainWindow
                 SecondHeadphoneVolumeText.Text = $"{current}%";
             });
         });
+    }
+    private BluetoothAudioSnapshot? FindBluetoothOutput(AudioOutput output)
+    {
+        var devices = _bluetooth.Connected;
+        if (output.Container != Guid.Empty)
+        {
+            var match = devices.FirstOrDefault(device => device.Container == output.Container);
+            if (match is not null) return match;
+        }
+
+        // Driver-dependent fallback for endpoints that omit or report a different container.
+        var matches = devices.Where(device => device.Name.Length >= 3 && device.Name != "Bluetooth ses cihazı" &&
+            (string.Equals(output.Name, device.Name, StringComparison.OrdinalIgnoreCase) ||
+             output.Name.Contains($"({device.Name})", StringComparison.OrdinalIgnoreCase))).Take(2).ToArray();
+        return matches.Length == 1 ? matches[0] : null;
     }
 }
