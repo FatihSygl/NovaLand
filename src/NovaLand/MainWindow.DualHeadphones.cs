@@ -82,7 +82,10 @@ public partial class MainWindow
         string? target = visible ? chosen.Output?.Id : null;
 
         _primaryHeadphoneName = visible ? primary.Device!.Name : null;
-        DualHeadphonesPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        var visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        DualHeadphonesPanel.Visibility = visibility;
+        HeadphoneVolumeDivider.Visibility = visibility;
+        SecondHeadphoneColumn.Width = visible ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
         if (!visible) SecondHeadphonePicker.IsOpen = false;
         SecondHeadphoneName.Text = target is null ? "İkinci kulaklığı seç" : chosen.Device!.Name;
         var choices = rows.Select(entry => new OutputAudioRow(entry.Output.Id, entry.Device!.Name, entry.Output.Id == target)).ToArray();

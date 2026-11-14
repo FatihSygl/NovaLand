@@ -255,7 +255,7 @@
       <Grid.RenderTransform>
        <TranslateTransform x:Name="ViewTranslate" />
       </Grid.RenderTransform>
-      <ScrollViewer x:Name="MusicView" HorizontalScrollBarVisibility="Disabled">
+      <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="MusicView" HorizontalScrollBarVisibility="Disabled">
        <ScrollViewer.Style>
         <Style TargetType="ScrollViewer">
          <Setter Property="VerticalScrollBarVisibility" Value="Disabled"/>
@@ -330,16 +330,33 @@
          <Path Fill="White" Width="23" Height="18" Stretch="Uniform" Data="F1 M1,1 L11,9 1,17 Z M11,1 L21,9 11,17 Z" />
         </Button>
        </StackPanel>
-       <Border Background="#19191D" CornerRadius="18" Padding="14,9,14,10" Margin="0,12,0,0" BorderBrush="#29292F" BorderThickness="0.5">
-        <StackPanel>
-         <Button x:Name="AudioSourceButton" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="0,3,6,5" Click="AudioSource_Click" ToolTip="Sistem, uygulama veya site seç">
-          <StackPanel Orientation="Horizontal"><Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.4" Width="15" Height="16" Stretch="Uniform" Margin="0,0,9,0"/><TextBlock x:Name="AudioSourceTitle" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Text="Sistem" FontSize="11" FontWeight="Medium" MaxWidth="230" TextTrimming="CharacterEllipsis" Foreground="#DCDCE4"/><Path Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2" Width="8" Height="4" Stretch="Fill" Margin="8,0,0,0"/></StackPanel>
+       <Border Background="#18181B" CornerRadius="16" Padding="10,6,10,7" Margin="0,9,0,0"
+               BorderBrush="#29292F" BorderThickness="0.5">
+        <Grid>
+         <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition x:Name="SecondHeadphoneColumn" Width="0"/>
+         </Grid.ColumnDefinitions>
+         <StackPanel>
+         <Button x:Name="AudioSourceButton" Style="{StaticResource OutputRowButton}" Padding="2,2,4,4"
+                 Click="AudioSource_Click" ToolTip="{Binding Text, ElementName=AudioSourceTitle}"
+                 AutomationProperties.Name="Ses kaynağını seç" HorizontalContentAlignment="Stretch">
+          <Grid>
+           <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <Path Data="M2,7 L6,7 11,3 11,17 6,13 2,13 Z M15,6 Q20,10 15,14" Stroke="#B7B7C2" StrokeThickness="1.4"
+                 Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0"/>
+           <TextBlock x:Name="AudioSourceTitle" Grid.Column="1" Text="Sistem" FontSize="11" FontWeight="Medium"
+                      TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="#DCDCE4"/>
+           <Path Grid.Column="2" Data="M1,1 L5,5 9,1" Stroke="#8E8E98" StrokeThickness="1.2"
+                 Width="7" Height="4" Stretch="Fill" VerticalAlignment="Center" Margin="6,0,0,0"/>
+          </Grid>
          </Button>
          <Popup x:Name="AudioSourcePicker" PlacementTarget="{Binding ElementName=AudioSourceButton}"
                 Placement="Top" VerticalOffset="-5" StaysOpen="False" AllowsTransparency="True"
                 Opened="AudioSourcePicker_Opened" Closed="AudioSourcePicker_Closed">
           <Border Width="234" CornerRadius="13" Padding="5" Background="#202024" BorderBrush="#37373F" BorderThickness="1">
-           <ScrollViewer MaxHeight="210" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+           <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" MaxHeight="210" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel KeyboardNavigation.TabNavigation="Cycle">
              <ItemsControl x:Name="AudioSourceChoices">
               <ItemsControl.ItemTemplate><DataTemplate>
@@ -361,31 +378,33 @@
            </ScrollViewer>
           </Border>
          </Popup>
-         <Grid x:Name="SystemVolumeRow"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+         <Grid x:Name="SystemVolumeRow"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="32"/></Grid.ColumnDefinitions>
           <Slider x:Name="VolumeSlider" Style="{StaticResource ControlSlider}" Minimum="0" Maximum="100" Value="50" ValueChanged="VolumeSlider_ValueChanged" AutomationProperties.Name="Sistem sesi"/>
           <TextBlock x:Name="VolumeValue" Grid.Column="1" FontSize="10" Foreground="#93939E" VerticalAlignment="Center" HorizontalAlignment="Right"/>
          </Grid>
-         <Grid x:Name="QuickSiteCard" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+         <Grid x:Name="QuickSiteCard" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="32"/></Grid.ColumnDefinitions>
           <Slider Style="{StaticResource ControlSlider}" Minimum="0" Maximum="100" Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Seçilen uygulama veya sitenin sesi"/>
           <TextBlock Grid.Column="1" Text="{Binding Percent}" FontSize="10" Foreground="#93939E" VerticalAlignment="Center" HorizontalAlignment="Right"/>
          </Grid>
-         <StackPanel x:Name="DualHeadphonesPanel" Visibility="Collapsed">
-          <Border Height="0.5" Background="#292930" Margin="0,3,0,3"/>
+         </StackPanel>
+         <Border x:Name="HeadphoneVolumeDivider" Grid.Column="1" Width="1" Background="#303036"
+                 Margin="8,4,0,4" Visibility="Collapsed"/>
+         <StackPanel x:Name="DualHeadphonesPanel" Grid.Column="2" Visibility="Collapsed" Margin="8,0,0,0">
           <Button x:Name="SecondHeadphoneButton" Style="{StaticResource OutputRowButton}" Click="SecondHeadphonePicker_Click"
-                  ToolTip="{Binding Text, ElementName=DualHeadphonesStatus}" HorizontalContentAlignment="Stretch"
-                  AutomationProperties.Name="İkinci kulaklığı seç" Padding="0,3,0,4">
+                  ToolTip="{Binding Text, ElementName=SecondHeadphoneName}" HorizontalContentAlignment="Stretch"
+                  AutomationProperties.Name="İkinci kulaklığı seç" Padding="2,2,4,4">
            <Grid>
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Path Data="M2,9 V7 A6,6 0 0 1 14,7 V9 M2,8 H5 V13 H2 Z M11,8 H14 V13 H11 Z"
-                  Width="15" Height="15" Stretch="Uniform" Stroke="#B7B7C2" StrokeThickness="1.2" Margin="0,0,9,0"/>
-            <TextBlock x:Name="SecondHeadphoneName" MaxWidth="225" HorizontalAlignment="Left" Grid.Column="1" Text="İkinci kulaklığı seç" FontSize="11"
+                  Width="14" Height="14" Stretch="Uniform" Stroke="#B7B7C2" StrokeThickness="1.2" Margin="0,0,6,0"/>
+            <TextBlock x:Name="SecondHeadphoneName" Grid.Column="1" Text="İkinci kulaklığı seç" FontSize="11"
                        Foreground="#DCDCE4" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
             <Path Grid.Column="2" Data="M1,1 L5,5 9,1" Stroke="#777782" StrokeThickness="1.2"
-                  Width="8" Height="4" Stretch="Fill" Margin="8,0,3,0" VerticalAlignment="Center"/>
+                  Width="7" Height="4" Stretch="Fill" Margin="6,0,0,0" VerticalAlignment="Center"/>
            </Grid>
           </Button>
           <Grid>
-           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
+           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="32"/></Grid.ColumnDefinitions>
            <Slider x:Name="SecondHeadphoneVolume" Style="{StaticResource ControlSlider}" IsEnabled="False"
                    Minimum="0" Maximum="100" Value="100" TickFrequency="1" IsSnapToTickEnabled="True"
                    ValueChanged="SecondHeadphoneVolume_Changed" AutomationProperties.Name="İkinci kulaklığın sesi"/>
@@ -400,7 +419,7 @@
              <TextBlock Text="İKİNCİ SES ÇIKIŞI" Style="{StaticResource SectionLabel}" Margin="6,4,6,5"/>
              <TextBlock x:Name="DualHeadphonesStatus" TextWrapping="Wrap" FontSize="10" Foreground="#A1A1AB"
                         AutomationProperties.LiveSetting="Polite" Margin="6,0,6,5"/>
-             <ScrollViewer MaxHeight="165" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+             <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" MaxHeight="165" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <ItemsControl x:Name="DualHeadphonesOutputs">
                <ItemsControl.ItemTemplate><DataTemplate>
                 <Button Click="SecondHeadphone_Click" Style="{StaticResource OutputRowButton}" Padding="7,6"
@@ -419,7 +438,7 @@
            </Border>
           </Popup>
          </StackPanel>
-        </StackPanel>
+        </Grid>
        </Border>
       </StackPanel>
       </ScrollViewer>
@@ -552,7 +571,7 @@
          </StackPanel>
         </Border>
         <Border x:Name="ReminderEmpty" Grid.Row="2" Background="Transparent" CornerRadius="0" Padding="0,9" VerticalAlignment="Top"><StackPanel><TextBlock Text="Aklında tutmana gerek yok." FontSize="12" Foreground="#B1B1B8"/><TextBlock Text="Bir saat seç, zamanı gelince hatırlatalım." FontSize="10" Foreground="#74747D" Margin="0,5,0,0"/></StackPanel></Border>
-        <ScrollViewer x:Name="ReminderListViewport" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
+        <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="ReminderListViewport" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
         <ItemsControl x:Name="ReminderList">
          <ItemsControl.ItemTemplate>
           <DataTemplate>
@@ -726,7 +745,7 @@
        </Border>
        <Grid Grid.Row="3" x:Name="TextHistoryPanel">
         <TextBlock x:Name="ClipboardEmpty" Text="Bir metin kopyaladığında burada görünür." FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+        <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <StackPanel>
           <TextBlock Text="SABİTLENENLER" FontSize="9" Foreground="#A79B88" Margin="2,4,0,9" />
           <ItemsControl x:Name="PinnedTextList" ItemTemplate="{StaticResource ClipboardTextRow}" />
@@ -737,7 +756,7 @@
        </Grid>
        <Grid Grid.Row="3" x:Name="ImageHistoryPanel" Visibility="Collapsed">
         <TextBlock x:Name="ImageEmpty" Text="Kopyalanan görseller ve kaydedilen SS’ler burada." TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+        <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <StackPanel>
           <TextBlock Text="SABİTLENENLER" FontSize="9" Foreground="#A79B88" Margin="2,4,0,9" />
           <ItemsControl x:Name="PinnedImageList" ItemTemplate="{StaticResource ClipboardImageRow}" />
@@ -748,7 +767,7 @@
        </Grid>
        <Grid Grid.Row="3" x:Name="DocumentHistoryPanel" Visibility="Collapsed">
         <TextBlock x:Name="DocumentEmpty" Text="Dosya Gezgini’nde bir belgeyi kopyala.&#10;Son kopyaladığın dosyalar burada görünür." TextAlignment="Center" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+        <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <ItemsControl x:Name="DocumentList"><ItemsControl.ItemTemplate><DataTemplate>
           <Border Background="#1C1C1E" CornerRadius="14" Padding="12" Margin="0,0,0,7">
            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -812,7 +831,7 @@
        </Grid>
        <Grid Grid.Row="3">
         <TextBlock x:Name="TodoEmpty" Text="Liste boş. Aklındaki ilk işi ekle." FontSize="12" Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+        <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
          <ItemsControl x:Name="TodoList">
           <ItemsControl.ItemTemplate>
            <DataTemplate>
@@ -881,7 +900,7 @@
         </ScrollViewer>
        </Grid>
       </Grid>
-      <ScrollViewer x:Name="ControlsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+      <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="ControlsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <StackPanel Margin="0,12,0,8">
         <TextBlock Text="Kontroller" Style="{StaticResource PageTitle}" />
 
@@ -960,7 +979,7 @@
         <Button Content="Windows ses ayarları ↗" Style="{StaticResource GhostButton}" FontSize="10" HorizontalAlignment="Left" Margin="0,8,0,0" Click="SoundSettings_Click" />
        </StackPanel>
       </ScrollViewer>
-      <ScrollViewer x:Name="MealsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
+      <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="MealsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <ScrollViewer.Resources>
         <Style x:Key="MealSegment" TargetType="RadioButton">
@@ -1165,7 +1184,7 @@
         </StackPanel>
        </StackPanel>
       </ScrollViewer>
-      <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
+      <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,5,0">
        <StackPanel Margin="0,12,0,8">
         <StackPanel Orientation="Horizontal">
          <Image Source="Assets/Logo.png" Width="24" Height="24" Stretch="Uniform" Margin="0,0,10,0"/>

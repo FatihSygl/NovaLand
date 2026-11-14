@@ -15,7 +15,6 @@ namespace NovaIsland;
 public partial class MainWindow
 {
     private const string FileReorderFormat = "NovaLand.FileShelf.Reorder";
-    private const double FileWheelStep = 24;
     private const double FileDragScrollZone = 24;
     private Point _fileGripOrigin;
     private FileEntry? _draggedFile;
@@ -28,10 +27,7 @@ public partial class MainWindow
     private void FileList_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         var viewport = FindFileScrollViewer(FileList);
-        if (viewport is null || viewport.ScrollableHeight <= 0) return;
-
-        ScrollFileListBy(viewport, -e.Delta * FileWheelStep / Mouse.MouseWheelDeltaForOneLine);
-        e.Handled = true;
+        if (viewport is not null) ScrollPageWheel(viewport, e);
     }
 
     private void FileGrip_MouseDown(object sender, MouseButtonEventArgs e)
@@ -81,7 +77,7 @@ public partial class MainWindow
         {
             if (viewport is not null && _fileDragScrollStep != 0)
             {
-                ScrollFileListBy(viewport, _fileDragScrollStep);
+                ScrollPageBy(viewport, _fileDragScrollStep);
             }
         };
         _draggedFile = file;
@@ -276,12 +272,6 @@ public partial class MainWindow
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
             FillBehavior = FillBehavior.Stop
         };
-
-    private static void ScrollFileListBy(ScrollViewer viewport, double distance)
-    {
-        double offset = Math.Clamp(viewport.VerticalOffset + distance, 0, viewport.ScrollableHeight);
-        viewport.ScrollToVerticalOffset(offset);
-    }
 
     private static ScrollViewer? FindFileScrollViewer(DependencyObject node)
     {
