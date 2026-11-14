@@ -57,6 +57,8 @@ public partial class MainWindow
         _secondHeadphoneRows = visible
             ? rows.Select(entry => new OutputAudioRow(entry.Output.Id, entry.Device!.Name, entry.Output.Id == target)).ToArray()
             : [];
+        if (target is null) DualHeadphonesStatus.Text = "";
+
         string? source = target is null ? null : primary.Output.Id;
         if (_sharedHeadphoneId == target && _primaryHeadphoneId == source)
         {
@@ -69,7 +71,7 @@ public partial class MainWindow
         RefreshQuickSite();
         SecondHeadphoneVolume.IsEnabled = false;
         SecondHeadphoneVolumeText.Text = "–";
-        DualHeadphonesStatus.Text = target is null ? "Bir kulaklık seç." : "Çıkış bağlanıyor…";
+        if (target is not null) DualHeadphonesStatus.Text = "Çıkış bağlanıyor…";
 
         _dualHeadphones.SetTarget(source, target, (message, token) =>
         {
