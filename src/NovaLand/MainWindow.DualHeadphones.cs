@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Threading;
 using NovaIsland.Services;
 
 namespace NovaIsland;
@@ -8,6 +9,8 @@ public partial class MainWindow
     private readonly DualHeadphoneService _dualHeadphones = new();
     private OutputAudioRow[] _secondHeadphoneRows = [];
     private AudioOutput[] _lastAudioOutputs = [];
+    private readonly DispatcherTimer _saveSecondVolume = new() { Interval = TimeSpan.FromMilliseconds(400) };
+    private bool _updatingSecondVolume;
 
     private void DualHeadphones_Changed(object sender, RoutedEventArgs e)
     {
@@ -15,17 +18,52 @@ public partial class MainWindow
         _settings.DualHeadphonesEnabled = DualHeadphonesCheck.IsChecked == true;
         SaveSettings();
         ApplyDualHeadphonesSettings();
-        if (_settings.DualHeadphonesEnabled) _ = RefreshOutputAudioAsync();
+        if (_settings.DualHeadphonesEnabled) SetTab("Music");
     }
 
     private void SecondHeadphone_Click(object sender, RoutedEventArgs e)
     {
-        if (!_settings.DualHeadphonesEnabled || sender is not FrameworkElement { DataContext: OutputAudioRow row } ||
-            _settings.SecondHeadphoneId == row.Id) return;
+        if (!_settings.DualHeadphonesEnabled || sender is not FrameworkElement { DataContext: OutputAudioRow row }) return;
+        SecondHeadphonePicker.IsOpen = false;
+        SecondHeadphoneButton.Focus();
+        if (_settings.SecondHeadphoneId == row.Id) return;
 
         _settings.SecondHeadphoneId = row.Id;
         SaveSettings();
         ApplyDualHeadphonesSettings();
+    }
+
+    private void SecondHeadphonePicker_Click(object sender, RoutedEventArgs e) =>
+        SecondHeadphonePicker.IsOpen = true;
+
+    private void SecondHeadphonePicker_Opened(object? sender, EventArgs e)
+    {
+        _dialogOpen = true;
+        SyncActivityPause();
+        _ = RefreshOutputAudioAsync();
+    }
+
+    private void SecondHeadphonePicker_Closed(object? sender, EventArgs e)
+    {
+        _dialogOpen = false;
+        SyncActivityPause();
+    }
+
+    private void SecondHeadphoneVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!_ready || _updatingSecondVolume || !_settings.DualHeadphonesEnabled) return;
+        int volume = (int)Math.Round(e.NewValue);
+        SecondHeadphoneVolumeText.Text = $"{volume}%";
+        _settings.SecondHeadphoneVolume = volume;
+        _dualHeadphones.SecondVolume = volume;
+        _saveSecondVolume.Stop();
+        _saveSecondVolume.Start();
+    }
+
+    private void SaveSecondVolume_Tick(object? sender, EventArgs e)
+    {
+        _saveSecondVolume.Stop();
+        SaveSettings();
     }
 
     private void ShowSecondHeadphoneOutputs(AudioOutput[] outputs)
@@ -37,6 +75,11 @@ public partial class MainWindow
             .ToArray();
         if (!_secondHeadphoneRows.SequenceEqual(rows))
             DualHeadphonesOutputs.ItemsSource = _secondHeadphoneRows = rows;
+        var second = rows.FirstOrDefault(row => row.Selected);
+        SecondHeadphoneName.Text = second?.Name ??
+            (_settings.SecondHeadphoneId is null ? "İkinci kulaklığı seç" : "İkinci çıkış bekleniyor");
+        SecondHeadphoneVolume.IsEnabled = second is not null;
+        RefreshQuickSite();
     }
 
     private void ApplyDualHeadphonesSettings()
@@ -44,11 +87,18 @@ public partial class MainWindow
         bool enabled = _settings.DualHeadphonesEnabled;
         string? target = enabled ? _settings.SecondHeadphoneId : null;
         DualHeadphonesPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
+        if (!enabled) SecondHeadphonePicker.IsOpen = false;
+        _updatingSecondVolume = true;
+        SecondHeadphoneVolume.Value = Math.Clamp(_settings.SecondHeadphoneVolume, 0, 100);
+        _updatingSecondVolume = false;
+        SecondHeadphoneVolumeText.Text = $"{SecondHeadphoneVolume.Value:0}%";
+        _dualHeadphones.SecondVolume = (int)SecondHeadphoneVolume.Value;
         if (enabled)
         {
             ShowSecondHeadphoneOutputs(_lastAudioOutputs);
             DualHeadphonesStatus.Text = target is null ? "İkinci ses çıkışını seç." : "Ses çıkışları kontrol ediliyor…";
         }
+        else RefreshQuickSite();
 
         _dualHeadphones.SetTarget(target, (message, token) =>
         {

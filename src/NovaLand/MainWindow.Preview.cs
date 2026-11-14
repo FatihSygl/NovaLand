@@ -27,7 +27,10 @@ public partial class MainWindow
         QuickSiteCard.DataContext = selected;
         QuickSiteCard.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
         SystemVolumeRow.Visibility = selected is null ? Visibility.Visible : Visibility.Collapsed;
-        AudioSourceTitle.Text = selected is null ? (_audioTargets.Count > 0 ? $"Sistem · {_audioTargets.Count} kaynak" : "Sistem") : selected.Name + " · " + selected.Kind;
+        var primary = _settings.DualHeadphonesEnabled ? _lastAudioOutputs.FirstOrDefault(output => output.Selected)?.Name : null;
+        AudioSourceTitle.Text = selected is null
+            ? primary ?? (_audioTargets.Count > 0 ? $"Sistem · {_audioTargets.Count} kaynak" : "Sistem")
+            : selected.Name + " · " + selected.Kind;
     }
 
     private string _selectedAudioKey = "";

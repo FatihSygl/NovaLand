@@ -9,6 +9,9 @@ internal sealed class DualHeadphoneService : IDisposable
     private CancellationTokenSource? _cancel;
     private Task _worker = Task.CompletedTask;
     private bool _disposed;
+    private volatile int _secondVolume = 100;
+
+    public int SecondVolume { set => _secondVolume = Math.Clamp(value, 0, 100); }
 
     // Settings and disposal are called from the UI thread. Only one audio route may own the devices.
     public void SetTarget(string? targetId, Action<string, CancellationToken> report)
@@ -36,7 +39,7 @@ internal sealed class DualHeadphoneService : IDisposable
         _ = _worker.ContinueWith(_ => previous.Dispose(), TaskScheduler.Default);
     }
 
-    private static async Task RunAsync(string targetId, Action<string, CancellationToken> report, CancellationToken token)
+    private async Task RunAsync(string targetId, Action<string, CancellationToken> report, CancellationToken token)
     {
         string? lastStatus = null;
         void Report(string message)
@@ -88,7 +91,7 @@ internal sealed class DualHeadphoneService : IDisposable
         catch (COMException) { return false; }
     }
 
-    private static void Play(MMDeviceEnumerator devices, MMDevice source, MMDevice target,
+    private void Play(MMDeviceEnumerator devices, MMDevice source, MMDevice target,
         Action<string> report, CancellationToken token)
     {
         // The primary device keeps playing normally. Loopback audio is buffered only in memory.
@@ -111,6 +114,11 @@ internal sealed class DualHeadphoneService : IDisposable
         var buffer = new byte[capture.BufferSize * format.BlockAlign];
 
         playback.Init(audio);
+        var streamVolume = playback.AudioStreamVolume;
+        var levels = new float[streamVolume.ChannelCount];
+        int appliedVolume = _secondVolume;
+        Array.Fill(levels, appliedVolume / 100f);
+        streamVolume.SetAllVolumes(levels);
         token.ThrowIfCancellationRequested();
         capture.Start();
         try
@@ -123,6 +131,14 @@ internal sealed class DualHeadphoneService : IDisposable
             {
                 if (stopped.Task.IsCompleted)
                     throw new InvalidOperationException("Audio sharing playback stopped.", stopped.Task.GetAwaiter().GetResult());
+
+                int requestedVolume = _secondVolume;
+                if (requestedVolume != appliedVolume)
+                {
+                    Array.Fill(levels, requestedVolume / 100f);
+                    streamVolume.SetAllVolumes(levels);
+                    appliedVolume = requestedVolume;
+                }
 
                 while (!token.IsCancellationRequested && packets.GetNextPacketSize() > 0)
                 {
