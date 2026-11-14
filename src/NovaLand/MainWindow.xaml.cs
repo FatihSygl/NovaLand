@@ -328,7 +328,7 @@ public partial class MainWindow : Window
         if (_immersiveSuppressed && expanded) return;
         if (!expanded && _draggedFile is not null) return;
         if (!expanded) EndDockScrub();
-        if (!expanded) { SecondHeadphonePicker.IsOpen = false; AudioSourcePicker.IsOpen = false; }
+        if (!expanded) AudioSourcePicker.IsOpen = false;
         if (!expanded && _tab == "Meals") CloseMealCalendar();
         if (_expanded == expanded) return;
         _expanded = expanded;
@@ -375,8 +375,8 @@ public partial class MainWindow : Window
         if (e.Key == Key.Escape && _dragArmed) { FinishPlacementDrag(true); e.Handled = true; return; }
         if (e.Key == Key.Escape && _tab == "Meals" && CloseMealCalendar(restoreFocus: true))
         { e.Handled = true; return; }
-        if (e.Key == Key.Escape && (SecondHeadphonePicker.IsOpen || AudioSourcePicker.IsOpen))
-        { SecondHeadphonePicker.IsOpen = false; AudioSourcePicker.IsOpen = false; e.Handled = true; return; }
+        if (e.Key == Key.Escape && AudioSourcePicker.IsOpen)
+        { AudioSourcePicker.IsOpen = false; e.Handled = true; return; }
         if (e.Key == Key.Escape) { SetExpanded(false); e.Handled = true; }
         if ((e.Key == Key.Enter || e.Key == Key.Space) && !_expanded)
         { if (!_activities.Acknowledge(DateTimeOffset.UtcNow)) SetExpanded(true); e.Handled = true; }
@@ -553,7 +553,7 @@ public partial class MainWindow : Window
         string previousTab = _tab;
         var previousPage = changed && _expanded ? CapturePageSurface() : null;
         _tab = key;
-        if (previousTab == "Music" && changed) { SecondHeadphonePicker.IsOpen = false; AudioSourcePicker.IsOpen = false; }
+        if (previousTab == "Music" && changed) AudioSourcePicker.IsOpen = false;
         if (previousTab == "Meals" && changed) CloseMealCalendar();
         MusicView.Visibility = key == "Music" ? Visibility.Visible : Visibility.Collapsed;
         FocusView.Visibility = key == "Focus" ? Visibility.Visible : Visibility.Collapsed;
