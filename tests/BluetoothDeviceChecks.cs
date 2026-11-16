@@ -16,6 +16,13 @@ internal static class BluetoothDeviceChecks
             new(@"BTHENUM\DEV_000000000000", unrelated, 15, "Unidentified device")
         ];
 
+        assert(BluetoothBatteryReader.IsClassicDevice(@"bthenum\dev_020a1b2c3d4e\7&abc&0", address),
+            "Target the selected Classic Bluetooth device instance");
+        assert(!BluetoothBatteryReader.IsClassicDevice(@"BTHENUM\DEV_1020A1B2C3D4E\7&abc&0", address) &&
+            !BluetoothBatteryReader.IsClassicDevice(@"BTHLE\DEV_020A1B2C3D4E\7&abc&0", address) &&
+            !BluetoothBatteryReader.IsClassicDevice(@"BTHENUM\DEV_020A1B2C3D4E", address),
+            "Do not target other devices, LE companions or incomplete instance IDs");
+
         assert(BluetoothBatteryReader.ResolveName("Personal AirPods", placeholder, nodes, address, Guid.Empty)
             == "Personal AirPods", "Prefer the paired name over a Bluetooth address");
         assert(BluetoothBatteryReader.ResolveName(placeholder, null, nodes, address, Guid.Empty)

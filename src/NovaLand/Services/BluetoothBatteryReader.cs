@@ -39,6 +39,36 @@ public static class BluetoothBatteryReader
         finally { SetupDiDestroyDeviceInfoList(set); }
         return nodes;
     }
+    internal static string? FindClassicDevice(ulong address)
+    {
+        const uint presentAllClasses = 6;
+        var set = SetupDiGetClassDevsW(IntPtr.Zero, "BTHENUM", IntPtr.Zero, presentAllClasses);
+        if (set == new IntPtr(-1)) return null;
+        try
+        {
+            string? match = null;
+            for (uint index = 0; ; index++)
+            {
+                var info = new DeviceInfo { Size = (uint)Marshal.SizeOf<DeviceInfo>() };
+                if (!SetupDiEnumDeviceInfo(set, index, ref info)) return match;
+                var id = new StringBuilder(256);
+                if (!SetupDiGetDeviceInstanceIdW(set, ref info, id, id.Capacity, out _)) continue;
+                string instanceId = id.ToString();
+                if (!IsClassicDevice(instanceId, address)) continue;
+                if (match is not null) return null;
+                match = instanceId;
+            }
+        }
+        finally { SetupDiDestroyDeviceInfoList(set); }
+    }
+
+    internal static bool IsClassicDevice(string id, ulong address)
+    {
+        if (address is 0 or > 0xFFFFFFFFFFFF) return false;
+        string prefix = $@"BTHENUM\DEV_{address:X12}\";
+        return id.Length > prefix.Length && id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+    }
+
     public static int? Match(IReadOnlyList<BatteryNode> nodes, ulong address, Guid container) =>
         MatchingNodes(nodes, address, container).Min(node => node.Percentage);
 
