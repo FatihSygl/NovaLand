@@ -951,10 +951,10 @@
         <ItemsControl x:Name="ConnectedAudioList">
          <ItemsControl.ItemTemplate><DataTemplate>
           <Border Style="{StaticResource InsetCard}" Margin="0,0,0,6">
-           <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <Path Data="M3,13 L3,10 A9,9 0 0 1 21,10 L21,13 M3,12 L6,12 6,20 3,20 Z M18,12 L21,12 21,20 18,20 Z" Stroke="#C2C2CB" StrokeThickness="1.4" Width="21" Height="21" Stretch="Uniform" VerticalAlignment="Center"/>
-            <StackPanel Grid.Column="1" Margin="6,0,10,0"><TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Medium" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding ConnectionLabel}" FontSize="9" Foreground="{Binding ConnectionColor}" Margin="0,4,0,0"/></StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip="{Binding BatteryHint, Mode=OneWay}" Visibility="{Binding BatteryVisibility}">
+            <StackPanel Grid.Column="1" Margin="6,0,10,0"><TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Medium" TextTrimming="CharacterEllipsis"/><TextBlock Text="Bağlı" FontSize="9" Foreground="#87A180" Margin="0,4,0,0"/></StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip="{Binding BatteryHint, Mode=OneWay}">
              <Grid Width="28" Height="15" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding BatteryIconVisibility}">
               <Border Width="23" Height="13" CornerRadius="3" BorderThickness="1" BorderBrush="#A1A1A6" HorizontalAlignment="Left" VerticalAlignment="Center">
                <Border Width="{Binding BatteryFillWidth, Mode=OneWay}" Height="7" Margin="2,0,0,0" CornerRadius="1.5" Background="{Binding BatteryColor, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center" Loaded="ConnectedBatteryFill_Loaded" IsVisibleChanged="ConnectedBatteryFill_IsVisibleChanged"/>
@@ -963,9 +963,6 @@
              </Grid>
              <TextBlock Text="{Binding BatteryLabel, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding BatteryColor, Mode=OneWay}" Margin="5,0,0,0" VerticalAlignment="Center"/>
             </StackPanel>
-            <Button Grid.Column="3" Content="{Binding ActionLabel}" ToolTip="{Binding ActionHint}"
-                    Visibility="{Binding ActionVisibility}" Click="HeadphoneConnection_Click"
-                    Style="{StaticResource GhostButton}" Margin="8,0,0,0" VerticalAlignment="Center"/>
            </Grid>
           </Border>
          </DataTemplate></ItemsControl.ItemTemplate>
@@ -1251,6 +1248,66 @@
          <StackPanel>
           <CheckBox x:Name="DualHeadphonesCheck" Content="Çift kulaklık" Checked="DualHeadphones_Changed"
                     Unchecked="DualHeadphones_Changed" Margin="0"/>
+          <StackPanel>
+           <StackPanel.Style>
+            <Style TargetType="StackPanel">
+             <Setter Property="Visibility" Value="Collapsed"/>
+             <Style.Triggers>
+              <DataTrigger Binding="{Binding IsChecked, ElementName=DualHeadphonesCheck}" Value="True">
+               <Setter Property="Visibility" Value="Visible"/>
+              </DataTrigger>
+             </Style.Triggers>
+            </Style>
+           </StackPanel.Style>
+           <Border Height="0.5" Background="#303034"/>
+           <TextBlock x:Name="HeadphoneSettingsEmpty" Text="Bluetooth kulaklık bağlandığında burada görünür."
+                      Foreground="#92929C" FontSize="10" TextWrapping="Wrap" Margin="0,9,0,7"/>
+           <ItemsControl x:Name="HeadphoneSettingsList" Margin="0,3,0,2">
+            <ItemsControl.ItemTemplate><DataTemplate>
+             <Grid Margin="0,5">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+              <StackPanel Margin="0,0,6,0" VerticalAlignment="Center" ToolTip="{Binding Name}">
+               <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+               <TextBlock Text="{Binding ConnectionState}" Foreground="#94949E" FontSize="9" Margin="0,2,0,0"/>
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding RoleVisibility}">
+               <Button Content="1 · Ana" Click="PrimaryHeadphone_Click" ToolTip="Windows’un ana ses çıkışı yap">
+                <Button.Style>
+                 <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                  <Setter Property="Padding" Value="6,5"/>
+                  <Style.Triggers>
+                   <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                    <Setter Property="Foreground" Value="#F1F1F5"/>
+                    <Setter Property="Background" Value="#38383E"/>
+                   </DataTrigger>
+                  </Style.Triggers>
+                 </Style>
+                </Button.Style>
+               </Button>
+               <Button Content="2 · İkinci" Click="SecondaryHeadphone_Click" ToolTip="İkinci ses çıkışı yap">
+                <Button.Style>
+                 <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                  <Setter Property="Padding" Value="6,5"/>
+                  <Style.Triggers>
+                   <DataTrigger Binding="{Binding IsSecondary}" Value="True">
+                    <Setter Property="Foreground" Value="#F1F1F5"/>
+                    <Setter Property="Background" Value="#38383E"/>
+                   </DataTrigger>
+                   <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                    <Setter Property="IsEnabled" Value="False"/>
+                   </DataTrigger>
+                  </Style.Triggers>
+                 </Style>
+                </Button.Style>
+               </Button>
+              </StackPanel>
+              <Button Grid.Column="2" Content="{Binding ConnectionAction}" Click="HeadphoneConnection_Click"
+                      Visibility="{Binding ConnectionVisibility}" Style="{StaticResource GhostButton}"
+                      Padding="6,5" Margin="5,0,0,0" VerticalAlignment="Center"/>
+             </Grid>
+            </DataTemplate></ItemsControl.ItemTemplate>
+           </ItemsControl>
+          </StackPanel>
          </StackPanel>
         </Border>
         <TextBlock Text="GÜNLÜK KULLANIM" Style="{StaticResource SectionLabel}" Margin="2,12,0,8" />

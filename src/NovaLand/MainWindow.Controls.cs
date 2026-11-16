@@ -11,14 +11,8 @@ public partial class MainWindow
     private bool _headphoneChangeBusy;
     private ConnectedAudioRow[] _shownConnected = [];
     private OutputAudioRow[] _shownOutputs = [];
-    private sealed record ConnectedAudioRow(string Name, int? Battery, ulong Address, DisabledHeadphone? Disabled = null)
+    private sealed record ConnectedAudioRow(string Name, int? Battery)
     {
-        public string ConnectionLabel => Disabled is null ? "Bağlı" : "Devre dışı";
-        public string ConnectionColor => Disabled is null ? "#87A180" : "#96969C";
-        public string ActionLabel => Disabled is null ? "Devre dışı bırak" : "Etkinleştir";
-        public string ActionHint => Disabled is null ? "Eşleştirmeyi koruyarak bu bilgisayardaki bağlantıyı kapat" : "Bu bilgisayardaki bağlantıyı yeniden etkinleştir";
-        public Visibility ActionVisibility => Address != 0 ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility BatteryVisibility => Disabled is null ? Visibility.Visible : Visibility.Collapsed;
         public string BatteryLabel => Battery.HasValue ? $"%{Math.Clamp(Battery.Value, 0, 100)}" : "Pil bilgisi yok";
         public Visibility BatteryIconVisibility => Battery.HasValue ? Visibility.Visible : Visibility.Collapsed;
         public string BatteryHint => Battery.HasValue ? $"Kulaklık pili: {BatteryLabel}" : "Pil bilgisi yok";
@@ -31,91 +25,9 @@ public partial class MainWindow
     }
     private void RefreshConnectedAudio()
     {
-        if (_headphoneChangeBusy) return;
-        var disabled = _settings.DisabledHeadphones ?? [];
-        var rows = _bluetooth.Connected
-            .Where(x => !disabled.Any(device => device.Address == x.Address))
-            .Select(x => new ConnectedAudioRow(x.Name, x.Battery, x.Address))
-            .Concat(disabled.Select(x => new ConnectedAudioRow(x.Name, null, x.Address, x)))
-            .ToArray();
+        var rows = _bluetooth.Connected.Select(x => new ConnectedAudioRow(x.Name, x.Battery)).ToArray();
         if (!_shownConnected.SequenceEqual(rows)) ConnectedAudioList.ItemsSource = _shownConnected = rows;
         ConnectedAudioEmpty.Visibility = rows.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    private async void HeadphoneConnection_Click(object sender, RoutedEventArgs e)
-    {
-        if (_headphoneChangeBusy || _exiting ||
-            (sender as FrameworkElement)?.DataContext is not ConnectedAudioRow row || row.Address == 0)
-            return;
-
-        _headphoneChangeBusy = true;
-        ConnectedAudioList.IsEnabled = false;
-        var disabled = _settings.DisabledHeadphones ??= [];
-        var saved = row.Disabled;
-        bool enabling = saved is not null;
-        bool keepRecoveryEntry = false;
-        try
-        {
-            if (saved is null)
-            {
-                string? instanceId = await Task.Run(() => BluetoothBatteryReader.FindClassicDevice(row.Address));
-                if (_exiting) return;
-                if (instanceId is null)
-                {
-                    StatusText.Text = "Kulaklığın Windows aygıt kaydı bulunamadı.";
-                    return;
-                }
-
-                // Save the enable action first so it survives an exit during the Windows prompt.
-                saved = new DisabledHeadphone(row.Address, instanceId, row.Name);
-                disabled.Add(saved);
-                SettingsStore.Save(_settings);
-                keepRecoveryEntry = true;
-            }
-
-            var device = saved;
-            var result = await Task.Run(() => BluetoothDeviceSwitch.SetEnabled(device.Address, device.InstanceId, enabling));
-            if (result is BluetoothDeviceChange.Applied or BluetoothDeviceChange.RestartRequired)
-            {
-                if (enabling && result == BluetoothDeviceChange.Applied)
-                {
-                    disabled.Remove(device);
-                    SaveSettings();
-                }
-
-                if (_exiting) return;
-                StatusText.Text = result == BluetoothDeviceChange.RestartRequired
-                    ? "Değişikliği tamamlamak için Windows’u yeniden başlat."
-                    : enabling ? "Kulaklık etkinleştirildi." : "Kulaklık devre dışı bırakıldı.";
-                _ = ScanDevicesAsync();
-            }
-            else
-            {
-                keepRecoveryEntry = false;
-                if (!_exiting)
-                    StatusText.Text = result == BluetoothDeviceChange.Cancelled
-                        ? "İşlem iptal edildi." : "Windows kulaklığın durumunu değiştiremedi.";
-            }
-        }
-        catch (Exception ex)
-        {
-            DiagnosticLog.Write("HeadphoneConnectionChange", ex);
-            if (!_exiting) StatusText.Text = "Kulaklığın durumu değiştirilemedi.";
-        }
-        finally
-        {
-            if (!enabling && !keepRecoveryEntry && saved is not null)
-            {
-                disabled.Remove(saved);
-                SaveSettings();
-            }
-            _headphoneChangeBusy = false;
-            if (!_exiting)
-            {
-                ConnectedAudioList.IsEnabled = true;
-                RefreshConnectedAudio();
-            }
-        }
     }
 
     private void ConnectedBatteryFill_Loaded(object sender, RoutedEventArgs e) => AnimateConnectedBattery(sender);
@@ -163,18 +75,37 @@ public partial class MainWindow
     }
     private async void OutputAudio_Click(object sender, RoutedEventArgs e)
     {
-        if (_outputBusy || (sender as FrameworkElement)?.DataContext is not OutputAudioRow row || row.Selected) return;
-        _outputBusy = true; OutputAudioList.IsEnabled = false;
+        if ((sender as FrameworkElement)?.DataContext is not OutputAudioRow row || row.Selected) return;
+        await ChangeOutputAudioAsync(row.Id);
+    }
+
+    private async Task ChangeOutputAudioAsync(string id, Action? onChanged = null)
+    {
+        if (_outputBusy || _headphoneChangeBusy || _exiting) return;
+        _outputBusy = true;
+        OutputAudioList.IsEnabled = false;
+        HeadphoneSettingsList.IsEnabled = false;
         try
         {
-            bool changed = await Task.Run(() => AudioOutputService.Select(row.Id));
+            bool changed = await Task.Run(() => AudioOutputService.Select(id));
             if (_exiting) return;
+            if (changed) onChanged?.Invoke();
             StatusText.Text = changed ? "Ses çıkışı değiştirildi." : "Ses çıkışı değiştirilemedi. Windows ses ayarlarını kullanabilirsin.";
-            ShowOutputAudio(await Task.Run(AudioOutputService.Read));
-            var volume = AudioService.ReadVolume();
-            ShowSystemVolume(volume);
+            var outputs = await Task.Run(AudioOutputService.Read);
+            if (_exiting) return;
+            ShowOutputAudio(outputs);
+            ShowSystemVolume(AudioService.ReadVolume());
         }
-        catch (Exception ex) { DiagnosticLog.Write("OutputChange", ex); StatusText.Text = "Ses çıkışı okunamadı. Windows ses ayarlarını kullanabilirsin."; }
-        finally { _outputBusy = false; OutputAudioList.IsEnabled = true; }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("OutputChange", ex);
+            if (!_exiting) StatusText.Text = "Ses çıkışı okunamadı. Windows ses ayarlarını kullanabilirsin.";
+        }
+        finally
+        {
+            _outputBusy = false;
+            OutputAudioList.IsEnabled = true;
+            HeadphoneSettingsList.IsEnabled = true;
+        }
     }
 }
