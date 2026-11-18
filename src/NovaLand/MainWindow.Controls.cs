@@ -8,7 +8,6 @@ namespace NovaIsland;
 public partial class MainWindow
 {
     private bool _outputBusy;
-    private bool _headphoneChangeBusy;
     private ConnectedAudioRow[] _shownConnected = [];
     private OutputAudioRow[] _shownOutputs = [];
     private sealed record ConnectedAudioRow(string Name, int? Battery)
@@ -71,7 +70,6 @@ public partial class MainWindow
         if (!_shownOutputs.SequenceEqual(items)) OutputAudioList.ItemsSource = _shownOutputs = items;
         OutputAudioEmpty.Text = "Ses çıkışı bulunamadı.";
         OutputAudioEmpty.Visibility = rows.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        ShowSecondHeadphoneOutputs(rows);
     }
     private async void OutputAudio_Click(object sender, RoutedEventArgs e)
     {
@@ -79,17 +77,15 @@ public partial class MainWindow
         await ChangeOutputAudioAsync(row.Id);
     }
 
-    private async Task ChangeOutputAudioAsync(string id, Action? onChanged = null)
+    private async Task ChangeOutputAudioAsync(string id)
     {
-        if (_outputBusy || _headphoneChangeBusy || _exiting) return;
+        if (_outputBusy || _exiting) return;
         _outputBusy = true;
         OutputAudioList.IsEnabled = false;
-        HeadphoneSettingsList.IsEnabled = false;
         try
         {
             bool changed = await Task.Run(() => AudioOutputService.Select(id));
             if (_exiting) return;
-            if (changed) onChanged?.Invoke();
             StatusText.Text = changed ? "Ses çıkışı değiştirildi." : "Ses çıkışı değiştirilemedi. Windows ses ayarlarını kullanabilirsin.";
             var outputs = await Task.Run(AudioOutputService.Read);
             if (_exiting) return;
@@ -105,7 +101,6 @@ public partial class MainWindow
         {
             _outputBusy = false;
             OutputAudioList.IsEnabled = true;
-            HeadphoneSettingsList.IsEnabled = true;
         }
     }
 }

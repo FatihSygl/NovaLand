@@ -61,7 +61,7 @@ public sealed class BluetoothAudioService
             var name = BluetoothBatteryReader.ResolveName(entry.PairedName, device.Name, _batteryNodes,
                 device.Address, device.Container);
             return new BluetoothAudioSnapshot(device.Id, name,
-                BluetoothBatteryReader.Match(_batteryNodes, device.Address, device.Container), device.Container, device.Address);
+                BluetoothBatteryReader.Match(_batteryNodes, device.Address, device.Container), device.Container);
         }).ToArray();
         _tracker.Update(Connected);
     }

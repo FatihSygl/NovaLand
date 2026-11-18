@@ -19,13 +19,9 @@ public sealed class LocalSettings
     public bool AutoHide { get; set; } = true;
     public bool CaptureClipboard { get; set; } = true;
     public bool MealsEnabled { get; set; }
-    public bool DualHeadphonesEnabled { get; set; }
-    public string? SecondHeadphoneId { get; set; }
-    public List<DisabledHeadphone> DisabledHeadphones { get; set; } = [];
     public List<string> FilePaths { get; set; } = new();
 }
 
-public sealed record DisabledHeadphone(ulong Address, string InstanceId, string Name);
 
 public sealed class FileEntry(string fullPath)
 {

@@ -21,24 +21,19 @@ public partial class MainWindow
         _audioTargets.AddRange(_browserRows);
         _audioTargets.AddRange(_appRows);
         var selected = _audioTargets.FirstOrDefault(t => t.Key == _selectedAudioKey);
-        bool secondSelected = _selectedAudioKey == SecondHeadphoneAudioKey &&
-            _secondHeadphoneRows.Any(row => row.Selected);
-        if (selected is null && !secondSelected) _selectedAudioKey = "";
+        if (selected is null) _selectedAudioKey = "";
         QuickSiteCard.DataContext = selected;
         QuickSiteCard.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
-        SystemVolumeRow.Visibility = selected is null && !secondSelected ? Visibility.Visible : Visibility.Collapsed;
-        SecondHeadphoneVolumeRow.Visibility = secondSelected ? Visibility.Visible : Visibility.Collapsed;
-        AudioSourceTitle.Text = secondSelected ? _secondHeadphoneRows.First(row => row.Selected).Name
-            : selected?.Name ?? _primaryHeadphoneName ?? "Sistem";
+        SystemVolumeRow.Visibility = selected is null ? Visibility.Visible : Visibility.Collapsed;
+        AudioSourceTitle.Text = selected?.Name ?? "Sistem";
         if (AudioSourcePicker.IsOpen) RefreshAudioSourceChoices();
     }
 
-    private sealed record AudioSourceChoice(string Key, string Name, string Kind, bool Selected, string? HeadphoneId = null)
+    private sealed record AudioSourceChoice(string Key, string Name, string Kind, bool Selected)
     {
         public Visibility SelectedVisibility => Selected ? Visibility.Visible : Visibility.Hidden;
     }
 
-    private const string SecondHeadphoneAudioKey = "novaland:second-headphone";
     private string _selectedAudioKey = "";
     private void AudioSource_Click(object sender, RoutedEventArgs e)
     {
@@ -60,9 +55,6 @@ public partial class MainWindow
         };
         choices.AddRange(_audioTargets.Select(target =>
             new AudioSourceChoice(target.Key, target.Name, target.Kind, _selectedAudioKey == target.Key)));
-        choices.AddRange(_secondHeadphoneRows.Select(row => new AudioSourceChoice(
-            SecondHeadphoneAudioKey, row.Name, "Kulaklık",
-            _selectedAudioKey == SecondHeadphoneAudioKey && row.Selected, row.Id)));
         if (AudioSourceChoices.ItemsSource is not IEnumerable<AudioSourceChoice> oldChoices || !oldChoices.SequenceEqual(choices))
             AudioSourceChoices.ItemsSource = choices;
         ConnectAudioBrowserButton.Visibility = _browserAudio?.Connected == true ? Visibility.Collapsed : Visibility.Visible;
@@ -79,13 +71,7 @@ public partial class MainWindow
         if (sender is not FrameworkElement { DataContext: AudioSourceChoice choice }) return;
         _selectedAudioKey = choice.Key;
         AudioSourcePicker.IsOpen = false;
-        if (choice.HeadphoneId is { } id && _settings.SecondHeadphoneId != id)
-        {
-            _settings.SecondHeadphoneId = id;
-            SaveSettings();
-            ApplyDualHeadphonesSettings();
-        }
-        else RefreshQuickSite();
+        RefreshQuickSite();
         AudioSourceButton.Focus();
     }
 

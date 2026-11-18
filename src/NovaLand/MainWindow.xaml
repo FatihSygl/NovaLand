@@ -319,16 +319,7 @@
        <TranslateTransform x:Name="ViewTranslate" />
       </Grid.RenderTransform>
       <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="MusicView" HorizontalScrollBarVisibility="Disabled">
-       <ScrollViewer.Style>
-        <Style TargetType="ScrollViewer">
-         <Setter Property="VerticalScrollBarVisibility" Value="Disabled"/>
-         <Style.Triggers>
-          <DataTrigger Binding="{Binding IsChecked, ElementName=DualHeadphonesCheck}" Value="True">
-           <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
-          </DataTrigger>
-         </Style.Triggers>
-        </Style>
-       </ScrollViewer.Style>
+
       <StackPanel>
        <StackPanel x:Name="HomeOverview" Margin="0,14,0,0" Visibility="Collapsed">
         <TextBlock x:Name="HomeGreeting" Text="Bugün" FontSize="22" FontWeight="SemiBold"/>
@@ -434,16 +425,7 @@
                </Button>
               </DataTemplate></ItemsControl.ItemTemplate>
              </ItemsControl>
-             <TextBlock x:Name="DualHeadphonesStatus" Text="" TextWrapping="Wrap"
-                        FontSize="10" Foreground="#A1A1AB" Margin="8,4,8,4">
-              <TextBlock.Style>
-               <Style TargetType="TextBlock">
-                <Style.Triggers>
-                 <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger>
-                </Style.Triggers>
-               </Style>
-              </TextBlock.Style>
-             </TextBlock>
+
              <Button x:Name="ConnectAudioBrowserButton" Content="Tarayıcıyı bağla ↗" Style="{StaticResource GhostButton}"
                      Click="ConnectAudioBrowser_Click" HorizontalAlignment="Left" Padding="8,5"/>
             </StackPanel>
@@ -468,16 +450,7 @@
           <Slider Grid.Row="1" Style="{StaticResource MusicVolumeSlider}" Minimum="0" Maximum="100"
                   Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Seçilen uygulama veya sitenin sesi"/>
          </Grid>
-         <Grid x:Name="SecondHeadphoneVolumeRow" Grid.RowSpan="2" Visibility="Collapsed" ToolTip="{Binding Text, ElementName=DualHeadphonesStatus}">
-          <Grid.RowDefinitions>
-           <RowDefinition Height="25"/>
-           <RowDefinition Height="24"/>
-          </Grid.RowDefinitions>
-          <TextBlock x:Name="SecondHeadphoneVolumeText" Style="{StaticResource MusicVolumePercentage}"/>
-          <Slider Grid.Row="1" x:Name="SecondHeadphoneVolume" Style="{StaticResource MusicVolumeSlider}" IsEnabled="False"
-                  Minimum="0" Maximum="100" Value="100" TickFrequency="1" IsSnapToTickEnabled="True"
-                  ValueChanged="SecondHeadphoneVolume_Changed" AutomationProperties.Name="İkinci kulaklığın sesi"/>
-         </Grid>
+
         </Grid>
        </Border>
       </StackPanel>
@@ -1241,73 +1214,6 @@
           <CheckBox x:Name="FullscreenCheck" Content="Tam ekranda tamamen gizlen" Checked="FullscreenCheck_Changed" Unchecked="FullscreenCheck_Changed" Margin="0"/>
           <Border Height="0.5" Background="#252529" />
           <CheckBox x:Name="StartupCheck" Content="Windows ile başlat" Checked="StartupCheck_Changed" Unchecked="StartupCheck_Changed" Margin="0" />
-         </StackPanel>
-        </Border>
-        <TextBlock Text="SES PAYLAŞIMI" Style="{StaticResource SectionLabel}" Margin="2,12,0,8"/>
-        <Border Style="{StaticResource InsetCard}" Padding="14,5">
-         <StackPanel>
-          <CheckBox x:Name="DualHeadphonesCheck" Content="Çift kulaklık" Checked="DualHeadphones_Changed"
-                    Unchecked="DualHeadphones_Changed" Margin="0"/>
-          <StackPanel>
-           <StackPanel.Style>
-            <Style TargetType="StackPanel">
-             <Setter Property="Visibility" Value="Collapsed"/>
-             <Style.Triggers>
-              <DataTrigger Binding="{Binding IsChecked, ElementName=DualHeadphonesCheck}" Value="True">
-               <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-             </Style.Triggers>
-            </Style>
-           </StackPanel.Style>
-           <Border Height="0.5" Background="#303034"/>
-           <TextBlock x:Name="HeadphoneSettingsEmpty" Text="Bluetooth kulaklık bağlandığında burada görünür."
-                      Foreground="#92929C" FontSize="10" TextWrapping="Wrap" Margin="0,9,0,7"/>
-           <ItemsControl x:Name="HeadphoneSettingsList" Margin="0,3,0,2">
-            <ItemsControl.ItemTemplate><DataTemplate>
-             <Grid Margin="0,5">
-              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-              <StackPanel Margin="0,0,6,0" VerticalAlignment="Center" ToolTip="{Binding Name}">
-               <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
-               <TextBlock Text="{Binding ConnectionState}" Foreground="#94949E" FontSize="9" Margin="0,2,0,0"/>
-              </StackPanel>
-              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding RoleVisibility}">
-               <Button Content="1 · Ana" Click="PrimaryHeadphone_Click" ToolTip="Windows’un ana ses çıkışı yap">
-                <Button.Style>
-                 <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
-                  <Setter Property="Padding" Value="6,5"/>
-                  <Style.Triggers>
-                   <DataTrigger Binding="{Binding IsPrimary}" Value="True">
-                    <Setter Property="Foreground" Value="#F1F1F5"/>
-                    <Setter Property="Background" Value="#38383E"/>
-                   </DataTrigger>
-                  </Style.Triggers>
-                 </Style>
-                </Button.Style>
-               </Button>
-               <Button Content="2 · İkinci" Click="SecondaryHeadphone_Click" ToolTip="İkinci ses çıkışı yap">
-                <Button.Style>
-                 <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
-                  <Setter Property="Padding" Value="6,5"/>
-                  <Style.Triggers>
-                   <DataTrigger Binding="{Binding IsSecondary}" Value="True">
-                    <Setter Property="Foreground" Value="#F1F1F5"/>
-                    <Setter Property="Background" Value="#38383E"/>
-                   </DataTrigger>
-                   <DataTrigger Binding="{Binding IsPrimary}" Value="True">
-                    <Setter Property="IsEnabled" Value="False"/>
-                   </DataTrigger>
-                  </Style.Triggers>
-                 </Style>
-                </Button.Style>
-               </Button>
-              </StackPanel>
-              <Button Grid.Column="2" Content="{Binding ConnectionAction}" Click="HeadphoneConnection_Click"
-                      Visibility="{Binding ConnectionVisibility}" Style="{StaticResource GhostButton}"
-                      Padding="6,5" Margin="5,0,0,0" VerticalAlignment="Center"/>
-             </Grid>
-            </DataTemplate></ItemsControl.ItemTemplate>
-           </ItemsControl>
-          </StackPanel>
          </StackPanel>
         </Border>
         <TextBlock Text="GÜNLÜK KULLANIM" Style="{StaticResource SectionLabel}" Margin="2,12,0,8" />

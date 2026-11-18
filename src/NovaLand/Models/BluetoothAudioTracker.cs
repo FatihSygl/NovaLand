@@ -1,6 +1,6 @@
 namespace NovaIsland.Models;
 public sealed record AudioDeviceNotice(string Id, string Name, bool Connected, int? Battery, int LowThreshold, string Reason);
-public sealed record BluetoothAudioSnapshot(string Id, string Name, int? Battery, Guid Container = default, ulong Address = 0);
+public sealed record BluetoothAudioSnapshot(string Id, string Name, int? Battery, Guid Container = default);
 public sealed class BluetoothAudioTracker
 {
     private Dictionary<string,BluetoothAudioSnapshot> _connected = new();
