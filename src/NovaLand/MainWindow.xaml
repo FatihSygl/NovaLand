@@ -318,7 +318,7 @@
       <Grid.RenderTransform>
        <TranslateTransform x:Name="ViewTranslate" />
       </Grid.RenderTransform>
-      <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="MusicView" HorizontalScrollBarVisibility="Disabled">
+      <ScrollViewer PreviewMouseWheel="PageScroll_PreviewMouseWheel" x:Name="MusicView" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
 
       <StackPanel>
        <StackPanel x:Name="HomeOverview" Margin="0,14,0,0" Visibility="Collapsed">
